@@ -1,0 +1,4 @@
+country,year,source,title,text
+VNM,2023,Ministry of Foreign Affairs,Joint Statement (example row 1),"Paste the FULL ENGLISH TEXT of the statement here. Keep it inside the double quotes, even if it has commas or several paragraphs."
+VNM,2023,Viet Nam News Agency (English),Article title (example row 2),"Several documents in the same year are fine: the notebook adds them up by country and year."
+CHN,2024,Xinhua (English edition),Article title (example row 3),"Use ISO 3-letter country codes (VNM, CHN, RUS, USA...) in the country column, and a 4-digit year."

@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ruff_cache/
+.pytest_cache/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/coverage/
+
+# Data: the raw corpus, cached scores and local databases are never committed
+data/raw/
+data/processed/
+data/*.sqlite3
+ungdc_raw/
+*.tgz
+*.tar.gz
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+.vercel/
+
+# Notebook outputs
+charts/
+results_by_year.csv
+keywords_by_year.csv
+validation_sample.csv
+project_results.zip
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
