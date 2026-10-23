@@ -27,7 +27,8 @@ class ConfigError(RuntimeError):
 
 
 def on_vercel():
-    return bool(os.environ.get("VERCEL"))
+    """True in Vercel deployments (production and preview), False locally, including under `vercel dev`."""
+    return bool(os.environ.get("VERCEL")) and os.environ.get("VERCEL_ENV") != "development"
 
 
 def load_env_file():

@@ -64,4 +64,7 @@ with `package-lock.json` at exact versions, all published at least two weeks bef
 
 ## 10. Local development runs without Vercel
 `npm run dev` starts the backend (port 8020) and the Vite dev server (port 5173, which forwards `/api`), installs
-dependencies on the first run and migrates the database. `vercel dev` also works once the project is linked.
+dependencies on the first run and migrates the database. `vercel dev` can run both services too, but on Windows it
+sometimes gives up while the Python service is still starting, so `npm run dev` is the supported command. Under
+`vercel dev` (`VERCEL_ENV=development`) the backend still falls back to SQLite; only real deployments insist on
+`DATABASE_URL`.
