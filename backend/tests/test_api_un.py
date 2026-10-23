@@ -6,7 +6,9 @@ import pytest
 
 
 def test_summary_when_nothing_is_loaded(client):
-    assert client.get("/api/un/summary").json()["loaded"] is False
+    r = client.get("/api/un/summary")
+    assert r.json()["loaded"] is False
+    assert r.headers["cache-control"] == "no-store"
 
 
 def test_summary(demo_client):

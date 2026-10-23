@@ -8,6 +8,7 @@ Operator commands (run from backend/):
     uv run python -m dla status         which database is in use and what it contains
 """
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -55,6 +56,9 @@ def main(argv=None):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(errors="replace")     # never crash on symbols a console cannot show
     config.load_env_file()
+    # Migrations and bulk loads use Neon's direct connection; the web app uses the pooled one.
+    if os.environ.get("DATABASE_URL_UNPOOLED"):
+        os.environ["DATABASE_URL"] = os.environ["DATABASE_URL_UNPOOLED"]
     parser = argparse.ArgumentParser(prog="python -m dla", description="Diplomatic Language Analyzer operator CLI")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("migrate", help="create or upgrade the database tables")

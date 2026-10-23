@@ -39,10 +39,11 @@ def year_range(start: int | None, end: int | None):
 
 
 @router.get("/summary", response_model=UNSummary)
-def summary(db: Session = Depends(get_db)):
+def summary(response: Response, db: Session = Depends(get_db)):
     """Which countries and years are loaded, and which keywords were pre-counted."""
     run = un_data.latest_run(db)
     if run is None:
+        response.headers["Cache-Control"] = "no-store"     # never let the CDN remember "no data"
         return {"loaded": False}
     rows = db.execute(select(UNCountryYear.country_code, func.min(UNCountryYear.year),
                              func.max(UNCountryYear.year), func.count())
