@@ -1,0 +1,16 @@
+{
+  "name": "diplomatic-language-analyzer",
+  "private": true,
+  "description": "Measure hostility, cooperation and rhetorical shifts in diplomatic texts and UN General Debate speeches.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && uv run pytest",
+    "test:frontend": "cd frontend && npm test",
+    "e2e": "cd frontend && npx playwright test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

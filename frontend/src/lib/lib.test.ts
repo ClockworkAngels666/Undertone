@@ -1,0 +1,104 @@
+import { batches, parseDocumentsCsv, toCsv } from "./csv";
+import { assignSlots } from "./colors";
+import { formatDelta, formatMetric, metricLabel, percent } from "./format";
+import { storage } from "./storage";
+import { checkTerms, parseTerms, sameTerms } from "./terms";
+import { META } from "../test/fixtures";
+
+describe("format", () => {
+  it("formats each metric in its own unit", () => {
+    expect(formatMetric("tone_balance", 0.256)).toBe("+0.26");
+    expect(formatMetric("tone_balance", -0.5)).toBe("−0.50");
+    expect(formatMetric("hostility", 12.345)).toBe("12.3");
+    expect(formatMetric("negative_share", 0.375)).toBe("38%");
+    expect(formatMetric("kw::NATO", 1.234)).toBe("1.23");
+    expect(formatMetric("hostility", null)).toBe("–");
+  });
+
+  it("formats differences", () => {
+    expect(formatDelta("negative_share", 0.15)).toBe("+15 pts");
+    expect(formatDelta("hostility", -2.04)).toBe("−2.0");
+    expect(formatDelta("tone_balance", 0.0001)).toBe("0.00");
+  });
+
+  it("never rounds a share up to 100%", () => {
+    expect(percent(0.9995)).toBe("99%");
+  });
+
+  it("labels keyword metrics", () => {
+    expect(metricLabel("kw::sanction*", META.metrics)).toBe("“sanction…” per 1,000 words");
+    expect(metricLabel("hostility", META.metrics)).toBe("Hostile words / 1,000");
+  });
+});
+
+describe("terms", () => {
+  it("parses comma, semicolon and newline separated lists", () => {
+    expect(parseTerms("a, b\nc;; d ,")).toEqual(["a", "b", "c", "d"]);
+  });
+
+  it("compares lists ignoring case, order and duplicates", () => {
+    expect(sameTerms(["War", "peace"], ["peace", "war", "war"])).toBe(true);
+    expect(sameTerms(["war"], ["war", "peace"])).toBe(false);
+  });
+
+  it("checks limits", () => {
+    expect(checkTerms(["ok"])).toBeNull();
+    expect(checkTerms(Array(501).fill("x"))).toMatch(/At most 500/);
+    expect(checkTerms(["x".repeat(61)])).toMatch(/at most 60 characters/);
+  });
+});
+
+describe("csv", () => {
+  it("parses documents and reports bad rows with their line numbers", () => {
+    const csv = "﻿Country,Year,Text,Source\nvnm,2023,\"We welcome dialogue, today.\",VNA\nCHN,abc,Text here today.,\nRUS,2022,,\n";
+    const parsed = parseDocumentsCsv(csv);
+    expect(parsed.documents).toEqual([
+      { country: "VNM", year: 2023, text: "We welcome dialogue, today.", source: "VNA", title: null },
+    ]);
+    expect(parsed.lines).toEqual([2]);
+    expect(parsed.problems).toEqual(["Line 3: “abc” is not a year.", "Line 4: the text is empty."]);
+  });
+
+  it("reports missing columns", () => {
+    expect(parseDocumentsCsv("country,text\nVNM,hello").problems[0]).toMatch(/Missing column: year/);
+  });
+
+  it("splits uploads by count and by size", () => {
+    const items = Array.from({ length: 5 }, (_, i) => ({ text: "x".repeat(i === 2 ? 1000 : 10) }));
+    expect(batches(items, 2).map((b) => b.length)).toEqual([2, 2, 1]);
+    expect(batches(items, 10, 1100).map((b) => b.length)).toEqual([2, 1, 2]);   // the big one goes alone
+  });
+
+  it("neutralises spreadsheet formulas in exports", () => {
+    const out = toCsv([{ a: "=SUM(1)", b: 2 }], ["a", "b"]);
+    expect(out.startsWith("﻿")).toBe(true);
+    expect(out).toContain("'=SUM(1)");
+  });
+});
+
+describe("colours", () => {
+  it("keeps each country's colour slot when others are removed or added", () => {
+    let slots = assignSlots({}, ["RUS", "USA", "CHN"]);
+    expect(slots).toEqual({ RUS: 0, USA: 1, CHN: 2 });
+    slots = assignSlots(slots, ["RUS", "CHN"]);
+    expect(slots).toEqual({ RUS: 0, CHN: 2 });
+    slots = assignSlots(slots, ["RUS", "CHN", "VNM"]);
+    expect(slots).toEqual({ RUS: 0, CHN: 2, VNM: 1 });
+  });
+});
+
+describe("storage", () => {
+  it("remembers datasets newest first and forgets them", () => {
+    storage.saveDataset({ id: "a", name: "A", token: "t1", createdAt: "2026-01-01" });
+    storage.saveDataset({ id: "b", name: "B", token: "t2", createdAt: "2026-01-02" });
+    expect(storage.datasets().map((d) => d.id)).toEqual(["b", "a"]);
+    expect(storage.token("a")).toBe("t1");
+    storage.forgetDataset("a");
+    expect(storage.datasets().map((d) => d.id)).toEqual(["b"]);
+  });
+
+  it("survives corrupt stored data", () => {
+    window.localStorage.setItem("dla.datasets.v1", "{not json");
+    expect(storage.datasets()).toEqual([]);
+  });
+});
