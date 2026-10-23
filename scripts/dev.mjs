@@ -2,6 +2,7 @@
 //
 // - installs dependencies on the first run (Python via uv, JavaScript via npm)
 // - brings the database schema up to date (SQLite in data/, or Neon if .env.local has DATABASE_URL)
+// - `npm run dev -- --sqlite` ignores .env.local and always uses the local SQLite database
 // - runs the FastAPI backend on :8020 (API_PORT) and the Vite frontend on :5173 (which forwards /api to the backend)
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
@@ -13,6 +14,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const backend = join(root, "backend");
 const frontend = join(root, "frontend");
 const isWindows = process.platform === "win32";
+if (process.argv.includes("--sqlite")) process.env.DLA_IGNORE_ENV_FILE = "1";
 
 function requireUv() {
   const uv = findUv();

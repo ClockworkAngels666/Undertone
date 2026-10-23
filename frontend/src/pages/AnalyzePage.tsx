@@ -1,4 +1,4 @@
-import { useId, useMemo, useState, type FormEvent } from "react";
+import { lazy, Suspense, useId, useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { api } from "../api/client";
 import type { AnalyzeResult, SentenceScore } from "../api/types";
@@ -8,6 +8,10 @@ import SaveToDataset from "../components/SaveToDataset";
 import { downloadText, toCsv } from "../lib/csv";
 import { percent } from "../lib/format";
 import { errorText, useDictionaries, useDocumentTitle, useMeta } from "../lib/hooks";
+
+// three.js loads after the page itself, so the form is usable straight away.
+const IntroGlobe = lazy(() => import("../three/IntroGlobe"));
+const SentenceLandscape = lazy(() => import("../three/SentenceLandscape"));
 
 export const SAMPLE_TEXT =
   "Mr. President, on behalf of the Republic of Valdoria, I congratulate you on your election. " +
@@ -85,13 +89,19 @@ export default function AnalyzePage() {
 
   return (
     <>
-      <div className="page-intro">
-        <p className="eyebrow">Text analysis</p>
-        <h1>Analyze a diplomatic text</h1>
-        <p>
-          Paste a speech, joint statement or state-media article in English. The tool counts hostile and cooperative
-          vocabulary, scores every sentence with VADER and compares the result with recent UN General Debate speeches.
-        </p>
+      <div className="page-intro with-globe">
+        <div className="intro-text">
+          <p className="eyebrow">Text analysis</p>
+          <h1>Analyze a diplomatic text</h1>
+          <p>
+            Paste a speech, joint statement or state-media article in English. The tool counts hostile and cooperative
+            vocabulary, scores every sentence with VADER and compares the result with recent UN General Debate
+            speeches.
+          </p>
+        </div>
+        <Suspense fallback={null}>
+          <IntroGlobe />
+        </Suspense>
       </div>
 
       <form className="card stack" onSubmit={analyze}>
@@ -148,6 +158,7 @@ export default function AnalyzePage() {
 
 function Results({ result, text }: { result: AnalyzeResult; text: string }) {
   const base = result.baseline;
+  const [focus, setFocus] = useState<number | null>(null);
   return (
     <section aria-label="Results">
       {result.warnings.map((w) => <Notice key={w} kind="warn">{w}</Notice>)}
@@ -182,7 +193,19 @@ function Results({ result, text }: { result: AnalyzeResult; text: string }) {
         </div>
       </div>
 
-      <SentenceTable sentences={result.sentences} contextUsed={result.context_model.used} />
+      <div className="card">
+        <div className="card-head">
+          <h2>Sentence landscape</h2>
+          <span className="small muted">{result.sentences.length} sentences in reading order · tap one to find it below</span>
+        </div>
+        <Suspense fallback={<p className="muted">Loading 3D…</p>}>
+          <SentenceLandscape sentences={result.sentences} onPick={(index) => {
+            setFocus(index);
+            document.getElementById(`sentence-${index}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }} />
+        </Suspense>
+      </div>
+      <SentenceTable sentences={result.sentences} contextUsed={result.context_model.used} focus={focus} />
       <SaveToDataset text={text} />
     </section>
   );
@@ -197,7 +220,9 @@ function TermList({ terms }: { terms: [string, number][] }) {
   );
 }
 
-function SentenceTable({ sentences, contextUsed }: { sentences: SentenceScore[]; contextUsed: boolean }) {
+function SentenceTable({ sentences, contextUsed, focus }: {
+  sentences: SentenceScore[]; contextUsed: boolean; focus: number | null;
+}) {
   const [sort, setSort] = useState<SortKey>("hostile");
   const sorted = useMemo(() => {
     const s = [...sentences];
@@ -243,7 +268,7 @@ function SentenceTable({ sentences, contextUsed }: { sentences: SentenceScore[];
           </thead>
           <tbody>
             {sorted.map((s) => (
-              <tr key={s.index}>
+              <tr key={s.index} id={`sentence-${s.index}`} className={s.index === focus ? "focused" : undefined}>
                 <td className="num">{s.index + 1}</td>
                 <td>{s.sentence}</td>
                 <td className="num">{s.vader.toFixed(2)}</td>

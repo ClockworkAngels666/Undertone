@@ -76,3 +76,24 @@ run from a computer. The Neon resource is therefore also connected to the develo
 `vercel env pull` work. Operator commands use the direct connection (`DATABASE_URL_UNPOOLED`), the app the pooled
 one. While no UN data is loaded, `/api/un/summary` answers `Cache-Control: no-store`, so the CDN never keeps an
 empty answer once the data arrives.
+
+## 12. 3D views where a third dimension carries meaning
+- **Globe by year** (UN page): every delegation coloured and given a column for the chosen metric in one year,
+  with Play to animate 1946–2025. One colour scale spans all years, so colours stay comparable while it plays.
+  The data arrives in one request (`/api/un/matrix`, ~35 KB compressed) so the animation never waits.
+- **Rhetoric space** (UN and dataset pages): hostile words × cooperative words × year, with the "tone balance = 0"
+  plane drawn in, so drift towards confrontation or conciliation is visible as a path.
+- **Sentence landscape** (Analyze): every sentence in reading order, with hostile and cooperative columns.
+- **Intro globe** (start page): decorative only.
+
+All 3D is three.js, loaded lazily (the start page shows before it arrives), drawn only while visible and only when
+something changes, lighter on phones (smaller textures, fewer polygons, pixel density capped), with tap instead of
+hover and vertical swipes still scrolling the page. Every 3D view has a 2D equivalent with the same numbers (charts,
+tables, ranking), and the views degrade to a message where WebGL is unavailable. The map is Natural Earth 1:110m
+(public domain); 33 small or historical states without a shape are placed at their capitals.
+
+## 13. Fonts
+The requested Gastromond and Europa are commercial fonts (Adobe Fonts, or paid self-hosting licences). As agreed,
+the app uses free, open-licensed stand-ins served with the app: **Fraunces** (heavy old-style display serif, in the
+spirit of Gastromond's Garamond-based fat face) for headings and figures, and **Jost** at weight 300 (geometric,
+Futura-like, close to Europa Light) for text; labels and buttons use Jost 500 for legibility at small sizes.

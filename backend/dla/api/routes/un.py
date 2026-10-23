@@ -11,7 +11,7 @@ from ... import analysis, config, un_data
 from ...countries import country_name, normalize_code
 from ...models import UNCountryYear, UNKeywordRate, UNSentence
 from ..deps import get_db, public_cache
-from ..schemas import Ranking, SeriesResponse, Shift, Statement, UNSummary
+from ..schemas import Matrix, Ranking, SeriesResponse, Shift, Statement, UNSummary
 
 router = APIRouter(prefix="/un", tags=["un"], dependencies=[Depends(public_cache)])
 
@@ -84,6 +84,25 @@ def series(countries: str = CountriesParam, metric: str = "tone_balance", start:
                               .order_by(query.c.year)).all()
         result["average"] = [{"year": y, "value": float(v) if v is not None else None} for y, v in avg_rows]
     return result
+
+
+@router.get("/matrix", response_model=Matrix)
+def matrix(metric: str = "tone_balance", db: Session = Depends(get_db)):
+    """One metric for every country and year at once (for the 3D globe's year animation).
+
+    `values[code][i]` is the value in `years[i]`, or null when the country made no statement that year.
+    """
+    check_metric(metric)
+    first, last = db.execute(select(func.min(UNCountryYear.year), func.max(UNCountryYear.year))).one()
+    if first is None:
+        return {"metric": metric, "years": [], "countries": [], "values": {}}
+    years = list(range(first, last + 1))
+    values: dict[str, list[float | None]] = {}
+    for code, year, value in db.execute(un_data.metric_query(metric, UNCountryYear.country_code, UNCountryYear.year)):
+        values.setdefault(code, [None] * len(years))[year - first] = None if value is None else round(value, 4)
+    codes = sorted(values, key=country_name)
+    return {"metric": metric, "years": years, "countries": [{"code": c, "name": country_name(c)} for c in codes],
+            "values": values}
 
 
 @router.get("/shifts", response_model=list[Shift])

@@ -136,6 +136,18 @@ class SeriesResponse(BaseModel):
     average: list[Point] | None = None
 
 
+class CountryRef(BaseModel):
+    code: str
+    name: str
+
+
+class Matrix(BaseModel):
+    metric: str
+    years: list[int]
+    countries: list[CountryRef]
+    values: dict[str, list[float | None]]
+
+
 class Shift(BaseModel):
     country: str
     name: str

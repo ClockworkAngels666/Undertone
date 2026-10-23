@@ -103,6 +103,14 @@ export interface SeriesResponse {
   average: Point[] | null;
 }
 
+/** One metric for every country and year: values[code][i] belongs to years[i] (null = no statement). */
+export interface Matrix {
+  metric: string;
+  years: number[];
+  countries: { code: string; name: string }[];
+  values: Record<string, (number | null)[]>;
+}
+
 export interface Shift {
   country: string;
   name: string;

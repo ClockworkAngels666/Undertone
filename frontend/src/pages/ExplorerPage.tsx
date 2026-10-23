@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { api } from "../api/client";
 import type { CountryInfo, NotableSentence, Statement, UNSummary } from "../api/types";
@@ -12,6 +12,10 @@ import { formatDelta, formatMetric, metricLabel, tickFormat } from "../lib/forma
 import { useAsync, useDocumentTitle, useMeta } from "../lib/hooks";
 
 const PREFERRED = ["RUS", "USA", "CHN", "VNM"];
+
+// The 3D views (three.js) load only when this page is opened.
+const YearGlobe = lazy(() => import("../three/YearGlobe"));
+const RhetoricSpace = lazy(() => import("../three/RhetoricSpace"));
 
 export default function ExplorerPage() {
   useDocumentTitle("UN General Debate");
@@ -58,7 +62,10 @@ function Explorer({ summary }: { summary: UNSummary }) {
   };
 
   const slots = useStableSlots(countries);
-  const colors = Object.fromEntries(countries.map((c) => [c, PALETTE[scheme][slots[c] ?? 0]]));
+  // Same object while the countries and theme stay the same, so the 3D views do not redraw needlessly.
+  const colorKey = countries.map((c) => `${c}=${PALETTE[scheme][slots[c] ?? 0]}`).join(",");
+  const colors = useMemo(() => Object.fromEntries(colorKey.split(",").filter(Boolean).map((pair) => pair.split("="))),
+    [colorKey]) as Record<string, string>;
   const names = Object.fromEntries(summary.countries.map((c) => [c.code, c.name]));
   const label = metricLabel(metric, meta.metrics);
 
@@ -72,6 +79,34 @@ function Explorer({ summary }: { summary: UNSummary }) {
   );
 
   const [reading, setReading] = useState<{ country: string; year: number } | null>(null);
+  const [globeYear, setGlobeYear] = useState(end);
+  const [picked, setPicked] = useState<{ code: string; year: number; added: boolean } | null>(null);
+  const matrix = useAsync(() => api.un.matrix(metric), [metric]);
+  const space = useAsync(
+    () => (countries.length ? Promise.all([
+      api.un.series({ countries, metric: "hostility", start, end, average: false }),
+      api.un.series({ countries, metric: "cooperation", start, end, average: false }),
+    ]) : Promise.resolve(null)),
+    [countries.join(","), start, end],
+  );
+
+  const spaceSeries = useMemo(() => (space.data ? space.data[0].series.map((h) => {
+    const coop = new Map(space.data![1].series.find((c) => c.country === h.country)?.points
+      .map((p) => [p.year, p.value]) ?? []);
+    return { key: h.country, label: h.name, color: colors[h.country] ?? PALETTE[scheme][0],
+      points: h.points.map((p) => ({ year: p.year, hostility: p.value, cooperation: coop.get(p.year) ?? null })) };
+  }) : []), [space.data, colors, scheme]);
+
+  const openSpeech = useCallback((code: string, year: number) => {
+    const changes: Record<string, string | null> = {};
+    if (year < start) changes.from = String(year);
+    if (year > end) changes.to = String(year);
+    const added = !countries.includes(code) && countries.length < max;
+    if (added) changes.c = [...countries, code].join(",");
+    if (Object.keys(changes).length) update(changes);
+    setReading({ country: code, year });
+    setPicked({ code, year, added });
+  }, [countries.join(","), start, end, max, params]);
   const readCountry = reading?.country && countries.includes(reading.country) ? reading.country : countries[0];
   const readYears = useMemo(() => {
     const s = series.data?.series.find((x) => x.country === readCountry);
@@ -124,6 +159,28 @@ function Explorer({ summary }: { summary: UNSummary }) {
 
       <div className="card">
         <div className="card-head">
+          <h2>The world in 3D</h2>
+          <span className="small muted">{label} · every delegation, year by year</span>
+        </div>
+        {matrix.error ? <Notice kind="error" onRetry={matrix.reload}>{matrix.error}</Notice>
+          : !matrix.data ? <Loading label="Loading the globe…" /> : (
+            <Suspense fallback={<Loading label="Loading 3D…" />}>
+              <YearGlobe matrix={matrix.data} metric={metric} metricLabel={label}
+                format={(v) => formatMetric(metric, v)} year={globeYear} onYearChange={setGlobeYear}
+                selected={colors} onPick={openSpeech} />
+            </Suspense>
+          )}
+        {picked && (
+          <Notice kind="info">
+            {names[picked.code] ?? picked.code}, {picked.year}:{" "}
+            {picked.added ? "added to the chart. " : countries.includes(picked.code) ? "" : "the chart is full (8 countries). "}
+            <a href="#close-reading">Read this speech ↓</a>
+          </Notice>
+        )}
+      </div>
+
+      <div className="card">
+        <div className="card-head">
           <h2>{label}</h2>
           <DownloadLink href={api.un.exportUrl({ countries, start, end })}>Download selection (CSV)</DownloadLink>
         </div>
@@ -147,6 +204,29 @@ function Explorer({ summary }: { summary: UNSummary }) {
           <Loading />
         )}
         <Limitations />
+      </div>
+
+      <div className="card">
+        <div className="card-head">
+          <h2>Rhetoric space</h2>
+          <span className="small muted">hostile × cooperative words × time, {start}–{end}</span>
+        </div>
+        {space.error ? <Notice kind="error" onRetry={space.reload}>{space.error}</Notice>
+          : !countries.length ? <p className="empty">Choose at least one country.</p>
+          : !space.data ? <Loading /> : (
+            <Suspense fallback={<Loading label="Loading 3D…" />}>
+              <RhetoricSpace
+                series={spaceSeries}
+                onPick={(code, year) => {
+                  setReading({ country: code, year });
+                  document.getElementById("close-reading")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }} />
+            </Suspense>
+          )}
+        <p className="small muted">
+          Each line is one country&apos;s path through the years. Points above the shaded plane used more cooperative
+          than hostile words that year.
+        </p>
       </div>
 
       <div className="grid-2">

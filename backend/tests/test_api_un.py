@@ -51,6 +51,28 @@ def test_series_rejects_bad_requests(demo_client, params, message):
     assert r.status_code == 422 and message in r.json()["detail"]
 
 
+def test_matrix(demo_client):
+    body = demo_client.get("/api/un/matrix", params={"metric": "hostility"}).json()
+    assert body["years"] == list(range(2000, 2026))
+    assert [c["code"] for c in body["countries"]] == ["BOR", "FRD", "ORS", "SYL", "VLD"]
+    vld = body["values"]["VLD"]
+    assert len(vld) == 26 and all(v > 0 for v in vld)
+    series = demo_client.get("/api/un/series", params={"countries": "VLD", "metric": "hostility",
+                                                       "average": False}).json()["series"][0]["points"]
+    assert vld[14] == pytest.approx(series[14]["value"], abs=1e-4)          # 2014
+
+
+def test_matrix_for_keywords(demo_client):
+    body = demo_client.get("/api/un/matrix", params={"metric": "kw::NATO"}).json()
+    assert len(body["values"]) == 5
+    assert demo_client.get("/api/un/matrix", params={"metric": "nope"}).status_code == 422
+
+
+def test_matrix_without_data(client):
+    assert client.get("/api/un/matrix").json() == {"metric": "tone_balance", "years": [], "countries": [],
+                                                   "values": {}}
+
+
 def test_shifts(demo_client):
     body = demo_client.get("/api/un/shifts", params={"countries": "ORS,SYL", "metric": "tone_balance", "n": 3}).json()
     assert len(body) == 3

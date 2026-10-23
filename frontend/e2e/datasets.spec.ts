@@ -20,7 +20,7 @@ test("uploads a CSV, compares it over time, exports and deletes it", async ({ pa
 
   await expect(page).toHaveURL(/\/datasets\/[0-9a-f-]{36}$/);
   await expect(page.getByText(/1 row was skipped/)).toBeVisible();
-  await expect(page.getByRole("list", { name: "Legend" })).toContainText("Vietnam");
+  await expect(page.getByRole("list", { name: "Legend" }).first()).toContainText("Vietnam");
   await expect(page.locator(".recharts-line-curve").first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "By country and year" })).toBeVisible();
 

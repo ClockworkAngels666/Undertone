@@ -40,7 +40,10 @@
   --info-ink: #1c3f6e;
   --shadow: 0 1px 2px rgba(15, 28, 43, 0.05), 0 6px 18px rgba(15, 28, 43, 0.05);
   --radius: 10px;
-  --sans: "Roboto Variable", Roboto, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
+  /* Free stand-ins: Jost (Futura-like geometric sans, used at 300 like Europa Light) for text,
+     Fraunces (heavy old-style display serif, in the spirit of Gastromond) for headings and figures. */
+  --sans: "Jost Variable", Jost, "Futura", "Century Gothic", system-ui, sans-serif;
+  --display: "Fraunces Variable", Fraunces, "Iowan Old Style", Georgia, serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -94,17 +97,27 @@ body {
   margin: 0;
   background: var(--plane);
   color: var(--ink);
-  font: 16px/1.55 var(--sans);
+  font: 300 16.5px/1.6 var(--sans);
   overflow-x: hidden;
 }
 
 h1,
 h2,
 h3 {
-  font-weight: 700;
-  line-height: 1.2;
+  font-family: var(--display);
+  font-weight: 800;
+  line-height: 1.15;
   margin: 0 0 0.5rem;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+}
+
+h3 {
+  font-weight: 700;
+}
+
+strong,
+b {
+  font-weight: 600;
 }
 
 h1 {
@@ -192,7 +205,8 @@ a {
 }
 
 .brand-name {
-  font-weight: 700;
+  font-family: var(--display);
+  font-weight: 800;
   font-size: 1.05rem;
   letter-spacing: -0.005em;
 }
@@ -235,7 +249,7 @@ a {
 .nav a.active {
   color: var(--link);
   border-bottom-color: var(--un);
-  font-weight: 700;
+  font-weight: 500;
 }
 
 @media (max-width: 760px) {
@@ -301,9 +315,9 @@ main {
   color: var(--hero-ink);
   opacity: 0.85;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   margin-bottom: 8px;
 }
 
@@ -428,7 +442,7 @@ main {
 /* ── Forms & buttons ────────────────────────────────────────────────────── */
 label {
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ink-2);
 }
 
@@ -440,7 +454,7 @@ label {
 }
 
 .field .hint {
-  font-weight: 400;
+  font-weight: 300;
   color: var(--muted);
   font-size: 0.84rem;
 }
@@ -478,7 +492,7 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-weight: 400;
+  font-weight: 300;
   color: var(--ink);
   min-height: 40px;
 }
@@ -490,7 +504,7 @@ select {
 
 .btn {
   font: inherit;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.95rem;
   display: inline-flex;
   align-items: center;
@@ -631,19 +645,20 @@ select {
 .metric .label {
   font-size: 0.82rem;
   color: var(--ink-2);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .metric .value {
-  font-size: 1.65rem;
-  font-weight: 650;
+  font-family: var(--display);
+  font-size: 1.75rem;
+  font-weight: 750;
   line-height: 1.25;
   margin-top: 2px;
 }
 
 .metric .delta {
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .delta.good {
@@ -750,7 +765,7 @@ td {
 
 th {
   background: var(--surface-2);
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
   position: sticky;
   top: 0;
@@ -778,7 +793,7 @@ tr.clickable:hover td {
 
 th button.sort {
   font: inherit;
-  font-weight: 600;
+  font-weight: 500;
   background: none;
   border: none;
   color: inherit;
@@ -918,6 +933,7 @@ th button.sort {
 }
 
 .tooltip .year {
+  font-family: var(--display);
   font-weight: 700;
   margin-bottom: 4px;
 }
@@ -1029,7 +1045,7 @@ dl.defs {
 }
 
 dl.defs dt {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 dl.defs dd {
@@ -1043,5 +1059,165 @@ dl.defs dd {
   }
   dl.defs dd {
     margin-bottom: 8px;
+  }
+}
+
+/* ── 3D views ───────────────────────────────────────────────────────────── */
+.page-intro.with-globe {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+  background: linear-gradient(120deg, var(--hero-from), var(--hero-to));
+}
+
+.intro-globe {
+  height: 260px;
+  margin: -6px -10px -6px 0;
+  cursor: grab;
+}
+
+.intro-globe:active {
+  cursor: grabbing;
+}
+
+@media (max-width: 760px) {
+  .page-intro.with-globe {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .intro-globe {
+    height: 190px;
+    margin: 0 -8px -8px;
+  }
+}
+
+.globe3d,
+.space3d,
+.landscape3d {
+  position: relative;
+}
+
+.globe3d-stage {
+  height: 520px;
+  border-radius: 8px;
+  background: radial-gradient(circle at 50% 45%, var(--surface-2), var(--surface) 70%);
+  cursor: grab;
+}
+
+.globe3d-year {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 2.6rem;
+  line-height: 1;
+  color: var(--ink);
+  pointer-events: none;
+}
+
+.globe3d-note {
+  position: absolute;
+  top: 54px;
+  left: 16px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.globe3d-tip,
+.space3d-tip,
+.landscape3d-tip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+  max-width: 260px;
+}
+
+.globe3d-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.globe3d-bar input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+  height: 28px;
+}
+
+.globe3d-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-top: 8px;
+  color: var(--ink-2);
+}
+
+.globe3d-scale {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 180px;
+}
+
+.globe3d-ramp {
+  height: 10px;
+  border-radius: 5px;
+}
+
+.globe3d-ramp-labels {
+  display: flex;
+  justify-content: space-between;
+}
+
+.globe3d-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  vertical-align: -1px;
+}
+
+.space3d-stage {
+  height: 480px;
+  cursor: grab;
+}
+
+.space3d-bar {
+  align-items: center;
+  margin-top: 6px;
+}
+
+.landscape3d-stage {
+  height: 380px;
+  cursor: grab;
+}
+
+tr.focused td {
+  background: var(--info-bg);
+  transition: background 0.3s;
+}
+
+@media (max-width: 760px) {
+  .globe3d-stage {
+    height: 360px;
+  }
+  .globe3d-year {
+    font-size: 2rem;
+  }
+  .globe3d-note {
+    top: 44px;
+  }
+  .space3d-stage {
+    height: 360px;
+  }
+  .landscape3d-stage {
+    height: 260px;
   }
 }

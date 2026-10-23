@@ -5,20 +5,23 @@ import { defineConfig, devices } from "@playwright/test";
 //   E2E_BASE_URL=https://diplomatic-language-analyzer.vercel.app npx playwright test
 const deployed = process.env.E2E_BASE_URL;
 const API_PORT = "8021";
+// Headless Chrome has no graphics card; these switches give it software WebGL so the 3D views are tested too.
+const WEBGL_ARGS = ["--enable-unsafe-swiftshader", "--use-angle=swiftshader", "--ignore-gpu-blocklist"];
 
 export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,
-  expect: { timeout: 15_000 },
+  expect: { timeout: 30_000 },
   retries: process.env.CI || deployed ? 1 : 0,
+  workers: process.env.CI ? 2 : 4,      // software WebGL is CPU-heavy
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : [["list"]],
   use: {
     baseURL: deployed ?? "http://127.0.0.1:4173",
     trace: "retain-on-failure",
   },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile", use: { ...devices["Pixel 7"] } },
+    { name: "desktop", use: { ...devices["Desktop Chrome"], launchOptions: { args: WEBGL_ARGS } } },
+    { name: "mobile", use: { ...devices["Pixel 7"], launchOptions: { args: WEBGL_ARGS } } },
   ],
   webServer: deployed
     ? undefined

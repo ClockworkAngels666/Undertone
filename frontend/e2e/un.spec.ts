@@ -7,7 +7,7 @@ test("explores the UN General Debate data", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toContainText("UN General Debate");
   await expect(page.getByRole("img", { name: /Line chart/ })).toBeVisible();
   await expect(page.locator(".recharts-line-curve").first()).toBeVisible();
-  await expect(page.getByRole("list", { name: "Legend" })).toContainText("All-country average");
+  await expect(page.getByRole("list", { name: "Legend" }).first()).toContainText("All-country average");
 
   await page.getByLabel("Metric").selectOption("hostility");
   await expect(page).toHaveURL(/m=hostility/);

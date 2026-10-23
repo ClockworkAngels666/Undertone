@@ -9,9 +9,9 @@ state-media articles, and 80 years of UN General Debate statements (1946–2025)
 
 | Page | What it does |
 |---|---|
-| **Analyze a text** | Paste a text or upload a `.txt`/`.pdf`. Get five tone metrics, a comparison with recent UN speeches, the text with hostile and cooperative words highlighted, a score for every sentence (CSV export), and save it to a dataset. |
-| **UN General Debate** | Explore 11,141 statements from 200 delegations by country, years and metric (or keyword), with the all-country average and key events. See the biggest year-to-year shifts, read the most notable sentences of any speech, rank all countries in a year, export CSV. |
-| **My datasets** | Upload a CSV (`country`, `year`, `text`, optional `source`, `title`) and follow how its tone changes by country and year, compare it with the same countries' UN speeches, track keywords, rescore, export, delete. |
+| **Analyze a text** | Paste a text or upload a `.txt`/`.pdf`. Get five tone metrics, a comparison with recent UN speeches, the text with hostile and cooperative words highlighted, a **3D sentence landscape** (every sentence as a tile, with columns for its hostile and cooperative words), a score for every sentence (CSV export), and save it to a dataset. |
+| **UN General Debate** | A **3D globe** of every delegation's tone, year by year (press Play to watch 1946–2025; click a country to add it). Explore 11,141 statements from 200 delegations by country, years and metric (or keyword), with the all-country average and key events, and follow each country through a **3D rhetoric space** (hostile × cooperative words × time). See the biggest year-to-year shifts, read the most notable sentences of any speech, rank all countries in a year, export CSV. |
+| **My datasets** | Upload a CSV (`country`, `year`, `text`, optional `source`, `title`) and follow how its tone changes by country and year (chart and 3D rhetoric space), compare it with the same countries' UN speeches, track keywords, rescore, export, delete. |
 | **Dictionaries** | Edit the hostile and cooperative word lists for your research question. |
 | **Method** | How every number is computed, and the method's limitations. |
 
@@ -22,7 +22,9 @@ Browser ──► Vercel ─┬─ /api/*  ──► FastAPI backend (backend/, 
                     └─ else    ──► React frontend (frontend/, static files)
 ```
 
-- **Frontend** (`frontend/`): React + TypeScript + Vite, Recharts for the charts.
+- **Frontend** (`frontend/`): React + TypeScript + Vite, Recharts for the charts, three.js for the 3D views
+  (loaded only on the pages that use them, lighter on phones). Fonts: Fraunces (headings) and Jost Light (text),
+  both open-licensed and served with the app.
 - **Backend** (`backend/`): FastAPI REST API under `/api`, with automatic docs at `/api/docs`. The analysis core is
   `backend/dla/analysis.py` (VADER + diplomatic dictionaries).
 - **Database**: Postgres on Neon in production (SQLAlchemy + Alembic migrations); SQLite on your computer when no
@@ -44,6 +46,7 @@ npm run dev
 ```
 
 Then open **http://localhost:5173**. The first run installs everything (a few minutes). Press `Ctrl+C` to stop.
+`npm run dev -- --sqlite` always uses the local test database, even when `.env.local` points to the live one.
 
 The local app uses `data/local.sqlite3`. To fill it with the UN data, download `UNGDC_1946-2025.tar.gz` from
 [Harvard Dataverse](https://doi.org/10.7910/DVN/0TJX8Y) (it asks you to fill in a short guestbook form), put it in

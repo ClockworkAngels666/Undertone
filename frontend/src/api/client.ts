@@ -6,6 +6,7 @@ import type {
   DocumentSummary,
   ExtractedText,
   Health,
+  Matrix,
   Meta,
   Ranking,
   SeriesResponse,
@@ -101,6 +102,7 @@ export const api = {
       request<SeriesResponse>(
         `/un/series${query({ countries: p.countries.join(","), metric: p.metric, start: p.start, end: p.end, average: p.average })}`,
       ),
+    matrix: (metric: string) => request<Matrix>(`/un/matrix${query({ metric })}`),
     shifts: (p: { countries: string[]; metric: string; start?: number; end?: number; n?: number }) =>
       request<Shift[]>(
         `/un/shifts${query({ countries: p.countries.join(","), metric: p.metric, start: p.start, end: p.end, n: p.n })}`,

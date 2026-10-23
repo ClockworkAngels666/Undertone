@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
 import { api } from "../api/client";
 import type { Dataset, UNSummary, YearlyRow } from "../api/types";
@@ -7,6 +7,8 @@ import CsvUploader from "../components/CsvUploader";
 import { DownloadLink, Limitations, Loading, Notice } from "../components/common";
 import MetricSelect from "../components/MetricSelect";
 import TrendChart, { type ChartSeries } from "../components/TrendChart";
+
+const RhetoricSpace = lazy(() => import("../three/RhetoricSpace"));
 import { PALETTE, useColorScheme, useStableSlots } from "../lib/colors";
 import { rescoreAll, uploadDocuments, type UploadProgress } from "../lib/datasets";
 import { formatMetric, isKeywordMetric, metricLabel, plural, tickFormat } from "../lib/format";
@@ -64,14 +66,26 @@ function DatasetView({ dataset, rows, rowsError, refresh }: {
     }
     return [...docs.entries()].sort((a, b) => b[1].documents - a[1].documents);
   }, [rows]);
-  const options = byDocs.map(([code, v]) => ({ code, name: v.name }));
+  const options = useMemo(() => byDocs.map(([code, v]) => ({ code, name: v.name })), [byDocs]);
   const max = meta.limits.max_chart_countries;
   const [chosen, setChosen] = useState<string[] | null>(null);
   const countries = (chosen ?? byDocs.slice(0, 4).map(([c]) => c)).filter((c) => options.some((o) => o.code === c));
   const [metric, setMetric] = useState("tone_balance");
   const [compareUN, setCompareUN] = useState(false);
   const slots = useStableSlots(countries);
-  const colors = Object.fromEntries(countries.map((c) => [c, PALETTE[scheme][slots[c] ?? 0]]));
+  const colorKey = countries.map((c) => `${c}=${PALETTE[scheme][slots[c] ?? 0]}`).join(",");
+  const colors = useMemo(() => Object.fromEntries(colorKey.split(",").filter(Boolean).map((pair) => pair.split("="))),
+    [colorKey]) as Record<string, string>;
+  const spaceSeries = useMemo(() => colorKey.split(",").filter(Boolean).map((pair) => {
+    const [c, color] = pair.split("=");
+    return {
+      key: c,
+      label: options.find((o) => o.code === c)?.name ?? c,
+      color,
+      points: rows.filter((r) => r.country === c).map((r) => ({
+        year: r.year, hostility: r.hostility as number | null, cooperation: r.cooperation as number | null })),
+    };
+  }), [colorKey, rows, options]);
   const label = metricLabel(metric, meta.metrics);
 
   const unSummary = useAsync<UNSummary | null>(() => (compareUN ? api.un.summary() : Promise.resolve(null)), [compareUN]);
@@ -153,6 +167,18 @@ function DatasetView({ dataset, rows, rowsError, refresh }: {
               valueLabel={label} reloading={unSeries.loading} />
           )}
           <Limitations />
+        </div>
+      )}
+
+      {rows.length > 0 && countries.length > 0 && (
+        <div className="card">
+          <div className="card-head">
+            <h2>Rhetoric space</h2>
+            <span className="small muted">hostile × cooperative words × time</span>
+          </div>
+          <Suspense fallback={<Loading label="Loading 3D…" />}>
+            <RhetoricSpace series={spaceSeries} />
+          </Suspense>
         </div>
       )}
 
