@@ -5,8 +5,10 @@
   "license": "MIT",
   "scripts": {
     "dev": "node scripts/dev.mjs",
+    "load-un": "node scripts/uv.mjs run python -m dla load-un",
+    "migrate": "node scripts/uv.mjs run python -m dla migrate",
     "test": "npm run test:backend && npm run test:frontend",
-    "test:backend": "cd backend && uv run pytest",
+    "test:backend": "node scripts/uv.mjs run pytest",
     "test:frontend": "cd frontend && npm test",
     "e2e": "cd frontend && npx playwright test"
   },

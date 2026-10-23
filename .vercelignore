@@ -1,0 +1,14 @@
+# Upload only what a deployment needs (the frontend, the backend and this config)
+/*
+!/backend
+!/frontend
+!/vercel.json
+**/.venv
+**/node_modules
+**/__pycache__
+**/.ruff_cache
+**/.pytest_cache
+/backend/tests
+/frontend/dist
+/frontend/test-results
+/frontend/playwright-report

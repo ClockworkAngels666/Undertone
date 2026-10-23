@@ -54,3 +54,8 @@ export function tickFormat(id: string) {
     return Number.isInteger(value) ? String(value) : value.toFixed(1);
   };
 }
+
+/** "1 text", "3 texts" (with thousands separators). */
+export function plural(n: number, singular: string, pluralForm = `${singular}s`) {
+  return `${n.toLocaleString("en")} ${n === 1 ? singular : pluralForm}`;
+}

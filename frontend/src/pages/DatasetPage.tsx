@@ -9,7 +9,7 @@ import MetricSelect from "../components/MetricSelect";
 import TrendChart, { type ChartSeries } from "../components/TrendChart";
 import { PALETTE, useColorScheme, useStableSlots } from "../lib/colors";
 import { rescoreAll, uploadDocuments, type UploadProgress } from "../lib/datasets";
-import { formatMetric, isKeywordMetric, metricLabel, tickFormat } from "../lib/format";
+import { formatMetric, isKeywordMetric, metricLabel, plural, tickFormat } from "../lib/format";
 import { errorText, useAsync, useDictionaries, useDocumentTitle, useMeta } from "../lib/hooks";
 import { storage } from "../lib/storage";
 import { joinTerms, parseTerms, sameTerms } from "../lib/terms";
@@ -109,7 +109,7 @@ function DatasetView({ dataset, rows, rowsError, refresh }: {
         <p className="small"><Link to="/datasets">← My datasets</Link></p>
         <h1>{dataset.name}</h1>
         <p className="muted">
-          {dataset.documents.toLocaleString()} texts · {dataset.countries.length} countries
+          {plural(dataset.documents, "text")} · {plural(dataset.countries.length, "country", "countries")}
           {dataset.first_year ? ` · ${dataset.first_year}–${dataset.last_year}` : ""} ·{" "}
           {dataset.uses_default_dictionaries ? "default dictionaries" : "custom dictionaries"}
           {token ? "" : " · view only"}
@@ -117,13 +117,13 @@ function DatasetView({ dataset, rows, rowsError, refresh }: {
       </div>
       {justUploaded && justUploaded.skipped.length > 0 && (
         <Notice kind="warn">
-          {justUploaded.skipped.length} rows were skipped:
+          {plural(justUploaded.skipped.length, "row was", "rows were")} skipped:
           <ul>{justUploaded.skipped.slice(0, 8).map((s) => <li key={`${s.line}`}>Line {s.line}: {s.reason}</li>)}</ul>
         </Notice>
       )}
       {dataset.stale_documents > 0 && (
         <Notice kind="warn">
-          {dataset.stale_documents} texts still use older dictionaries or keywords.
+          {plural(dataset.stale_documents, "text")} still {dataset.stale_documents === 1 ? "uses" : "use"} older dictionaries or keywords.
           {token && <Rescore id={dataset.id} token={token} onDone={refresh} label="Finish rescoring" />}
         </Notice>
       )}

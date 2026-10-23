@@ -1,115 +1,114 @@
-# 🌐 Diplomatic Language Analyzer
+# Diplomatic Language Analyzer
 
-A free web tool that measures **hostility**, **cooperation** and **rhetorical shifts** in diplomatic texts: speeches, joint statements and state-media articles.
+Measure **hostility**, **cooperation** and **rhetorical shifts** in diplomatic texts: speeches, joint statements and
+state-media articles, and 80 years of UN General Debate statements (1946–2025).
 
----
+**Live app: LIVE_URL** · API documentation: LIVE_URL/api/docs
 
-## Features
+## What you can do
 
-| Tab | What the user does | What they get |
-|---|---|---|
-| 🔍 **Analyze a text** | Paste a text or upload a `.txt` / `.pdf` file | 5 tone metrics, a comparison with UN speeches, the text with key words highlighted, a score for every sentence |
-| 📈 **Compare over time** | Upload a CSV (`country`, `year`, `text`) | Trend charts per country and year, tracking of chosen keywords |
-| 🌐 **UN General Debate data** | Pick countries, years and a metric | Charts from 1946 to today, the biggest "turning points", notable sentences for close reading, a country ranking |
+| Page | What it does |
+|---|---|
+| **Analyze a text** | Paste a text or upload a `.txt`/`.pdf`. Get five tone metrics, a comparison with recent UN speeches, the text with hostile and cooperative words highlighted, a score for every sentence (CSV export), and save it to a dataset. |
+| **UN General Debate** | Explore 11,141 statements from 200 delegations by country, years and metric (or keyword), with the all-country average and key events. See the biggest year-to-year shifts, read the most notable sentences of any speech, rank all countries in a year, export CSV. |
+| **My datasets** | Upload a CSV (`country`, `year`, `text`, optional `source`, `title`) and follow how its tone changes by country and year, compare it with the same countries' UN speeches, track keywords, rescore, export, delete. |
+| **Dictionaries** | Edit the hostile and cooperative word lists for your research question. |
+| **Method** | How every number is computed, and the method's limitations. |
 
-Users can also **edit the dictionaries** in the sidebar to fit their own research question.
-
-## Project structure
+## How it works
 
 ```
-app.py                  Web interface (Streamlit) – what users see
-analysis.py             The "brain": cleaning, sentence splitting, VADER, dictionaries, metrics
-build_un_data.py        Run ONCE to pre-score the whole UN dataset
-requirements.txt        Libraries the server installs automatically
-un_scores.csv.gz        (created in Step 2) scores for every country–year
-un_sentences.csv.gz     (created in Step 2) the most notable sentences of each speech
-notebook/               Step-by-step Google Colab notebook + sample CSV
-tests/                  Automated tests for analysis.py
+Browser ──► Vercel ─┬─ /api/*  ──► FastAPI backend (backend/, Python 3.12) ──► Neon Postgres
+                    └─ else    ──► React frontend (frontend/, static files)
 ```
 
-**Why split it this way?** The interface and the calculations are kept apart, so changing one cannot break the other. Scoring 10,000+ speeches takes 15–25 minutes, so it is done once in advance, and everyone who opens the tool sees results instantly.
+- **Frontend** (`frontend/`): React + TypeScript + Vite, Recharts for the charts.
+- **Backend** (`backend/`): FastAPI REST API under `/api`, with automatic docs at `/api/docs`. The analysis core is
+  `backend/dla/analysis.py` (VADER + diplomatic dictionaries).
+- **Database**: Postgres on Neon in production (SQLAlchemy + Alembic migrations); SQLite on your computer when no
+  `DATABASE_URL` is set.
+- **UN data pipeline**: `python -m dla load-un` verifies, scores and loads the UN General Debate Corpus. It runs on
+  a computer, not on Vercel.
+- **Tests**: pytest (backend, run on SQLite and Postgres), Vitest (frontend), Playwright (real browser, desktop
+  and phone). GitHub Actions runs all of them on every push.
 
----
+Design decisions are recorded in [docs/DECISIONS.md](docs/DECISIONS.md).
 
-## 🚀 Putting the tool online (free, about 45 minutes)
+## Run it on your computer (Windows)
 
-You need a Google account (for Colab) and a free GitHub account.
+You need [Node.js](https://nodejs.org) 20+ and [uv](https://docs.astral.sh/uv/) (`winget install astral-sh.uv`).
+In the project folder:
 
-### Step 1: Put the code on GitHub
-
-1. Go to **github.com** and sign up.
-2. Click **+** (top right) → **New repository**.
-   - *Repository name*: `diplomatic-language-analyzer`
-   - Choose **Public**, then click **Create repository**.
-3. On the new page, click **uploading an existing file**.
-4. Drag in every file and folder from this project **except** `notebook/`, then click **Commit changes**.
-
-### Step 2: Build the UN data (run once on Google Colab)
-
-1. Go to **colab.research.google.com** → **New notebook**.
-2. Click the 📁 icon on the left, then the upload button. Upload `analysis.py` and `build_un_data.py`.
-3. Paste this into the first code cell and press **Shift + Enter**:
-   ```
-   !pip install -q vaderSentiment
-   !python build_un_data.py
-   ```
-   The script downloads the UNGDC dataset from Harvard Dataverse and scores every speech, printing its progress and the minutes left.
-4. **If the automatic download fails**, do it by hand:
-   - Open https://doi.org/10.7910/DVN/0TJX8Y and download the archive with the speeches (ending in `.tgz` or `.zip`).
-   - Upload it to Colab as in point 2.
-   - Run: `!python build_un_data.py --file NAME_OF_THE_FILE.tgz`
-5. When you see **✅ Done!**, find `un_scores.csv.gz` and `un_sentences.csv.gz` in the left panel. Click ⋮ next to each → **Download**.
-6. Back in your GitHub repository: **Add file → Upload files**, drag both files in, **Commit changes**.
-
-### Step 3: Deploy on Streamlit Community Cloud
-
-1. Go to **share.streamlit.io** and sign in with GitHub.
-2. Click **Create app** → **Yup, I have an app**.
-3. Fill in:
-   - **Repository**: `your-name/diplomatic-language-analyzer`
-   - **Branch**: `main`
-   - **Main file path**: `app.py`
-   - **App URL**: a short name, e.g. `diplomatic-language`. The link becomes `https://diplomatic-language.streamlit.app`
-4. Click **Deploy** and wait 2–5 minutes while the server installs the libraries. You now have a **public link** anyone can open.
-
-### Step 4: Put your name on the tool
-
-On GitHub, open `app.py`, click ✏️ and edit the two lines near the top:
-
-```python
-AUTHOR = "Your Name"
-GITHUB_URL = "https://github.com/your-name/diplomatic-language-analyzer"
+```
+npm run dev
 ```
 
-Click **Commit changes**. The live tool updates itself about a minute later.
+Then open **http://localhost:5173**. The first run installs everything (a few minutes). Press `Ctrl+C` to stop.
 
-> 💤 Free apps "sleep" after 12 hours without visitors. The next visitor just clicks the wake-up button and waits about half a minute.
+The local app uses `data/local.sqlite3`. To fill it with the UN data, download `UNGDC_1946-2025.tar.gz` from
+[Harvard Dataverse](https://doi.org/10.7910/DVN/0TJX8Y) (it asks you to fill in a short guestbook form), put it in
+`data/raw/`, and run:
 
----
+```
+cd backend
+uv run python -m dla load-un
+```
 
-## Working on it later
+To work against the production database instead, run `vercel env pull .env.local` in the project folder; the
+backend then uses its `DATABASE_URL`.
 
-- **Change the default dictionaries**: edit `HOSTILE_TERMS` and `COOPERATIVE_TERMS` in `analysis.py`. Then repeat Step 2 so the UN data uses the same dictionaries.
-- **Add keywords to the UN data**: edit `DEFAULT_KEYWORDS` in `analysis.py`, then repeat Step 2.
-- **Run it on your own computer (Windows)**: install Python from python.org (tick *Add python.exe to PATH*). Open the project folder, type `cmd` in the address bar and press Enter, then run:
-  ```
-  py -m pip install -r requirements.txt
-  py -m unittest discover tests
-  py -m streamlit run app.py
-  ```
-  Your browser opens the tool at http://localhost:8501.
+### Tests
+
+```
+npm run test          # backend (pytest) + frontend (Vitest)
+npm run e2e           # end-to-end tests in a real browser (starts its own servers with demo data)
+```
+
+To run the browser tests against the live site: `cd frontend`, `set E2E_BASE_URL=LIVE_URL`, then
+`npx playwright test`.
+
+### Operator commands (in `backend/`)
+
+| Command | What it does |
+|---|---|
+| `uv run python -m dla migrate` | create or upgrade the database tables |
+| `uv run python -m dla download-un` | download and verify the corpus (explains the guestbook if needed) |
+| `uv run python -m dla load-un` | score the corpus and replace the UN data in one transaction (safe to re-run) |
+| `uv run python -m dla seed-demo` | load small fictional demo data (for testing only) |
+| `uv run python -m dla status` | show which database is in use and what it contains |
+
+## Deployment
+
+- One Vercel project with two services (`vercel.json`): `/api/*` goes to the FastAPI backend, everything else to
+  the React frontend.
+- The Vercel project is connected to this GitHub repository: **every push to `main` deploys to production**, and
+  other branches get preview deployments. GitHub Actions runs the tests on every push.
+- The database is Neon Postgres from the Vercel Marketplace. Its connection string lives only in Vercel's
+  environment variables (`DATABASE_URL`), never in the code.
+- After changing the dictionaries or the pipeline, reload the UN data against Neon from a computer:
+  `vercel env pull .env.local`, then in `backend/`: `uv run python -m dla migrate` and
+  `uv run python -m dla load-un`.
 
 ## Method and limitations
 
-- **Diplomatic dictionaries**: hostile and cooperative words counted per 1,000 words.
-- **Tone balance** = (cooperative − hostile) / (cooperative + hostile), from −1 (confrontational) to +1 (conciliatory).
-- **VADER**: sentiment score for each sentence, averaged.
-- **Limitations**:
-  - Word counting ignores context. *"We do not seek confrontation"* still counts one hostile word.
-  - VADER was built for social media.
-  - Texts must be in English; UN texts are official English translations.
-  - Tone is not policy. Always read the highlighted sentences to validate the numbers.
+- **Diplomatic dictionaries**: hostile and cooperative words counted per 1,000 words (`*` = any ending).
+- **Tone balance** = (cooperative − hostile) / (cooperative + hostile), from −1 (confrontational) to +1
+  (conciliatory).
+- **VADER**: sentence-level sentiment (−1 to +1), averaged; share of sentences at or below −0.05.
+- Country-year values add up the counts of all texts first and then divide.
+- **Limitations**: word counting ignores context ("we do not seek confrontation" still counts one hostile word);
+  VADER was built for social media; texts must be in English (UN texts are official translations); tone is not
+  policy. Always read the highlighted sentences before trusting a number.
+- An optional transformer model (zero-shot NLI) can read each sentence in context. It needs PyTorch, so it runs
+  only locally (`uv sync --extra context`, then set `DLA_CONTEXT_MODEL=1`).
 
-## Data source
+## Data
 
-Jankin, S., Baturo, A., & Dasandi, N. (2024). *Words to unite nations: The complete United Nations General Debate Corpus, 1946–present.* Journal of Peace Research. Hosted on Harvard Dataverse: https://doi.org/10.7910/DVN/0TJX8Y
+Jankin, S., Baturo, A., & Dasandi, N. (2024). *Words to unite nations: The complete United Nations General Debate
+Corpus, 1946–present.* Journal of Peace Research. Harvard Dataverse, https://doi.org/10.7910/DVN/0TJX8Y (CC0).
+
+The `notebook/` folder holds the original step-by-step Google Colab notebook.
+
+## Licence
+
+MIT. Built by Tuan Dung Nguyen.

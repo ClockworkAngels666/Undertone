@@ -7,18 +7,16 @@ import { spawn, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { findUv } from "./uv.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const backend = join(root, "backend");
 const frontend = join(root, "frontend");
 const isWindows = process.platform === "win32";
 
-function findUv() {
-  const candidates = [["uv"], ...(isWindows ? [["py", "-m", "uv"]] : []), ["python", "-m", "uv"], ["python3", "-m", "uv"]];
-  for (const cmd of candidates) {
-    const r = spawnSync(cmd[0], [...cmd.slice(1), "--version"], { stdio: "ignore" });
-    if (r.status === 0) return cmd;
-  }
+function requireUv() {
+  const uv = findUv();
+  if (uv) return uv;
   console.error("uv (the Python package manager) was not found. Install it with:\n  winget install astral-sh.uv\nor\n  py -m pip install uv");
   process.exit(1);
 }
@@ -31,7 +29,7 @@ function run(cmd, args, cwd, shell = false) {
   }
 }
 
-const uv = findUv();
+const uv = requireUv();
 if (!existsSync(join(backend, ".venv"))) {
   console.log("First run: installing the Python backend…");
   run(uv[0], [...uv.slice(1), "sync"], backend);

@@ -1,6 +1,7 @@
 import { useId, useState, type ReactNode } from "react";
 import { downloadText, parseDocumentsCsv, SAMPLE_CSV, type ParsedCsv } from "../lib/csv";
 import type { UploadProgress } from "../lib/datasets";
+import { plural } from "../lib/format";
 import { errorText, useMeta } from "../lib/hooks";
 import { Notice } from "./common";
 
@@ -83,8 +84,8 @@ export default function CsvUploader({ submitLabel, onSubmit, onFileName, childre
       </div>
       {parsed && (
         <Notice kind={parsed.problems.length ? "warn" : "info"}>
-          <strong>{fileName}</strong>: {parsed.documents.length.toLocaleString()} texts from {countries}{" "}
-          {countries === 1 ? "country" : "countries"}
+          <strong>{fileName}</strong>: {plural(parsed.documents.length, "text")} from{" "}
+          {plural(countries, "country", "countries")}
           {years.length ? `, ${Math.min(...years)}–${Math.max(...years)}` : ""}.
           {parsed.problems.length > 0 && (
             <ul>
@@ -109,7 +110,7 @@ export default function CsvUploader({ submitLabel, onSubmit, onFileName, childre
       {error && <Notice kind="error">{error}</Notice>}
       {done && (
         <Notice kind={done.skipped.length ? "warn" : "info"}>
-          Added {done.added.toLocaleString()} texts.
+          Added {plural(done.added, "text")}.
           {done.skipped.length > 0 && (
             <>
               {" "}Skipped {done.skipped.length}:
