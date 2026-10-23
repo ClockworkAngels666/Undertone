@@ -19,6 +19,7 @@ export default function DatasetsPage() {
   return (
     <>
       <div className="page-intro">
+        <p className="eyebrow">Your corpora</p>
         <h1>Compare texts over time</h1>
         <p>
           Upload your own collection, for example a ministry’s statements or a state broadcaster’s articles, and see how

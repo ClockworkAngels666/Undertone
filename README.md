@@ -3,7 +3,7 @@
 Measure **hostility**, **cooperation** and **rhetorical shifts** in diplomatic texts: speeches, joint statements and
 state-media articles, and 80 years of UN General Debate statements (1946–2025).
 
-**Live app: LIVE_URL** · API documentation: LIVE_URL/api/docs
+**Live app: https://diplomatic-language-analyzer.vercel.app** · API documentation: https://diplomatic-language-analyzer.vercel.app/api/docs
 
 ## What you can do
 
@@ -64,7 +64,7 @@ npm run test          # backend (pytest) + frontend (Vitest)
 npm run e2e           # end-to-end tests in a real browser (starts its own servers with demo data)
 ```
 
-To run the browser tests against the live site: `cd frontend`, `set E2E_BASE_URL=LIVE_URL`, then
+To run the browser tests against the live site: `cd frontend`, `set E2E_BASE_URL=https://diplomatic-language-analyzer.vercel.app`, then
 `npx playwright test`.
 
 ### Operator commands (in `backend/`)
@@ -100,7 +100,7 @@ To run the browser tests against the live site: `cd frontend`, `set E2E_BASE_URL
   VADER was built for social media; texts must be in English (UN texts are official translations); tone is not
   policy. Always read the highlighted sentences before trusting a number.
 - An optional transformer model (zero-shot NLI) can read each sentence in context. It needs PyTorch, so it runs
-  only locally (`uv sync --extra context`, then set `DLA_CONTEXT_MODEL=1`).
+  only locally (`uv sync --extra context`, then set `DLA_CONTEXT_MODEL=1`; the first use downloads about 400 MB).
 
 ## Data
 

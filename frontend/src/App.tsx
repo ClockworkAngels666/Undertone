@@ -29,7 +29,10 @@ export default function App() {
         <div className="container">
           <NavLink to="/" className="brand">
             <img src="/favicon.svg" alt="" />
-            Diplomatic Language Analyzer
+            <span className="brand-text">
+              <span className="brand-name">Diplomatic Language Analyzer</span>
+              <span className="brand-tag">Tone of nations · 1946–today</span>
+            </span>
           </NavLink>
           <nav className="nav" aria-label="Main">
             {NAV.map((n) => (
@@ -65,6 +68,9 @@ export default function App() {
           <span>UN data: Jankin, Baturo &amp; Dasandi (2024), <i>Journal of Peace Research</i></span>
           <a href="/api/docs">API documentation</a>
           <a href="https://github.com/ClockworkAngels666/diplomatic-language-analyzer">Source code</a>
+          <span className="disclaimer">
+            An independent research tool. Not affiliated with or endorsed by the United Nations.
+          </span>
         </div>
       </footer>
     </BrowserRouter>

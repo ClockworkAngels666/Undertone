@@ -35,6 +35,7 @@ export default function DictionariesPage() {
   return (
     <>
       <div className="page-intro">
+        <p className="eyebrow">Method settings</p>
         <h1>Dictionaries</h1>
         <p>
           The word lists behind the hostility and cooperation scores. Adapt them to your research question: separate

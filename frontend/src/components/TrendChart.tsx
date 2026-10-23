@@ -37,8 +37,9 @@ const AVERAGE_KEY = "__average";
 export default function TrendChart({ series, average, averageLabel = "All-country average", events = [], format,
   tickFormat, valueLabel, reloading }: Props) {
   const scheme = useColorScheme();
-  const ink = scheme === "dark" ? { grid: "#2c2c2a", axis: "#898781", text: "#c9c8c0", surface: "#1a1a19" }
-    : { grid: "#e1e0d9", axis: "#898781", text: "#4b4a46", surface: "#fcfcfb" };
+  // Chart chrome follows the page theme (see styles.css); series colours come from lib/colors.ts.
+  const ink = scheme === "dark" ? { grid: "#1f3346", axis: "#8fa3b7", text: "#b9cad8", surface: "#10202f" }
+    : { grid: "#dfe6ed", axis: "#7a8794", text: "#3d4c5c", surface: "#ffffff" };
 
   const { rows, years } = useMemo(() => {
     const byYear = new Map<number, Record<string, number | null>>();

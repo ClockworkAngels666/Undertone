@@ -106,7 +106,7 @@ function DatasetView({ dataset, rows, rowsError, refresh }: {
   return (
     <>
       <div className="page-intro">
-        <p className="small"><Link to="/datasets">← My datasets</Link></p>
+        <p className="eyebrow"><Link to="/datasets">← My datasets</Link></p>
         <h1>{dataset.name}</h1>
         <p className="muted">
           {plural(dataset.documents, "text")} · {plural(dataset.countries.length, "country", "countries")}

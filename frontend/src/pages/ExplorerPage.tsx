@@ -83,6 +83,7 @@ function Explorer({ summary }: { summary: UNSummary }) {
   return (
     <>
       <div className="page-intro">
+        <p className="eyebrow">General Assembly · General Debate</p>
         <h1>UN General Debate, {firstYear}–{lastYear}</h1>
         <p>
           {summary.statements.toLocaleString()} statements by {summary.countries.length} delegations, scored with the

@@ -1,18 +1,31 @@
+/* UN-inspired palette. UN blue (#009EDB) is used only for decoration (stripes, icon, accents):
+   it is too light for white text. Buttons, links and banners use deeper blues that pass WCAG AA. */
 :root {
   color-scheme: light;
-  --plane: #f6f5f1;
-  --surface: #fcfcfb;
-  --surface-2: #f0efea;
-  --ink: #14161a;
-  --ink-2: #4b4a46;
-  --muted: #6b6964;
+  --un: #009edb;
+  --un-deep: #0072bc;
+  --un-deeper: #005a9c;
+  --navy: #0b2545;
+  --plane: #f3f6f9;
+  --surface: #ffffff;
+  --surface-2: #eef3f8;
+  --ink: #0f1c2b;
+  --ink-2: #3d4c5c;
+  --muted: #5b6b7a;
   --axis: #898781;
-  --grid: #e1e0d9;
-  --border: rgba(11, 11, 11, 0.12);
-  --accent: #17324d;
+  --grid: #dfe6ed;
+  --border: rgba(15, 28, 43, 0.12);
+  --accent: #0072bc;
   --accent-ink: #ffffff;
-  --link: #1f5fae;
-  --focus: #2a78d6;
+  --link: #0068ad;
+  --focus: #009edb;
+  --hero-from: #0072bc;
+  --hero-to: #00497f;
+  --hero-ink: #ffffff;
+  --hero-ink-2: #d6ebf8;
+  --footer-bg: #0b2545;
+  --footer-ink: #c9d8e6;
+  --footer-link: #8fd3f5;
   --hostile-bg: rgba(227, 73, 72, 0.2);
   --hostile-line: #c43d3c;
   --coop-bg: rgba(27, 175, 122, 0.22);
@@ -25,28 +38,34 @@
   --error-ink: #8a1c17;
   --info-bg: #e8f0fb;
   --info-ink: #1c3f6e;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
+  --shadow: 0 1px 2px rgba(15, 28, 43, 0.05), 0 6px 18px rgba(15, 28, 43, 0.05);
   --radius: 10px;
-  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --sans: "Roboto Variable", Roboto, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --plane: #0f1011;
-    --surface: #1a1a19;
-    --surface-2: #232321;
-    --ink: #f0efec;
-    --ink-2: #c9c8c0;
-    --muted: #a3a29b;
+    --plane: #0a1622;
+    --surface: #10202f;
+    --surface-2: #16293b;
+    --ink: #eaf2f8;
+    --ink-2: #b9cad8;
+    --muted: #9fb3c8;
     --axis: #898781;
-    --grid: #2c2c2a;
-    --border: rgba(255, 255, 255, 0.12);
-    --accent: #86b6ef;
-    --accent-ink: #0d1a2a;
-    --link: #86b6ef;
-    --focus: #6da7ec;
+    --grid: #1f3346;
+    --border: rgba(234, 242, 248, 0.12);
+    --accent: #4fb3ea;
+    --accent-ink: #06121d;
+    --link: #7cc8f0;
+    --focus: #4fb3ea;
+    --hero-from: #0b4f80;
+    --hero-to: #0a2a45;
+    --hero-ink: #ffffff;
+    --hero-ink-2: #c3dff2;
+    --footer-bg: #06111b;
+    --footer-ink: #9fb3c8;
+    --footer-link: #7cc8f0;
     --hostile-bg: rgba(230, 103, 103, 0.3);
     --hostile-line: #e66767;
     --coop-bg: rgba(25, 158, 112, 0.32);
@@ -82,19 +101,18 @@ body {
 h1,
 h2,
 h3 {
-  font-family: var(--serif);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.2;
   margin: 0 0 0.5rem;
   letter-spacing: -0.01em;
 }
 
 h1 {
-  font-size: clamp(1.7rem, 4vw, 2.3rem);
+  font-size: clamp(1.7rem, 4vw, 2.35rem);
 }
 
 h2 {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
 }
 
 h3 {
@@ -135,8 +153,10 @@ a {
   padding: 0 16px;
 }
 
+/* Header: a UN-blue stripe over a clean white bar, as on many UN system websites. */
 .site-header {
   background: var(--surface);
+  border-top: 4px solid var(--un);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -147,90 +167,176 @@ a {
   display: flex;
   align-items: center;
   gap: 24px;
-  min-height: 60px;
+  min-height: 64px;
   flex-wrap: wrap;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   color: var(--ink);
   text-decoration: none;
-  font-family: var(--serif);
-  font-weight: 600;
-  font-size: 1.12rem;
   white-space: nowrap;
 }
 
 .brand img {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brand-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.005em;
+}
+
+.brand-tag {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .nav {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   overflow-x: auto;
   scrollbar-width: none;
   margin-left: auto;
+  align-self: stretch;
 }
 
 .nav a {
+  display: flex;
+  align-items: center;
   color: var(--ink-2);
   text-decoration: none;
-  padding: 8px 12px;
-  border-radius: 8px;
+  padding: 0 12px;
   white-space: nowrap;
-  font-size: 0.95rem;
+  font-size: 0.93rem;
+  font-weight: 500;
+  border-bottom: 3px solid transparent;
+  border-top: 3px solid transparent;
 }
 
 .nav a:hover {
-  background: var(--surface-2);
+  color: var(--ink);
+  border-bottom-color: var(--grid);
 }
 
 .nav a.active {
-  color: var(--ink);
-  background: var(--surface-2);
-  font-weight: 600;
+  color: var(--link);
+  border-bottom-color: var(--un);
+  font-weight: 700;
 }
 
 @media (max-width: 760px) {
   .site-header .container {
     gap: 4px;
-    padding-top: 8px;
+    padding-top: 10px;
   }
   .nav {
     margin-left: -12px;
     width: calc(100% + 24px);
-    padding: 0 12px 6px;
+    padding: 0 28px 0 4px;
+    min-height: 44px;
+    /* fade the right edge so it is clear the menu scrolls */
+    mask-image: linear-gradient(to right, #000 82%, transparent);
   }
 }
 
-main {
-  padding: 28px 0 48px;
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
+main {
+  flex: 1 0 auto;
+  padding: 24px 0 48px;
+}
+
+/* Page banner: deep UN blue with a faint speech-wave motif (the app's own mark, not the UN emblem). */
 .page-intro {
-  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 22px;
+  padding: 26px 28px 24px;
+  border-radius: var(--radius);
+  color: var(--hero-ink);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120'%3E%3Cpath d='M0 80c40-60 80-60 110-10s70 50 100-10 70-60 100-20 60 30 90-5' fill='none' stroke='white' stroke-opacity='.13' stroke-width='3'/%3E%3Cpath d='M0 100c40-50 80-50 110-8s70 42 100-8 70-50 100-16 60 25 90-4' fill='none' stroke='white' stroke-opacity='.08' stroke-width='2'/%3E%3C/svg%3E")
+      right -40px bottom -10px / 520px auto no-repeat,
+    linear-gradient(120deg, var(--hero-from), var(--hero-to));
+}
+
+.page-intro h1 {
+  color: var(--hero-ink);
 }
 
 .page-intro p {
-  color: var(--ink-2);
+  color: var(--hero-ink-2);
   max-width: 70ch;
+  margin-bottom: 0;
+}
+
+.page-intro p + p {
+  margin-top: 6px;
+}
+
+.page-intro a,
+.page-intro .muted {
+  color: var(--hero-ink);
+}
+
+.page-intro .eyebrow {
+  color: var(--hero-ink);
+  opacity: 0.85;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 560px) {
+  .page-intro {
+    padding: 20px 18px 18px;
+    background-size: 360px auto, auto;
+  }
 }
 
 .site-footer {
-  border-top: 1px solid var(--border);
-  padding: 20px 0 32px;
-  color: var(--muted);
-  font-size: 0.88rem;
+  background: var(--footer-bg);
+  color: var(--footer-ink);
+  border-top: 4px solid var(--un);
+  padding: 22px 0 30px;
+  font-size: 0.86rem;
 }
 
 .site-footer .container {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 18px;
+  gap: 6px 20px;
+}
+
+.site-footer a {
+  color: var(--footer-link);
+}
+
+.site-footer .disclaimer {
+  flex-basis: 100%;
+  opacity: 0.8;
+  font-size: 0.8rem;
+  margin-top: 4px;
 }
 
 /* ── Building blocks ────────────────────────────────────────────────────── */
@@ -247,6 +353,17 @@ main {
 .card > h2:first-child,
 .card > h3:first-child {
   margin-top: 0;
+}
+
+/* Short UN-blue rule under section headings */
+.card h2::after {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 3px;
+  margin-top: 6px;
+  border-radius: 2px;
+  background: var(--un);
 }
 
 .card-head {
@@ -406,7 +523,15 @@ select {
 }
 
 .btn.primary:hover:not(:disabled) {
-  filter: brightness(1.1);
+  background: var(--un-deeper);
+  border-color: var(--un-deeper);
+}
+
+@media (prefers-color-scheme: dark) {
+  .btn.primary:hover:not(:disabled) {
+    background: var(--link);
+    border-color: var(--link);
+  }
 }
 
 .btn.danger {
@@ -497,8 +622,10 @@ select {
 .metric {
   background: var(--surface);
   border: 1px solid var(--border);
+  border-top: 3px solid var(--un);
   border-radius: var(--radius);
   padding: 12px 14px;
+  box-shadow: var(--shadow);
 }
 
 .metric .label {
@@ -677,7 +804,13 @@ th button.sort {
   top: 0;
   height: 8px;
   border-radius: 4px;
-  background: #2a78d6;
+  background: var(--un-deep);
+}
+
+@media (prefers-color-scheme: dark) {
+  .bar-fill {
+    background: var(--accent);
+  }
 }
 
 /* ── Chips / country picker ─────────────────────────────────────────────── */

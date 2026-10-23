@@ -86,6 +86,7 @@ export default function AnalyzePage() {
   return (
     <>
       <div className="page-intro">
+        <p className="eyebrow">Text analysis</p>
         <h1>Analyze a diplomatic text</h1>
         <p>
           Paste a speech, joint statement or state-media article in English. The tool counts hostile and cooperative
