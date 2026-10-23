@@ -55,7 +55,8 @@ uv run python -m dla load-un
 ```
 
 To work against the production database instead, run `vercel env pull .env.local` in the project folder; the
-backend then uses its `DATABASE_URL`.
+backend then uses its `DATABASE_URL`. **Careful:** while `.env.local` exists, the local app reads and writes the
+live database. Delete or rename the file to go back to SQLite.
 
 ### Tests
 
@@ -83,11 +84,13 @@ To run the browser tests against the live site: `cd frontend`, `set E2E_BASE_URL
   the React frontend.
 - The Vercel project is connected to this GitHub repository: **every push to `main` deploys to production**, and
   other branches get preview deployments. GitHub Actions runs the tests on every push.
-- The database is Neon Postgres from the Vercel Marketplace. Its connection string lives only in Vercel's
-  environment variables (`DATABASE_URL`), never in the code.
+- The database is Neon Postgres from the Vercel Marketplace, connected to the project's production, preview and
+  development environments. Its connection strings live only in Vercel's environment variables (`DATABASE_URL`,
+  pooled, for the app; `DATABASE_URL_UNPOOLED`, direct, which the operator commands use automatically), never in
+  the code.
 - After changing the dictionaries or the pipeline, reload the UN data against Neon from a computer:
-  `vercel env pull .env.local`, then in `backend/`: `uv run python -m dla migrate` and
-  `uv run python -m dla load-un`.
+  `vercel env pull .env.local`, then `npm run migrate` and `npm run load-un` (about 4 minutes; the live site keeps
+  the old data until the new data is complete).
 
 ## Method and limitations
 

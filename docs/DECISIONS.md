@@ -68,3 +68,11 @@ dependencies on the first run and migrates the database. `vercel dev` can run bo
 sometimes gives up while the Python service is still starting, so `npm run dev` is the supported command. Under
 `vercel dev` (`VERCEL_ENV=development`) the backend still falls back to SQLite; only real deployments insist on
 `DATABASE_URL`.
+
+## 11. Neon is connected to every environment
+Database variables that a Marketplace integration creates for production and preview only are stored as
+*sensitive*: deployments can read them, but nobody can download them, so the migrations and the UN load could not
+run from a computer. The Neon resource is therefore also connected to the development environment, which makes
+`vercel env pull` work. Operator commands use the direct connection (`DATABASE_URL_UNPOOLED`), the app the pooled
+one. While no UN data is loaded, `/api/un/summary` answers `Cache-Control: no-store`, so the CDN never keeps an
+empty answer once the data arrives.
