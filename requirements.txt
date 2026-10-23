@@ -1,8 +1,0 @@
-streamlit>=1.50
-pandas>=2.0
-numpy
-plotly>=5.20
-vaderSentiment>=3.3.2
-requests
-pypdf>=4.0
-pycountry>=23.12
