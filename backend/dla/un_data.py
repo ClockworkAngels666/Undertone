@@ -37,7 +37,10 @@ def metric_query(metric: str, *columns):
 
 
 def keywords(session: Session) -> list[str]:
-    return list(session.scalars(select(UNKeywordRate.keyword).distinct().order_by(UNKeywordRate.keyword)))
+    """The pre-counted keywords (the pipeline stores every keyword for every country-year)."""
+    first_id = select(func.min(UNKeywordRate.country_year_id)).scalar_subquery()
+    return list(session.scalars(select(UNKeywordRate.keyword).where(UNKeywordRate.country_year_id == first_id)
+                                .order_by(UNKeywordRate.keyword)))
 
 
 def latest_run(session: Session) -> PipelineRun | None:

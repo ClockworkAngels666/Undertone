@@ -35,6 +35,7 @@ LANDING_PAGE = "https://doi.org/10.7910/DVN/0TJX8Y"
 RAW_DIR = DATA_DIR / "raw"
 CACHE_DIR = DATA_DIR / "processed"
 FILENAME_PATTERN = re.compile(r"^([A-Z]{2,4})_(\d{1,3})_(\d{4})\.txt$")   # e.g. RUS_77_2022.txt
+HEADERS = {"User-Agent": "diplomatic-language-analyzer/1.0 (UN General Debate research pipeline)"}
 NOTABLE_PER_KIND = 5
 SCORING_VERSION = "2026-10-1"     # bump when the scoring code changes in a way that alters results
 
@@ -54,7 +55,7 @@ def log(message):
 def dataverse_archive_info(timeout=60):
     """Metadata of the corpus archive on Harvard Dataverse: id, filename, size, md5."""
     r = requests.get(f"{DATAVERSE_API}/datasets/:persistentId/", params={"persistentId": UNGDC_DOI},
-                     timeout=timeout)
+                     headers=HEADERS, timeout=timeout)
     r.raise_for_status()
     version = r.json()["data"]["latestVersion"]
     archives = [f["dataFile"] for f in version["files"]
@@ -91,7 +92,8 @@ def download(directory: Path = RAW_DIR) -> Path:
         return target
     directory.mkdir(parents=True, exist_ok=True)
     log(f"⬇ Downloading {info['filename']} ({(info['size'] or 0) / 1e6:.0f} MB) from Harvard Dataverse...")
-    with requests.get(f"{DATAVERSE_API}/access/datafile/{info['id']}", stream=True, timeout=600) as resp:
+    with requests.get(f"{DATAVERSE_API}/access/datafile/{info['id']}", headers=HEADERS, stream=True,
+                      timeout=600) as resp:
         if resp.status_code in (400, 401, 403) and "uestbook" in resp.text:
             raise PipelineError(
                 "Harvard Dataverse asks every downloader to fill in a short guestbook form first, so the "
@@ -115,7 +117,7 @@ def verify(archive: Path, info=None):
     try:
         info = info or dataverse_archive_info(timeout=20)
     except requests.RequestException:
-        log("! Could not reach Dataverse to verify the checksum; continuing without verification.")
+        log("! Could not get the checksum from Dataverse; continuing without verification.")
         return None
     actual = md5sum(archive)
     if info["filename"] == archive.name and info["md5"] and actual != info["md5"]:

@@ -45,7 +45,7 @@ class TestSentences:
         assert an.clean_text("12. First point.\n13.  Second   point.") == "First point. Second point."
 
     def test_clean_removes_byte_order_mark(self):
-        assert an.clean_text("﻿Hello there") == "Hello there"
+        assert an.clean_text("\ufeffHello there") == "Hello there"
 
     def test_abbreviations_are_not_split(self):
         sentences = an.split_sentences(an.clean_text(

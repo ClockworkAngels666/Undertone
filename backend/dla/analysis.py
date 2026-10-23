@@ -120,7 +120,7 @@ _SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+(?=[\"“'(\[]?[A-Z])")
 
 
 def clean_text(text):
-    text = str(text).replace("﻿", " ")
+    text = str(text).replace("\ufeff", " ")
     text = re.sub(r"(?m)^\s*\d{1,3}\.\s+", "", text)     # paragraph numbers at the start of a line
     return re.sub(r"\s+", " ", text).strip()
 

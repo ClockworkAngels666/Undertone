@@ -81,7 +81,7 @@ def test_ranking(demo_client):
 def test_export_csv(demo_client):
     r = demo_client.get("/api/un/export.csv", params={"countries": "VLD", "start": 2020})
     assert r.headers["content-type"].startswith("text/csv")
-    rows = list(csv.DictReader(io.StringIO(r.text.lstrip("﻿"))))
+    rows = list(csv.DictReader(io.StringIO(r.text.lstrip("\ufeff"))))
     assert len(rows) == 6 and rows[0]["country_name"] == "Valdoria"
     assert "kw::NATO" in rows[0] and rows[0]["tone_balance"]
 

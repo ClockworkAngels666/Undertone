@@ -143,26 +143,24 @@ def export_csv(countries: str = CountriesParam, start: int | None = None, end: i
     """All metrics and keyword rates per country and year, as CSV (all countries if none are given)."""
     codes = parse_countries(countries, limit=500)
     first, last = year_range(start, end)
-    query = select(UNCountryYear).where(UNCountryYear.year.between(first, last))
+    selected = [UNCountryYear.year.between(first, last)]
     if codes:
-        query = query.where(UNCountryYear.country_code.in_(codes))
-    rows = db.scalars(query.order_by(UNCountryYear.country_code, UNCountryYear.year)).all()
+        selected.append(UNCountryYear.country_code.in_(codes))
+    stored = ["id", "country_code", "year", "session", "documents", *analysis.COUNT_COLUMNS, *analysis.METRICS]
+    rows = db.execute(select(*[getattr(UNCountryYear, c) for c in stored]).where(*selected)
+                      .order_by(UNCountryYear.country_code, UNCountryYear.year)).all()
     keywords = un_data.keywords(db)
     rates = {}
-    if rows:
-        ids = [r.id for r in rows]
-        for i in range(0, len(ids), 5000):
-            for k in db.scalars(select(UNKeywordRate).where(UNKeywordRate.country_year_id.in_(ids[i:i + 5000]))):
-                rates[(k.country_year_id, k.keyword)] = k.per_1000
+    for country_year_id, keyword, value in db.execute(
+            select(UNKeywordRate.country_year_id, UNKeywordRate.keyword, UNKeywordRate.per_1000)
+            .join(UNCountryYear, UNKeywordRate.country_year_id == UNCountryYear.id).where(*selected)):
+        rates[(country_year_id, keyword)] = value
     columns = (["country", "country_name", "year", "session", "documents", *analysis.COUNT_COLUMNS,
                 *analysis.METRICS, *[analysis.KEYWORD_PREFIX + k for k in keywords]])
     buffer = io.StringIO()
     writer = csv.writer(buffer)
     writer.writerow(columns)
-    for r in rows:
-        writer.writerow([r.country_code, country_name(r.country_code), r.year, r.session, r.documents,
-                         *[getattr(r, c) for c in analysis.COUNT_COLUMNS],
-                         *[getattr(r, m) for m in analysis.METRICS],
-                         *[rates.get((r.id, k)) for k in keywords]])
-    return Response(content="﻿" + buffer.getvalue(), media_type="text/csv; charset=utf-8",
+    for row_id, code, *values in rows:
+        writer.writerow([code, country_name(code), *values, *[rates.get((row_id, k)) for k in keywords]])
+    return Response(content="\ufeff" + buffer.getvalue(), media_type="text/csv; charset=utf-8",
                     headers={"Content-Disposition": 'attachment; filename="un_general_debate_scores.csv"'})

@@ -121,10 +121,10 @@ def test_export_csv(client):
     add(client, dataset_id, headers, [
         {"country": "VNM", "year": 2023, "text": HOSTILE, "title": "=HYPERLINK(\"http://x\")"}])
     yearly = list(csv.DictReader(io.StringIO(
-        client.get(f"/api/datasets/{dataset_id}/export.csv").text.lstrip("﻿"))))
+        client.get(f"/api/datasets/{dataset_id}/export.csv").text.lstrip("\ufeff"))))
     assert yearly[0]["country_name"] == "Vietnam" and yearly[0]["kw::NATO"] == "0.0"
     docs = list(csv.DictReader(io.StringIO(client.get(
-        f"/api/datasets/{dataset_id}/export.csv", params={"level": "documents"}).text.lstrip("﻿"))))
+        f"/api/datasets/{dataset_id}/export.csv", params={"level": "documents"}).text.lstrip("\ufeff"))))
     assert docs[0]["text"] == HOSTILE
     assert docs[0]["title"].startswith("'=")           # spreadsheet formulas are neutralised
 

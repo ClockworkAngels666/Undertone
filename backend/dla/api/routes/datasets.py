@@ -277,5 +277,5 @@ def export_csv(dataset_id: str, level: str = Query(default="yearly", pattern="^(
                              *[counts[c] for c in analysis.COUNT_COLUMNS], *[m[c] for c in analysis.METRICS],
                              *[m.get(c) for c in kw_cols], _cell(d.text)])
     safe = "".join(ch if ch.isalnum() else "_" for ch in dataset.name)[:40] or "dataset"
-    return Response(content="﻿" + buffer.getvalue(), media_type="text/csv; charset=utf-8",
+    return Response(content="\ufeff" + buffer.getvalue(), media_type="text/csv; charset=utf-8",
                     headers={"Content-Disposition": f'attachment; filename="{safe}_{level}.csv"'})
