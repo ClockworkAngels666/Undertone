@@ -46,7 +46,7 @@ export interface Stage {
    * screen's shape (portrait phones included). Re-applied on resize until the user moves the view.
    */
   frame: (radius: number | { x: number; y: number }, target?: [number, number, number],
-    direction?: [number, number, number]) => void;
+    direction?: [number, number, number], options?: { smooth?: boolean }) => void;
   dispose: () => void;
 }
 
@@ -111,14 +111,23 @@ export function createStage(container: HTMLElement, options: Options = {}): Stag
   // radius: a sphere that must fit; {x, y}: half the width and height of a flatter scene (fits wide screens better)
   let framing: { radius: number | { x: number; y: number }; target: Vector3; direction: Vector3 } | null = null;
   let userMoved = false;
-  const applyFrame = () => {
+  let glide: { position: Vector3; target: Vector3 } | null = null;      // smooth framing in progress
+  const applyFrame = (smooth = false) => {
     if (!framing) return;
     const vertical = (camera.fov * Math.PI) / 180;
     const horizontal = 2 * Math.atan(Math.tan(vertical / 2) * camera.aspect);
     const r = framing.radius;
     const distance = typeof r === "number" ? r / Math.sin(Math.min(vertical, horizontal) / 2)
       : Math.max(r.x / Math.tan(horizontal / 2), r.y / Math.tan(vertical / 2)) + 0.3 * Math.max(r.x, r.y);
-    camera.position.copy(framing.target).addScaledVector(framing.direction, distance);
+    const position = framing.target.clone().addScaledVector(framing.direction, distance);
+    if (smooth && controls) {
+      glide = { position, target: framing.target.clone() };
+      controls.maxDistance = Math.max(controls.maxDistance, distance * 1.8);
+      dirty = true;
+      return;
+    }
+    glide = null;
+    camera.position.copy(position);
     camera.lookAt(framing.target);
     if (controls) {
       controls.target.copy(framing.target);
@@ -134,7 +143,7 @@ export function createStage(container: HTMLElement, options: Options = {}): Stag
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    if (!userMoved) applyFrame();
+    if (!userMoved) applyFrame(false);
     dirty = true;
     start();
   };
@@ -150,6 +159,13 @@ export function createStage(container: HTMLElement, options: Options = {}): Stag
     const delta = Math.min(0.1, (now - last) / 1000);
     last = now;
     for (const fn of frameCallbacks) fn(now / 1000, delta);
+    if (glide && controls) {
+      const k = Math.min(1, delta * 5);
+      camera.position.lerp(glide.position, k);
+      controls.target.lerp(glide.target, k);
+      dirty = true;
+      if (camera.position.distanceTo(glide.position) < 1e-3) glide = null;
+    }
     const moved = controls ? controls.update() : false;
     const draw = dirty || moved || Boolean(options.continuous);
     if (draw) {
@@ -182,6 +198,7 @@ export function createStage(container: HTMLElement, options: Options = {}): Stag
   });
   controls?.addEventListener("start", () => {
     userMoved = true;
+    glide = null;
     start();
   });
   resize();
@@ -205,10 +222,11 @@ export function createStage(container: HTMLElement, options: Options = {}): Stag
       dirty = true;
       start();
     },
-    frame: (radius, target = [0, 0, 0], direction = [0, 0, 1]) => {
+    frame: (radius, target = [0, 0, 0], direction = [0, 0, 1], frameOptions = {}) => {
       framing = { radius, target: new Vector3(...target), direction: new Vector3(...direction).normalize() };
+      if (frameOptions.smooth && userMoved) return;      // never yank the view away from someone exploring it
       userMoved = false;
-      applyFrame();
+      applyFrame(frameOptions.smooth);
       start();
     },
     dispose: () => {

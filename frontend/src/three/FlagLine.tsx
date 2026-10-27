@@ -45,6 +45,8 @@ interface PoleState {
   name: Sprite;
   value: Sprite | null;
   valueText: string;
+  /** Name labels alternate between two heights so neighbours never overlap. */
+  labelY: number;
   x: number;
   z: number;
   height: number;
@@ -94,19 +96,6 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
     return ranked.slice(0, rankCount);
   }, [mode, chosen, matrix, yearIndex, rankCount]);
 
-  // The tallest pole this view can show in any year: the camera frames that, so it never jumps while playing.
-  const frameHeight = useMemo(() => {
-    let max = MIN_POLE;
-    matrix.years.forEach((_, i) => {
-      const values = (mode === "chosen" ? chosen.map((c) => matrix.values[c.code]?.[i] ?? null)
-        : Object.values(matrix.values).map((series) => series[i])).filter((v): v is number => v !== null);
-      if (!values.length) return;
-      values.sort((a, b) => a - b);
-      const top = mode === "bottom" ? values[Math.min(values.length - 1, rankCount - 1)] : values[values.length - 1];
-      max = Math.max(max, heightOf(top));
-    });
-    return max;
-  }, [mode, chosen, matrix, rankCount, lo, hi]);   // heightOf depends only on lo/hi
   const average = useMemo(() => {
     if (yearIndex < 0) return null;
     const vals = Object.values(matrix.values).map((s) => s[yearIndex]).filter((v): v is number => v !== null);
@@ -138,7 +127,7 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
         p.pole.group.position.set(p.x, 0, p.z);
         p.plinth.position.set(p.x, 0.02, p.z);
         p.pole.setHeight(p.height);
-        p.name.position.set(p.x, -0.05, p.z + 0.18);
+        p.name.position.set(p.x, p.labelY, p.z + 0.18);
         p.value?.position.set(p.x, p.height + 0.14, p.z);
         if (!stage.reducedMotion) p.pole.wave(seconds, 1);
       }
@@ -169,6 +158,8 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
       current.poles.delete(code);
     }
     const ink = scheme === "dark" ? "#eaf2f8" : "#0f1c2b";
+    // Long rows are shown from further away, so their labels are drawn larger to stay readable
+    const labelSize = (small ? 0.12 : 0.1) * Math.max(1, Math.sqrt(slots.length / 5));
     slots.forEach((slot, i) => {
       const row = Math.floor(i / perRow);
       const col = i % perRow;
@@ -180,10 +171,10 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
         const pole = createFlagPole({ width: small ? 0.38 : 0.42, segments: small ? [10, 5] : [18, 8], phase: i * 1.7 });
         const plinth = new Mesh(new CylinderGeometry(0.07, 0.09, 0.04, 16),
           new MeshStandardMaterial({ color: scheme === "dark" ? 0x2a3f55 : 0xb8c4d0, roughness: 0.6 }));
-        const name = textSprite(shortName(names[slot.code] ?? slot.code), { color: ink, height: small ? 0.13 : 0.11,
+        const name = textSprite(shortName(names[slot.code] ?? slot.code), { color: ink, height: labelSize * 1.05,
           onTop: true });
-        p = { pole, plinth, name, value: null, valueText: "", x: targetX, z: targetZ - 0.6, height: 0.05, targetX,
-          targetZ, targetHeight: 0.05 };
+        p = { pole, plinth, name, value: null, valueText: "", labelY: -0.06, x: targetX, z: targetZ - 0.6,
+          height: 0.05, targetX, targetZ, targetHeight: 0.05 };
         current.group.add(pole.group, plinth, name);
         current.poles.set(slot.code, p);
         const fallback = chosen.find((c) => c.code === slot.code)?.color ?? "#5b6b7a";
@@ -195,6 +186,7 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
       }
       p.targetX = targetX;
       p.targetZ = targetZ;
+      p.labelY = slots.length > 6 && i % 2 ? -0.06 - labelSize * 1.15 : -0.06;
       p.targetHeight = heightOf(slot.value);
       p.pole.setHalfMast(slot.value === null);
       const text = slot.value === null ? "no statement" : format(slot.value);
@@ -205,7 +197,7 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
           g.add(p.value);
           disposeGroup(g);
         }
-        p.value = textSprite(text, { color: ink, height: small ? 0.12 : 0.1, weight: 500, onTop: true });
+        p.value = textSprite(text, { color: ink, height: labelSize, weight: 500, onTop: true });
         current.group.add(p.value);
         p.valueText = text;
       }
@@ -229,9 +221,12 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
       current.avgLabel.position.set(width / 2 + 0.05, heightOf(average) + 0.06, 0.25);
       current.group.add(current.avgLabel);
     }
-    stage.frame({ x: width / 2 + 0.3, y: (frameHeight + 0.45) / 2 }, [0, frameHeight / 2 + 0.02, 0], [0, 0.22, 1]);
+    // Frame this year's tallest pole (or the average line), gliding smoothly as the years play
+    const tallest = Math.max(0.9, ...slots.map((sl) => heightOf(sl.value)), average === null ? 0 : heightOf(average));
+    stage.frame({ x: width / 2 + 0.3, y: (tallest + 0.55) / 2 }, [0, tallest / 2 - 0.02, 0], [0, 0.22, 1],
+      { smooth: true });
     // (heightOf depends on lo/hi, which change with the metric)
-  }, [stage, slots, average, scheme, small, format, names, chosen, lo, hi, frameHeight]);
+  }, [stage, slots, average, scheme, small, format, names, chosen, lo, hi]);
 
   // Pointer: hover (mouse) shows the value, a click or tap opens that country's speech
   useEffect(() => {
