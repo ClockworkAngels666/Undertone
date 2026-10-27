@@ -26,6 +26,8 @@
   --footer-bg: #0b2545;
   --footer-ink: #c9d8e6;
   --footer-link: #8fd3f5;
+  /* Faint row of flagpoles along the banners' lower edge (the flags in front of UN headquarters) */
+  --flag-row: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='40' viewBox='0 0 64 40'%3E%3Cpath d='M8 6v34M40 6v34' stroke='white' stroke-opacity='.22' stroke-width='1.2'/%3E%3Ccircle cx='8' cy='5' r='1.4' fill='white' fill-opacity='.32'/%3E%3Ccircle cx='40' cy='5' r='1.4' fill='white' fill-opacity='.32'/%3E%3Cpath d='M9 7q5-3 10 0t10 0v10q-5 3-10 0t-10 0z' fill='white' fill-opacity='.16'/%3E%3Cpath d='M41 7q5-3 10 0t10 0v10q-5 3-10 0t-10 0z' fill='none' stroke='white' stroke-opacity='.26' stroke-width='1.1'/%3E%3C/svg%3E");
   --hostile-bg: rgba(227, 73, 72, 0.2);
   --hostile-line: #c43d3c;
   --coop-bg: rgba(27, 175, 122, 0.22);
@@ -283,12 +285,13 @@ main {
   position: relative;
   overflow: hidden;
   margin-bottom: 22px;
-  padding: 26px 28px 24px;
+  padding: 26px 28px 50px;
   border-radius: var(--radius);
   color: var(--hero-ink);
   background:
+    var(--flag-row) left bottom -6px / 64px 40px round no-repeat,
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120'%3E%3Cpath d='M0 80c40-60 80-60 110-10s70 50 100-10 70-60 100-20 60 30 90-5' fill='none' stroke='white' stroke-opacity='.13' stroke-width='3'/%3E%3Cpath d='M0 100c40-50 80-50 110-8s70 42 100-8 70-50 100-16 60 25 90-4' fill='none' stroke='white' stroke-opacity='.08' stroke-width='2'/%3E%3C/svg%3E")
-      right -40px bottom -10px / 520px auto no-repeat,
+      right -40px top -6px / 520px auto no-repeat,
     linear-gradient(120deg, var(--hero-from), var(--hero-to));
 }
 
@@ -323,8 +326,11 @@ main {
 
 @media (max-width: 560px) {
   .page-intro {
-    padding: 20px 18px 18px;
-    background-size: 360px auto, auto;
+    padding: 20px 18px 40px;
+    background-size: 52px 32px, 360px auto, auto;
+  }
+  .page-intro.with-globe {
+    background-size: 52px 32px, auto;
   }
 }
 
@@ -1069,8 +1075,10 @@ dl.defs dd {
   align-items: center;
   gap: 8px;
   padding-top: 18px;
-  padding-bottom: 18px;
-  background: linear-gradient(120deg, var(--hero-from), var(--hero-to));
+  padding-bottom: 40px;
+  background:
+    var(--flag-row) left bottom -6px / 64px 40px round no-repeat,
+    linear-gradient(120deg, var(--hero-from), var(--hero-to));
 }
 
 .intro-globe {
