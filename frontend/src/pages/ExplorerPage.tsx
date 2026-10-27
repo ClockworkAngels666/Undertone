@@ -15,8 +15,10 @@ const PREFERRED = ["RUS", "USA", "CHN", "VNM"];
 
 // The 3D views (three.js) load only when this page is opened.
 const FlagLine = lazy(() => import("../three/FlagLine"));
+const AssemblyHall = lazy(() => import("../three/AssemblyHall"));
 const Rostrum = lazy(() => import("../three/Rostrum"));
 const RhetoricSpace = lazy(() => import("../three/RhetoricSpace"));
+const Podium = lazy(() => import("../three/Podium"));
 
 export default function ExplorerPage() {
   useDocumentTitle("UN General Debate");
@@ -81,6 +83,7 @@ function Explorer({ summary }: { summary: UNSummary }) {
 
   const [reading, setReading] = useState<{ country: string; year: number } | null>(null);
   const [flagYear, setFlagYear] = useState(end);
+  const [yearView, setYearView] = useState<"flags" | "hall">("flags");
   const [picked, setPicked] = useState<{ code: string; year: number; added: boolean } | null>(null);
   const matrix = useAsync(() => api.un.matrix(metric), [metric]);
   const space = useAsync(
@@ -164,15 +167,26 @@ function Explorer({ summary }: { summary: UNSummary }) {
 
       <div className="card">
         <div className="card-head">
-          <h2>Flags by year</h2>
-          <span className="small muted">{label}</span>
+          <h2>Year by year</h2>
+          <div className="tabs" role="tablist" aria-label="View">
+            {([["flags", "Flags"], ["hall", "Assembly hall"]] as const).map(([key, text]) => (
+              <button key={key} type="button" role="tab" aria-selected={yearView === key}
+                onClick={() => setYearView(key)}>{text}</button>
+            ))}
+          </div>
         </div>
         {matrix.error ? <Notice kind="error" onRetry={matrix.reload}>{matrix.error}</Notice>
           : !matrix.data ? <Loading /> : (
             <Suspense fallback={<Loading label="Loading 3D…" />}>
-              <FlagLine matrix={matrix.data} metricLabel={label} names={names}
-                format={formatValue} year={flagYear} onYearChange={setFlagYear}
-                chosen={chosenFlags} onPick={openSpeech} />
+              {yearView === "flags" ? (
+                <FlagLine matrix={matrix.data} metricLabel={label} names={names}
+                  format={formatValue} year={flagYear} onYearChange={setFlagYear}
+                  chosen={chosenFlags} onPick={openSpeech} />
+              ) : (
+                <AssemblyHall matrix={matrix.data} metricLabel={label} names={names}
+                  format={formatValue} year={flagYear} onYearChange={setFlagYear}
+                  chosen={chosenFlags} onPick={openSpeech} />
+              )}
             </Suspense>
           )}
         {picked && (
@@ -264,7 +278,12 @@ function Explorer({ summary }: { summary: UNSummary }) {
               </div>
             )}
         </div>
-        <RankingCard metric={metric} defaultYear={end} firstYear={firstYear} lastYear={lastYear} names={names} />
+        <RankingCard metric={metric} defaultYear={end} firstYear={firstYear} lastYear={lastYear} names={names}
+          onPick={(code, year) => {
+            openSpeech(code, year);
+            window.setTimeout(() => document.getElementById("close-reading")
+              ?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+          }} />
       </div>
 
       <CloseReading
@@ -288,8 +307,9 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, Math.round(value)));
 }
 
-function RankingCard({ metric, defaultYear, firstYear, lastYear, names }: {
+function RankingCard({ metric, defaultYear, firstYear, lastYear, names, onPick }: {
   metric: string; defaultYear: number; firstYear: number; lastYear: number; names: Record<string, string>;
+  onPick: (code: string, year: number) => void;
 }) {
   const meta = useMeta();
   const [year, setYear] = useState(defaultYear);
@@ -304,6 +324,9 @@ function RankingCard({ metric, defaultYear, firstYear, lastYear, names }: {
   const lo = Math.min(0, ...values);
   const hi = Math.max(0, ...values);
   const span = hi - lo || 1;
+  const top = useMemo(() => (ranking.data?.rows ?? []).slice(0, 3)
+    .map((r) => ({ country: r.country, name: names[r.country] ?? r.name, value: r.value })), [ranking.data, names]);
+  const formatValue = useCallback((v: number) => formatMetric(metric, v), [metric]);
 
   return (
     <div className="card">
@@ -323,6 +346,11 @@ function RankingCard({ metric, defaultYear, firstYear, lastYear, names }: {
         </div>
       </div>
       <p className="muted small">{metricLabel(metric, meta.metrics)}, highest first.</p>
+      {top.length > 0 && ranking.data && (
+        <Suspense fallback={null}>
+          <Podium rows={top} format={formatValue} onPick={(code) => onPick(code, ranking.data!.year)} />
+        </Suspense>
+      )}
       {ranking.error ? <Notice kind="error" onRetry={ranking.reload}>{ranking.error}</Notice>
         : !ranking.data ? <Loading />
         : !rows.length ? <p className="empty">No statements for this year.</p> : (

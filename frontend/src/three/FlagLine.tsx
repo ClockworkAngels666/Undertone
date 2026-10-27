@@ -14,6 +14,7 @@ import {
   Vector2,
 } from "three";
 import type { Matrix } from "../api/types";
+import YearPlayer from "../components/YearPlayer";
 import { useColorScheme } from "../lib/colors";
 import { createFlagPole, type FlagPole, flagTexture } from "./flags";
 import { textSprite } from "./labels";
@@ -71,7 +72,6 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
   const { stage, failed } = useStage(ref, { fov: 34, minDistance: 1.2, maxDistance: 14 });
   const [mode, setMode] = useState<FlagMode>(chosen.length ? "chosen" : "top");
   const rankCount = small ? 5 : 10;
-  const [playing, setPlaying] = useState(false);
   const [tip, setTip] = useState<{ code: string; x: number; y: number } | null>(null);
   const yearIndex = matrix.years.indexOf(year);
   const pickRef = useRef<(code: string) => void>(() => {});
@@ -272,25 +272,12 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
     };
   }, [stage]);
 
-  // Year animation
-  useEffect(() => {
-    if (!playing) return;
-    const timer = window.setInterval(() => {
-      const i = matrix.years.indexOf(year);
-      if (i < 0 || i >= matrix.years.length - 1) setPlaying(false);
-      else onYearChange(matrix.years[i + 1]);
-    }, 700);
-    return () => window.clearInterval(timer);
-  }, [playing, year, matrix.years, onYearChange]);
-
   if (failed) return <p className="empty">This browser cannot show 3D graphics (WebGL is off).</p>;
-  const first = matrix.years[0];
-  const last = matrix.years[matrix.years.length - 1];
   const tipSlot = tip && slots.find((s) => s.code === tip.code);
 
   return (
     <div className="flags3d" data-ready={stage ? "true" : "false"}>
-      <div className="row flags3d-controls">
+      <div className="row view3d-controls">
         <div className="field">
           <label htmlFor="flag-mode">Flags</label>
           <select id="flag-mode" value={mode} onChange={(e) => setMode(e.target.value as FlagMode)}>
@@ -299,30 +286,20 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
             <option value="bottom">Lowest {rankCount}</option>
           </select>
         </div>
-        <div className="flags3d-year" aria-live="polite">{year}</div>
+        <div className="view3d-year" aria-live="polite">{year}</div>
       </div>
       <div className="flags3d-view">
         <div className="flags3d-stage" ref={ref} role="img"
           aria-label={`Flags on poles: ${metricLabel} in ${year}, one pole per country. Taller means a higher value.`} />
         {tip && tipSlot && (
-          <div className="tooltip flags3d-tip" style={{ left: tip.x, top: tip.y }}>
+          <div className="tooltip view3d-tip" style={{ left: tip.x, top: tip.y }}>
             <div className="year">{names[tip.code] ?? tip.code} · {year}</div>
             <div>{tipSlot.value === null ? "No statement this year"
               : <><strong>{format(tipSlot.value)}</strong> {metricLabel}</>}</div>
           </div>
         )}
       </div>
-      <div className="flags3d-bar">
-        <button type="button" className="btn small primary" aria-pressed={playing} onClick={() => {
-          if (!playing && year >= last) onYearChange(first);
-          setPlaying(!playing);
-        }}>{playing ? "❚❚ Pause" : "▶ Play years"}</button>
-        <label className="visually-hidden" htmlFor="flag-year">Year shown by the flags</label>
-        <input id="flag-year" type="range" min={first} max={last} step={1} value={year} onChange={(e) => {
-          setPlaying(false);
-          onYearChange(Number(e.target.value));
-        }} />
-      </div>
+      <YearPlayer years={matrix.years} year={year} onYearChange={onYearChange} label="Year shown by the flags" />
       <p className="small muted">Pole height: {metricLabel}. Half-mast: no statement that year. Tap a flag to read the speech.</p>
     </div>
   );

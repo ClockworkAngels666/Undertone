@@ -1156,13 +1156,13 @@ tr.focused td {
   position: relative;
 }
 
-.flags3d-controls {
+.view3d-controls {
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 4px;
 }
 
-.flags3d-year {
+.view3d-year {
   font-family: var(--display);
   font-weight: 800;
   font-size: 2.4rem;
@@ -1179,20 +1179,20 @@ tr.focused td {
   cursor: grab;
 }
 
-.flags3d-tip {
+.view3d-tip {
   position: absolute;
   pointer-events: none;
   z-index: 2;
 }
 
-.flags3d-bar {
+.year-player {
   display: flex;
   align-items: center;
   gap: 10px;
   margin: 8px 0 4px;
 }
 
-.flags3d-bar input[type="range"] {
+.year-player input[type="range"] {
   flex: 1;
   min-width: 0;
   height: 28px;
@@ -1203,8 +1203,104 @@ tr.focused td {
   .flags3d-stage {
     height: 240px;      /* wider than tall: the camera can come closer to the row of flags */
   }
-  .flags3d-year {
+  .view3d-year {
     font-size: 1.9rem;
+  }
+}
+
+.balance3d {
+  position: relative;
+}
+
+.balance3d-stage {
+  height: 300px;
+  cursor: grab;
+}
+
+.balance3d-bar {
+  align-items: center;
+  margin: 4px 0 12px;
+}
+
+@media (max-width: 760px) {
+  .balance3d-stage {
+    height: 250px;
+  }
+}
+
+.podium3d {
+  height: 230px;
+  margin: 2px 0 10px;
+  cursor: grab;
+}
+
+@media (max-width: 760px) {
+  .podium3d {
+    height: 210px;
+  }
+}
+
+/* Segmented control for switching between views of the same data */
+.tabs {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.tabs button {
+  font: inherit;
+  font-weight: 500;
+  font-size: 0.86rem;
+  min-height: 32px;
+  padding: 4px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.tabs button[aria-selected="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.tabs button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.hall3d {
+  position: relative;
+}
+
+.hall3d-stage {
+  height: 460px;
+  cursor: grab;
+}
+
+.scale-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 420px;
+  margin: 6px 0 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.scale-legend-bar {
+  flex: 1;
+  height: 10px;
+  border-radius: 5px;
+}
+
+@media (max-width: 760px) {
+  .hall3d-stage {
+    height: 230px;      /* the hall is wide: a flatter view lets the camera come closer */
   }
 }
 

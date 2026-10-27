@@ -88,7 +88,7 @@ def series(countries: str = CountriesParam, metric: str = "tone_balance", start:
 
 @router.get("/matrix", response_model=Matrix)
 def matrix(metric: str = "tone_balance", db: Session = Depends(get_db)):
-    """One metric for every country and year at once (for the 3D globe's year animation).
+    """One metric for every country and year at once (for the flags and the assembly hall, which play the years).
 
     `values[code][i]` is the value in `years[i]`, or null when the country made no statement that year.
     """

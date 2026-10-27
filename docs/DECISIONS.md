@@ -83,6 +83,16 @@ empty answer once the data arrives.
   or lowest. One height scale spans all years, so heights stay comparable while it plays; the data arrives in one
   request (`/api/un/matrix`, ~30 KB compressed). This replaced a large 3D globe: the owner does not want a big
   globe as every project's centrepiece, and flags are specific to diplomacy.
+- **Assembly hall** (UN page, next to the flags, same year and Play button): the General Assembly seen from the
+  rostrum, one desk per delegation that spoke that year, with a column for the metric (colour and height; for tone
+  balance and VADER the height is the distance from 0). Seats run from the lowest value on the left to the highest on
+  the right (or alphabetically), so the year's spread reads at a glance; the hall has as many rows as the largest
+  assembly needs, and earlier, smaller assemblies fill the front rows. The chart's countries get a flag at their desk.
+  Desks are instanced (one draw call for ~200 desks), and delegations glide to their new seats as the years play.
+- **Balance scale** (Analyze): one block per hostile or cooperative word (or per few words for long texts, the same
+  unit on both sides) drops into its pan, and the beam tips by the tone balance; the needle's dial marks the UN
+  average. Hovering a block names its word.
+- **Podium** (Country ranking): the year's three highest values with their flags; tapping one opens that speech.
 - **Speaker's rostrum** (Close reading): a General Assembly-style lectern with the speaking country's flag and a
   plaque with session and year. Decorative context only; the UN emblem is deliberately not used.
 - **Rhetoric space** (UN and dataset pages): hostile words × cooperative words × year, with the "tone balance = 0"

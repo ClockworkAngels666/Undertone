@@ -12,6 +12,7 @@ import { errorText, useDictionaries, useDocumentTitle, useMeta } from "../lib/ho
 // three.js loads after the page itself, so the form is usable straight away.
 const IntroGlobe = lazy(() => import("../three/IntroGlobe"));
 const SentenceLandscape = lazy(() => import("../three/SentenceLandscape"));
+const BalanceScale = lazy(() => import("../three/BalanceScale"));
 
 export const SAMPLE_TEXT =
   "Mr. President, on behalf of the Republic of Valdoria, I congratulate you on your election. " +
@@ -184,10 +185,15 @@ function Results({ result, text }: { result: AnalyzeResult; text: string }) {
           </div>
         </div>
         <div className="card">
-          <h2>Most frequent words</h2>
-          <h3 className="small">Hostile</h3>
+          <h2>Balance of words</h2>
+          <Suspense fallback={null}>
+            <BalanceScale hostile={result.counts.hostile_hits} cooperative={result.counts.coop_hits}
+              hostileTerms={result.top_terms.hostile} coopTerms={result.top_terms.cooperative}
+              unAverage={base?.averages.tone_balance ?? null} />
+          </Suspense>
+          <h3 className="small">Most frequent hostile words</h3>
           <TermList terms={result.top_terms.hostile} />
-          <h3 className="small">Cooperative</h3>
+          <h3 className="small">Most frequent cooperative words</h3>
           <TermList terms={result.top_terms.cooperative} />
           <Limitations />
         </div>
