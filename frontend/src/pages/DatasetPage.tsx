@@ -120,7 +120,7 @@ function DatasetView({ dataset, rows, rowsError, refresh }: {
   return (
     <>
       <div className="page-intro">
-        <p className="eyebrow"><Link to="/datasets">← My datasets</Link></p>
+        <p className="back-link"><Link to="/datasets">← My datasets</Link></p>
         <h1>{dataset.name}</h1>
         <p className="muted">
           {plural(dataset.documents, "text")} · {plural(dataset.countries.length, "country", "countries")}
@@ -237,7 +237,7 @@ function YearlyTable({ rows, metric }: { rows: YearlyRow[]; metric: string }) {
   return (
     <div className="card">
       <h2>By country and year</h2>
-      <div className="table-wrap tall">
+      <div className="table-wrap tall" tabIndex={0} role="region" aria-label="By country and year">
         <table>
           <thead>
             <tr>
@@ -278,7 +278,7 @@ function Documents({ id, token, onChange }: { id: string; token?: string; onChan
         <h2>Texts</h2>
         <span className="small muted">{offset + 1}–{Math.min(offset + limit, total)} of {total.toLocaleString()}</span>
       </div>
-      <div className="table-wrap">
+      <div className="table-wrap" tabIndex={0} role="region" aria-label="Texts">
         <table>
           <thead>
             <tr>

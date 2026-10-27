@@ -21,11 +21,13 @@ import {
 import type { Matrix } from "../api/types";
 import YearPlayer from "../components/YearPlayer";
 import { useColorScheme } from "../lib/colors";
+import { plural, shortName } from "../lib/format";
 import { createFlagPole, type FlagPole, flagTexture } from "./flags";
 import { textSprite } from "./labels";
 import { magnitude, scaleFor } from "./scales";
 import { isSmallScreen } from "./stage";
 import { disposeGroup, useStage } from "./useStage";
+import { useTip } from "./useTip";
 
 export type SeatOrder = "value" | "name";
 
@@ -86,11 +88,6 @@ function tier(inner: number, outer: number, height: number, span: number) {
   return geometry;
 }
 
-/** Short label ("Bosnia and Herzegovina" → "Bosnia and Herz."). */
-function shortName(name: string) {
-  return name.length > 16 ? `${name.slice(0, 14).trimEnd()}.` : name;
-}
-
 interface SeatState {
   x: number;
   y: number;
@@ -120,7 +117,7 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
   const small = isSmallScreen();
   const { stage, failed } = useStage(ref, { fov: 34, minDistance: 1.2, maxDistance: 14 });
   const [order, setOrder] = useState<SeatOrder>("value");
-  const [tip, setTip] = useState<{ index: number; x: number; y: number } | null>(null);
+  const tip = useTip<number>();
   const yearIndex = matrix.years.indexOf(year);
   const pickRef = useRef<(code: string) => void>(() => {});
   pickRef.current = (code) => onPick(code, year);
@@ -366,8 +363,8 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
       const hit = raycaster.intersectObjects([current.columns, current.desks, ...flagMeshes.map((f) => f.m)], false)
         .find((h) => h.instanceId === undefined || current.seats[h.instanceId].size > 0.5);
       const index = hit ? hit.instanceId ?? flagMeshes.find((f) => f.m === hit.object)?.index : undefined;
-      setTip(index !== undefined ? { index, x: Math.max(4, Math.min(e.clientX - rect.left + 12, rect.width - 210)),
-        y: Math.max(4, Math.min(e.clientY - rect.top + 12, rect.height - 80)) } : null);
+      tip.show(index ?? null, Math.max(4, Math.min(e.clientX - rect.left + 12, rect.width - 210)),
+        Math.max(4, Math.min(e.clientY - rect.top + 12, rect.height - 80)));
       el.style.cursor = index !== undefined ? "pointer" : "grab";
       return index;
     };
@@ -385,7 +382,7 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
       }
       down = null;
     };
-    const onLeave = () => setTip(null);
+    const onLeave = tip.hide;
     el.addEventListener("pointermove", onMove);
     el.addEventListener("pointerdown", onDown);
     el.addEventListener("pointerup", onUp);
@@ -399,7 +396,7 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
   }, [stage, matrix]);
 
   if (failed) return <p className="empty">This browser cannot show 3D graphics (WebGL is off).</p>;
-  const tipCountry = tip ? matrix.countries[tip.index] : undefined;
+  const tipCountry = tip.item !== null ? matrix.countries[tip.item] : undefined;
   const tipValue = tipCountry && yearIndex >= 0 ? matrix.values[tipCountry.code]?.[yearIndex] ?? null : null;
   const [lo, hi] = scale.domain;
 
@@ -417,14 +414,14 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
       </div>
       <div className="flags3d-view">
         <div className="hall3d-stage" ref={ref} role="img" aria-label={`The General Assembly hall in ${year}: `
-          + `${present.seated.length} delegations, each desk's column showing ${metricLabel}.`} />
-        {tip && tipCountry && (
-          <div className="tooltip view3d-tip" style={{ left: tip.x, top: tip.y }}>
+          + `${plural(present.seated.length, "delegation")}, each desk's column showing ${metricLabel}.`} />
+        {tip.item !== null && tipCountry && (
+          <div className="tooltip view3d-tip" ref={tip.ref}>
             <div className="year">{names[tipCountry.code] ?? tipCountry.name} · {year}</div>
             {tipValue === null ? <div>No statement this year</div> : (
               <>
                 <div><strong>{format(tipValue)}</strong> {metricLabel}</div>
-                <div className="muted">Rank {present.rank.get(tip.index)} of {present.seated.length}</div>
+                <div className="muted">Rank {present.rank.get(tip.item)} of {present.seated.length}</div>
               </>
             )}
           </div>
@@ -438,7 +435,7 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
         <span className="num">{format(hi)}</span>
       </div>
       <p className="small muted">
-        {present.seated.length} delegations spoke in {year}.{" "}
+        {plural(present.seated.length, "delegation")} spoke in {year}.{" "}
         {scale.kind === "diverging" ? `Colour: ${metricLabel}; column height: distance from 0.`
           : `Colour and column height: ${metricLabel}.`}{" "}
         {order === "value" ? "Seats run from the lowest value on the left to the highest on the right. " : ""}

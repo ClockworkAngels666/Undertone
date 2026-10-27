@@ -7,7 +7,6 @@ export default function MethodPage() {
   return (
     <>
       <div className="page-intro">
-        <p className="eyebrow">Methodology</p>
         <h1>Method and limitations</h1>
         <p>
           The tool reads a text in two layers. Both are transparent and reproducible: the same text always gets the

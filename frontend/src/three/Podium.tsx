@@ -12,6 +12,7 @@ import {
   Vector2,
 } from "three";
 import { useColorScheme } from "../lib/colors";
+import { shortName } from "../lib/format";
 import { createFlagPole, flagTexture } from "./flags";
 import { textSprite } from "./labels";
 import { isSmallScreen } from "./stage";
@@ -99,7 +100,7 @@ export default function Podium({ rows, format, onPick }: Props) {
           stage.invalidate();
         }
       });
-      const name = textSprite(row.name.length > 18 ? `${row.name.slice(0, 16).trimEnd()}.` : row.name,
+      const name = textSprite(shortName(row.name, 18),
         { color: ink, height: small ? 0.11 : 0.085, weight: 500, onTop: true });
       name.position.set(x, height + POLE + 0.2, 0);
       const value = textSprite(format(row.value), { color: ink, height: small ? 0.1 : 0.08, onTop: true });

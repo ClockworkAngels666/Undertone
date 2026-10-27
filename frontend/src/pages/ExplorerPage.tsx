@@ -8,7 +8,7 @@ import MetricCards from "../components/MetricCards";
 import MetricSelect from "../components/MetricSelect";
 import TrendChart from "../components/TrendChart";
 import { PALETTE, useColorScheme, useStableSlots } from "../lib/colors";
-import { formatDelta, formatMetric, metricLabel, tickFormat } from "../lib/format";
+import { formatDelta, formatMetric, metricLabel, plural, tickFormat } from "../lib/format";
 import { useAsync, useDocumentTitle, useMeta } from "../lib/hooks";
 
 const PREFERRED = ["RUS", "USA", "CHN", "VNM"];
@@ -126,10 +126,9 @@ function Explorer({ summary }: { summary: UNSummary }) {
   return (
     <>
       <div className="page-intro">
-        <p className="eyebrow">General Assembly · General Debate</p>
         <h1>UN General Debate, {firstYear}–{lastYear}</h1>
         <p>
-          {summary.statements.toLocaleString()} statements by {summary.countries.length} delegations, scored with the
+          {plural(summary.statements, "statement")} by {plural(summary.countries.length, "delegation")}, scored with the
           default dictionaries and VADER. Pick countries and a metric, then read the sentences behind the numbers.
         </p>
       </div>
@@ -255,7 +254,7 @@ function Explorer({ summary }: { summary: UNSummary }) {
           {shifts.error ? <Notice kind="error" onRetry={shifts.reload}>{shifts.error}</Notice>
             : !shifts.data ? <Loading />
             : !shifts.data.length ? <p className="empty">Not enough data.</p> : (
-              <div className="table-wrap">
+              <div className="table-wrap" tabIndex={0} role="region" aria-label="Biggest shifts">
                 <table>
                   <thead>
                     <tr><th>Country</th><th>Years</th><th className="num">Change</th><th className="num">New value</th></tr>
@@ -355,7 +354,7 @@ function RankingCard({ metric, defaultYear, firstYear, lastYear, names, onPick }
         : !ranking.data ? <Loading />
         : !rows.length ? <p className="empty">No statements for this year.</p> : (
           <>
-            <div className="table-wrap tall">
+            <div className="table-wrap tall" tabIndex={0} role="region" aria-label="Country ranking">
               <table>
                 <thead><tr><th className="num">#</th><th>Country</th><th>Value</th></tr></thead>
                 <tbody>
@@ -437,7 +436,7 @@ function CloseReading({ countries, country, year, years, onChange }: {
                 <h3 className="reading-title">{statement.data.name}</h3>
                 <p className="muted small">
                   Session {statement.data.session} · {statement.data.year} ·{" "}
-                  {statement.data.counts.words.toLocaleString()} words · {statement.data.counts.sentences} sentences
+                  {plural(statement.data.counts.words, "word")} · {plural(statement.data.counts.sentences, "sentence")}
                 </p>
               </div>
             </div>

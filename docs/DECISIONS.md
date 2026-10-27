@@ -111,3 +111,19 @@ The requested Gastromond and Europa are commercial fonts (Adobe Fonts, or paid s
 the app uses free, open-licensed stand-ins served with the app: **Fraunces** (heavy old-style display serif, in the
 spirit of Gastromond's Garamond-based fat face) for headings and figures, and **Jost** at weight 300 (geometric,
 Futura-like, close to Europa Light) for text; labels and buttons use Jost 500 for legibility at small sizes.
+
+## 14. Accessibility and phone pass
+Checked every page on desktop and phone, light and dark, with axe (WCAG 2.2 AA), worst-case data (the longest real
+country names, one-sentence and 200,000-character texts) and a 320px-wide screen. Changes:
+- Scrolling tables and the highlighted text can be reached and scrolled with the keyboard; a browser test now runs
+  axe on every page in both colour schemes.
+- Phones: hover styles only apply to devices that can hover, so nothing stays highlighted after a tap; buttons
+  answer on press; no grey tap flash or tap delay; long-pressing a control no longer selects its text; small
+  targets (chip remove buttons, link buttons, the table toggle, footer links) are at least 28px tall.
+- Long country names no longer widen the page: chart end labels shorten to whole words ("Saint Vincent…", full
+  name in the legend and on hover), and form rows and fields shrink with the screen.
+- Counts read "1 sentence", "1,990 sentences"; tables and metric values use tabular figures.
+- Play, pause and remove use small drawn icons instead of text symbols; the small kicker lines above page titles
+  were removed.
+- 3D tooltips follow the mouse without re-rendering the page on every move, and disappear when the pointer leaves
+  the view.

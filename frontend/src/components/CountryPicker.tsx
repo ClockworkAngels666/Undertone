@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { CloseIcon } from "./icons";
 
 export interface PickerOption {
   code: string;
@@ -41,7 +42,7 @@ export default function CountryPicker({ options, value, onChange, max, colors, l
             <span className="swatch" style={{ background: colors[code] }} aria-hidden="true" />
             {byCode.get(code)?.name ?? code}
             <button type="button" aria-label={`Remove ${byCode.get(code)?.name ?? code}`}
-              onClick={() => onChange(value.filter((c) => c !== code))}>×</button>
+              onClick={() => onChange(value.filter((c) => c !== code))}><CloseIcon /></button>
           </span>
         ))}
       </div>

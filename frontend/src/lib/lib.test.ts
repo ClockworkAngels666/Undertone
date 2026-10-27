@@ -1,6 +1,6 @@
 import { batches, parseDocumentsCsv, toCsv } from "./csv";
 import { assignSlots } from "./colors";
-import { formatDelta, formatMetric, metricLabel, percent } from "./format";
+import { fitWords, formatDelta, formatMetric, metricLabel, percent, plural, shortName } from "./format";
 import { storage } from "./storage";
 import { checkTerms, parseTerms, sameTerms } from "./terms";
 import { META } from "../test/fixtures";
@@ -23,6 +23,21 @@ describe("format", () => {
 
   it("never rounds a share up to 100%", () => {
     expect(percent(0.9995)).toBe("99%");
+  });
+
+  it("counts in the singular and plural", () => {
+    expect(plural(1, "sentence")).toBe("1 sentence");
+    expect(plural(1990, "sentence")).toBe("1,990 sentences");
+    expect(plural(0, "country", "countries")).toBe("0 countries");
+  });
+
+  it("shortens long country names", () => {
+    expect(shortName("Bosnia and Herzegovina")).toBe("Bosnia and Her.");
+    expect(shortName("Viet Nam")).toBe("Viet Nam");
+    expect(fitWords("Saint Vincent and the Grenadines", 16)).toBe("Saint Vincent…");
+    expect(fitWords("Central African Republic", 16)).toBe("Central African…");
+    expect(fitWords("United States", 16)).toBe("United States");
+    expect(fitWords("Antidisestablishmentarianism", 10)).toBe("Antidises…");
   });
 
   it("labels keyword metrics", () => {

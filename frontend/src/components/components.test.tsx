@@ -53,7 +53,7 @@ describe("CountryPicker", () => {
     return <CountryPicker options={options} value={value} onChange={setValue} max={max} colors={{}} />;
   }
 
-  it("adds by name or code and removes with the × button", async () => {
+  it("adds by name or code and removes with the remove button", async () => {
     const user = userEvent.setup();
     render(<Harness max={3} />);
     const input = screen.getByRole("combobox");

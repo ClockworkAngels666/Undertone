@@ -16,6 +16,7 @@ import { useColorScheme } from "../lib/colors";
 import { textSprite } from "./labels";
 import { isSmallScreen } from "./stage";
 import { disposeGroup, useStage } from "./useStage";
+import { useTip } from "./useTip";
 
 const MAX_TILT = 0.38;          // beam angle (radians) when one pan holds every word
 const ARM = 0.95;               // pivot to pan hook
@@ -91,7 +92,7 @@ export default function BalanceScale({ hostile, cooperative, hostileTerms, coopT
   const scheme = useColorScheme();
   const { stage, failed } = useStage(ref, { fov: 32, zoom: false, minDistance: 1, maxDistance: 20 });
   const [run, setRun] = useState(0);
-  const [tip, setTip] = useState<{ text: string; x: number; y: number } | null>(null);
+  const tip = useTip<string>();
   const small = isSmallScreen();
   const unit = blockUnit(hostile, cooperative, small ? 24 : 36);
   const blocks = useRef<Block[]>([]);
@@ -261,9 +262,9 @@ export default function BalanceScale({ hostile, cooperative, hostileTerms, coopT
       const visible = blocks.current.filter((b) => b.mesh.visible);
       const hit = raycaster.intersectObjects(visible.map((b) => b.mesh), false)[0];
       const block = hit && visible.find((b) => b.mesh === hit.object);
-      setTip(block ? { text: `${block.side === "hostile" ? "Hostile" : "Cooperative"}: ${block.label}`,
-        x: Math.max(4, Math.min(e.clientX - rect.left + 12, rect.width - 200)),
-        y: Math.max(4, Math.min(e.clientY - rect.top + 12, rect.height - 50)) } : null);
+      tip.show(block ? `${block.side === "hostile" ? "Hostile" : "Cooperative"}: ${block.label}` : null,
+        Math.max(4, Math.min(e.clientX - rect.left + 12, rect.width - 200)),
+        Math.max(4, Math.min(e.clientY - rect.top + 12, rect.height - 50)));
       el.style.cursor = block ? "help" : "grab";
     };
     const onMove = (e: PointerEvent) => {
@@ -272,7 +273,7 @@ export default function BalanceScale({ hostile, cooperative, hostileTerms, coopT
     const onUp = (e: PointerEvent) => {
       if (e.pointerType !== "mouse") pick(e);
     };
-    const onLeave = () => setTip(null);
+    const onLeave = tip.hide;
     el.addEventListener("pointermove", onMove);
     el.addEventListener("pointerup", onUp);
     el.addEventListener("pointerleave", onLeave);
@@ -289,7 +290,7 @@ export default function BalanceScale({ hostile, cooperative, hostileTerms, coopT
       <div className="balance3d-stage" ref={ref} role="img" aria-label={`A balance scale with ${hostile} hostile `
         + `and ${cooperative} cooperative words; it tips towards the ${hostile > cooperative ? "hostile"
           : cooperative > hostile ? "cooperative" : "neither"} side.`} />
-      {tip && <div className="tooltip view3d-tip" style={{ left: tip.x, top: tip.y }}>{tip.text}</div>}
+      {tip.item !== null && <div className="tooltip view3d-tip" ref={tip.ref}>{tip.item}</div>}
       <div className="row balance3d-bar">
         <button type="button" className="btn small" onClick={() => setRun(run + 1)}>Weigh again</button>
         <span className="small muted">

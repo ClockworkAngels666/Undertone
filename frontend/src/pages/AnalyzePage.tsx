@@ -6,7 +6,7 @@ import { HighlightedText, HighlightKeys, Limitations, Notice } from "../componen
 import MetricCards from "../components/MetricCards";
 import SaveToDataset from "../components/SaveToDataset";
 import { downloadText, toCsv } from "../lib/csv";
-import { percent } from "../lib/format";
+import { percent, plural } from "../lib/format";
 import { errorText, useDictionaries, useDocumentTitle, useMeta } from "../lib/hooks";
 
 // three.js loads after the page itself, so the form is usable straight away.
@@ -92,7 +92,6 @@ export default function AnalyzePage() {
     <>
       <div className="page-intro with-globe">
         <div className="intro-text">
-          <p className="eyebrow">Text analysis</p>
           <h1>Analyze a diplomatic text</h1>
           <p>
             Paste a speech, joint statement or state-media article in English. The tool counts hostile and cooperative
@@ -172,15 +171,16 @@ function Results({ result, text }: { result: AnalyzeResult; text: string }) {
         </p>
       )}
       <p className="muted small">
-        {result.counts.words.toLocaleString()} words · {result.counts.sentences} sentences ·{" "}
-        {result.counts.hostile_hits} hostile and {result.counts.coop_hits} cooperative dictionary words
+        {plural(result.counts.words, "word")} · {plural(result.counts.sentences, "sentence")} ·{" "}
+        {result.counts.hostile_hits.toLocaleString("en")} hostile and {result.counts.coop_hits.toLocaleString("en")} cooperative
+        dictionary words
       </p>
 
       <div className="grid-2">
         <div className="card">
           <h2>Highlighted text</h2>
           <HighlightKeys />
-          <div className="highlighted" data-testid="highlighted-text">
+          <div className="highlighted" data-testid="highlighted-text" tabIndex={0} role="region" aria-label="Highlighted text">
             <HighlightedText text={text} spans={result.highlights} />
           </div>
         </div>
@@ -202,7 +202,7 @@ function Results({ result, text }: { result: AnalyzeResult; text: string }) {
       <div className="card">
         <div className="card-head">
           <h2>Sentence landscape</h2>
-          <span className="small muted">{result.sentences.length} sentences in reading order · tap one to find it below</span>
+          <span className="small muted">{plural(result.sentences.length, "sentence")} in reading order · tap one to find it below</span>
         </div>
         <Suspense fallback={<p className="muted">Loading 3D…</p>}>
           <SentenceLandscape sentences={result.sentences} onPick={(index) => {
@@ -260,7 +260,7 @@ function SentenceTable({ sentences, contextUsed, focus }: {
           </label>
         ))}
       </fieldset>
-      <div className="table-wrap tall">
+      <div className="table-wrap tall" tabIndex={0} role="region" aria-label="Sentence scores">
         <table>
           <thead>
             <tr>

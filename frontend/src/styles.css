@@ -17,6 +17,7 @@
   --border: rgba(15, 28, 43, 0.12);
   --accent: #0072bc;
   --accent-ink: #ffffff;
+  --accent-hover: #005a9c;
   --link: #0068ad;
   --focus: #009edb;
   --hero-from: #0072bc;
@@ -41,6 +42,7 @@
   --info-bg: #e8f0fb;
   --info-ink: #1c3f6e;
   --shadow: 0 1px 2px rgba(15, 28, 43, 0.05), 0 6px 18px rgba(15, 28, 43, 0.05);
+  --selection: rgba(0, 158, 219, 0.24);
   --radius: 10px;
   /* Free stand-ins: Jost (Futura-like geometric sans, used at 300 like Europa Light) for text,
      Fraunces (heavy old-style display serif, in the spirit of Gastromond) for headings and figures. */
@@ -62,6 +64,7 @@
     --border: rgba(234, 242, 248, 0.12);
     --accent: #4fb3ea;
     --accent-ink: #06121d;
+    --accent-hover: #7cc8f0;
     --link: #7cc8f0;
     --focus: #4fb3ea;
     --hero-from: #0b4f80;
@@ -84,6 +87,7 @@
     --info-bg: #15263b;
     --info-ink: #b7d3f6;
     --shadow: none;
+    --selection: rgba(79, 179, 234, 0.34);
   }
 }
 
@@ -93,6 +97,41 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;   /* controls give their own press feedback */
+  accent-color: var(--accent);                /* radio buttons, checkboxes, sliders */
+}
+
+::selection {
+  background: var(--selection);
+}
+
+input,
+textarea {
+  caret-color: var(--accent);
+}
+
+/* Numbers line up in tables and metric cards */
+table,
+.metric .value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Controls: no tap delay, no text selection on long-press */
+.btn,
+.tabs button,
+.chip button,
+.nav a,
+summary,
+tr.clickable {
+  touch-action: manipulation;
+}
+
+.btn,
+.tabs button,
+.chip button,
+.nav a {
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 body {
@@ -140,6 +179,7 @@ p {
 
 a {
   color: var(--link);
+  text-underline-offset: 0.18em;
 }
 
 :focus-visible {
@@ -221,6 +261,15 @@ a {
   letter-spacing: 0.08em;
 }
 
+@media (max-width: 360px) {
+  .brand {
+    gap: 10px;
+  }
+  .brand-name {
+    font-size: 0.98rem;
+  }
+}
+
 .nav {
   display: flex;
   gap: 2px;
@@ -243,9 +292,11 @@ a {
   border-top: 3px solid transparent;
 }
 
-.nav a:hover {
-  color: var(--ink);
-  border-bottom-color: var(--grid);
+@media (hover: hover) and (pointer: fine) {
+  .nav a:hover {
+    color: var(--ink);
+    border-bottom-color: var(--grid);
+  }
 }
 
 .nav a.active {
@@ -314,14 +365,15 @@ main {
   color: var(--hero-ink);
 }
 
-.page-intro .eyebrow {
-  color: var(--hero-ink);
-  opacity: 0.85;
-  font-size: 0.75rem;
+.page-intro .back-link {
+  margin: -4px 0 4px;
+  font-size: 0.9rem;
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  margin-bottom: 8px;
+}
+
+.page-intro .back-link a {
+  display: inline-block;
+  padding: 6px 0;
 }
 
 @media (max-width: 560px) {
@@ -350,6 +402,8 @@ main {
 
 .site-footer a {
   color: var(--footer-link);
+  display: inline-block;
+  padding: 4px 0;
 }
 
 .site-footer .disclaimer {
@@ -417,6 +471,8 @@ main {
   gap: 12px;
   flex-wrap: wrap;
   align-items: flex-end;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .stack > * + * {
@@ -457,6 +513,7 @@ label {
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+  max-width: 100%;   /* a select sized by a long option ("Saint Vincent and the Grenadines") must not widen the page */
 }
 
 .field .hint {
@@ -525,10 +582,31 @@ select {
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
+  transition: background-color 120ms ease-out, border-color 120ms ease-out, transform 120ms ease-out;
 }
 
-.btn:hover {
+.btn .icon {
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    background: var(--surface-2);
+  }
+}
+
+.btn:active:not(:disabled) {
   background: var(--surface-2);
+  transform: scale(0.97);
 }
 
 .btn:disabled {
@@ -542,16 +620,16 @@ select {
   color: var(--accent-ink);
 }
 
-.btn.primary:hover:not(:disabled) {
-  background: var(--un-deeper);
-  border-color: var(--un-deeper);
+@media (hover: hover) and (pointer: fine) {
+  .btn.primary:hover:not(:disabled) {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+  }
 }
 
-@media (prefers-color-scheme: dark) {
-  .btn.primary:hover:not(:disabled) {
-    background: var(--link);
-    border-color: var(--link);
-  }
+.btn.primary:active:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 .btn.danger {
@@ -568,14 +646,19 @@ select {
   border: none;
   background: none;
   color: var(--link);
-  padding: 0;
-  min-height: 0;
+  padding: 0 2px;
+  min-height: 32px;
   font-weight: 500;
+}
+
+.btn.link:active:not(:disabled) {
+  background: none;
 }
 
 .file-input {
   font-size: 0.9rem;
   max-width: 100%;
+  padding: 6px 0;
 }
 
 /* ── Notices ────────────────────────────────────────────────────────────── */
@@ -793,8 +876,14 @@ tr.clickable {
   cursor: pointer;
 }
 
-tr.clickable:hover td {
+tr.clickable:active td {
   background: var(--surface-2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  tr.clickable:hover td {
+    background: var(--surface-2);
+  }
 }
 
 th button.sort {
@@ -856,7 +945,7 @@ th button.sort {
   border: 1px solid var(--border);
   background: var(--surface);
   border-radius: 999px;
-  padding: 3px 4px 3px 10px;
+  padding: 1px 2px 1px 10px;
   font-size: 0.88rem;
 }
 
@@ -867,19 +956,29 @@ th button.sort {
 }
 
 .chip button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   border: none;
   background: none;
   color: var(--muted);
   cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
-  padding: 2px 6px;
+  padding: 0;
   border-radius: 999px;
 }
 
-.chip button:hover {
+.chip button:active {
   background: var(--surface-2);
   color: var(--ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chip button:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
 }
 
 /* ── Charts ─────────────────────────────────────────────────────────────── */
@@ -965,7 +1064,8 @@ details.table-view summary {
   cursor: pointer;
   color: var(--link);
   font-size: 0.9rem;
-  margin-top: 8px;
+  margin-top: 4px;
+  padding: 6px 0;
 }
 
 details.table-view[open] summary {

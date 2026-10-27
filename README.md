@@ -32,7 +32,7 @@ Browser ──► Vercel ─┬─ /api/*  ──► FastAPI backend (backend/, 
 - **UN data pipeline**: `python -m dla load-un` verifies, scores and loads the UN General Debate Corpus. It runs on
   a computer, not on Vercel.
 - **Tests**: pytest (backend, run on SQLite and Postgres), Vitest (frontend), Playwright (real browser, desktop
-  and phone). GitHub Actions runs all of them on every push.
+  and phone, with axe accessibility checks). GitHub Actions runs all of them on every push.
 
 Design decisions are recorded in [docs/DECISIONS.md](docs/DECISIONS.md).
 

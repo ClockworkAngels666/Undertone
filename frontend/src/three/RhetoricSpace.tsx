@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
   AmbientLight,
   BufferGeometry,
@@ -25,6 +25,7 @@ import { createFlagPole, flagTexture } from "./flags";
 import { textSprite } from "./labels";
 import { isSmallScreen } from "./stage";
 import { disposeGroup, useStage } from "./useStage";
+import { useTip } from "./useTip";
 
 export interface SpaceSeries {
   key: string;
@@ -58,7 +59,7 @@ export default function RhetoricSpace({ series, onPick }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const scheme = useColorScheme();
   const { stage, failed } = useStage(ref, { fov: 38, minDistance: 1.5, maxDistance: 10 });
-  const [tip, setTip] = useState<{ meta: PointMeta; x: number; y: number } | null>(null);
+  const tip = useTip<PointMeta>();
   const pickRef = useRef(onPick);
   pickRef.current = onPick;
 
@@ -197,8 +198,8 @@ export default function RhetoricSpace({ series, onPick }: Props) {
       raycaster.setFromCamera(pointer, stage.camera);
       const hit = raycaster.intersectObject(all, false)[0];
       const meta = hit?.instanceId !== undefined ? metas[hit.instanceId] : undefined;
-      setTip(meta ? { meta, x: Math.max(4, Math.min(e.clientX - rect.left + 12, rect.width - 200)),
-        y: Math.max(4, Math.min(e.clientY - rect.top + 12, rect.height - 80)) } : null);
+      tip.show(meta ?? null, Math.max(4, Math.min(e.clientX - rect.left + 12, rect.width - 200)),
+        Math.max(4, Math.min(e.clientY - rect.top + 12, rect.height - 80)) + 34);
       el.style.cursor = meta ? "pointer" : "grab";
       return meta;
     };
@@ -216,17 +217,20 @@ export default function RhetoricSpace({ series, onPick }: Props) {
       }
       down = null;
     };
+    const onLeave = tip.hide;
     el.addEventListener("pointermove", onMove);
     el.addEventListener("pointerdown", onDown);
     el.addEventListener("pointerup", onUp);
+    el.addEventListener("pointerleave", onLeave);
     return () => {
       el.removeEventListener("pointermove", onMove);
       el.removeEventListener("pointerdown", onDown);
       el.removeEventListener("pointerup", onUp);
+      el.removeEventListener("pointerleave", onLeave);
       cancelled = true;
       stopWave();
       disposeGroup(group);
-      setTip(null);
+      tip.hide();
     };
   }, [stage, series, extent, scheme]);
 
@@ -240,11 +244,11 @@ export default function RhetoricSpace({ series, onPick }: Props) {
       </ul>
       <div className="space3d-stage" ref={ref} role="img"
         aria-label="3D view of each country's hostile and cooperative words per 1,000 words over the years. Drag sideways to turn, pinch or scroll to zoom." />
-      {tip && (
-        <div className="tooltip space3d-tip" style={{ left: tip.x, top: tip.y + 34 }}>
-          <div className="year">{tip.meta.label} · {tip.meta.year}</div>
-          <div className="row"><strong>{tip.meta.hostility.toFixed(1)}</strong><span className="name">hostile / 1,000</span></div>
-          <div className="row"><strong>{tip.meta.cooperation.toFixed(1)}</strong><span className="name">cooperative / 1,000</span></div>
+      {tip.item && (
+        <div className="tooltip space3d-tip" ref={tip.ref}>
+          <div className="year">{tip.item.label} · {tip.item.year}</div>
+          <div className="row"><strong>{tip.item.hostility.toFixed(1)}</strong><span className="name">hostile / 1,000</span></div>
+          <div className="row"><strong>{tip.item.cooperation.toFixed(1)}</strong><span className="name">cooperative / 1,000</span></div>
           {pickRef.current && <div className="small muted">Click to read this speech</div>}
         </div>
       )}

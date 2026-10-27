@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { expectNoHorizontalScroll } from "./helpers";
 
@@ -29,5 +30,28 @@ for (const path of ["/", "/un", "/datasets", "/dictionaries", "/method"]) {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Main" })).toBeVisible();
     await expectNoHorizontalScroll(page);
+  });
+}
+
+// Automatic accessibility checks (WCAG 2.2 A and AA) on every page, in light and dark mode
+for (const scheme of ["light", "dark"] as const) {
+  test(`every page passes the accessibility checks (${scheme})`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    const check = async (name: string) => {
+      const { violations } = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
+      expect(violations.map((v) => `${name}: ${v.id} (${v.nodes.map((n) => n.target.join(" ")).join(", ")})`)).toEqual([]);
+    };
+    for (const path of ["/", "/un", "/datasets", "/dictionaries", "/method"]) {
+      await page.goto(path);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      await page.waitForLoadState("networkidle");
+      await check(path);
+    }
+    await page.goto("/");
+    await page.getByRole("button", { name: "Use sample text" }).click();
+    await page.getByRole("button", { name: "Analyze" }).click();
+    await expect(page.getByTestId("highlighted-text")).toBeVisible();
+    await check("analysis");
   });
 }

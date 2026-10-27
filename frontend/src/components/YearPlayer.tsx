@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from "react";
+import { PauseIcon, PlayIcon } from "./icons";
 
 /** Play button and slider for views that show one year at a time. */
 export default function YearPlayer({ years, year, onYearChange, label }: {
@@ -28,7 +29,7 @@ export default function YearPlayer({ years, year, onYearChange, label }: {
       <button type="button" className="btn small primary" aria-pressed={playing} onClick={() => {
         if (!playing && year >= last) onYearChange(first);
         setPlaying(!playing);
-      }}>{playing ? "❚❚ Pause" : "▶ Play years"}</button>
+      }}>{playing ? <><PauseIcon /> Pause</> : <><PlayIcon /> Play years</>}</button>
       <label className="visually-hidden" htmlFor={id}>{label}</label>
       <input id={id} type="range" min={first} max={last} step={1} value={year} onChange={(e) => {
         setPlaying(false);

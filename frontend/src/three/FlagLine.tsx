@@ -16,10 +16,12 @@ import {
 import type { Matrix } from "../api/types";
 import YearPlayer from "../components/YearPlayer";
 import { useColorScheme } from "../lib/colors";
+import { shortName } from "../lib/format";
 import { createFlagPole, type FlagPole, flagTexture } from "./flags";
 import { textSprite } from "./labels";
 import { isSmallScreen } from "./stage";
 import { disposeGroup, useStage } from "./useStage";
+import { useTip } from "./useTip";
 
 export type FlagMode = "chosen" | "top" | "bottom";
 
@@ -58,10 +60,6 @@ interface PoleState {
 
 const MIN_POLE = 0.35;
 
-/** Short label under a pole ("Bosnia and Herzegovina" → "Bosnia and Herz."). */
-function shortName(name: string) {
-  return name.length > 16 ? `${name.slice(0, 14).trimEnd()}.` : name;
-}
 const MAX_POLE = 1.9;
 
 /** A row of flagpoles, like the flags in front of UN headquarters: pole height shows the metric in one year. */
@@ -72,7 +70,7 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
   const { stage, failed } = useStage(ref, { fov: 34, minDistance: 1.2, maxDistance: 14 });
   const [mode, setMode] = useState<FlagMode>(chosen.length ? "chosen" : "top");
   const rankCount = small ? 5 : 10;
-  const [tip, setTip] = useState<{ code: string; x: number; y: number } | null>(null);
+  const tip = useTip<string>();
   const yearIndex = matrix.years.indexOf(year);
   const pickRef = useRef<(code: string) => void>(() => {});
   pickRef.current = (code) => onPick(code, year);
@@ -243,8 +241,8 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
       const targets = [...current.poles.entries()].flatMap(([code, p]) => p.pole.meshes.map((m) => ({ code, m })));
       const hit = raycaster.intersectObjects(targets.map((t) => t.m), false)[0];
       const code = hit ? targets.find((t) => t.m === hit.object)?.code : undefined;
-      setTip(code ? { code, x: Math.max(4, Math.min(e.clientX - rect.left + 12, rect.width - 200)),
-        y: Math.max(4, Math.min(e.clientY - rect.top + 12, rect.height - 70)) } : null);
+      tip.show(code ?? null, Math.max(4, Math.min(e.clientX - rect.left + 12, rect.width - 200)),
+        Math.max(4, Math.min(e.clientY - rect.top + 12, rect.height - 70)));
       el.style.cursor = code ? "pointer" : "grab";
       return code;
     };
@@ -262,18 +260,22 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
       }
       down = null;
     };
+    const onLeave = tip.hide;
     el.addEventListener("pointermove", onMove);
     el.addEventListener("pointerdown", onDown);
     el.addEventListener("pointerup", onUp);
+    el.addEventListener("pointerleave", onLeave);
     return () => {
       el.removeEventListener("pointermove", onMove);
       el.removeEventListener("pointerdown", onDown);
       el.removeEventListener("pointerup", onUp);
+      el.removeEventListener("pointerleave", onLeave);
     };
   }, [stage]);
 
   if (failed) return <p className="empty">This browser cannot show 3D graphics (WebGL is off).</p>;
-  const tipSlot = tip && slots.find((s) => s.code === tip.code);
+  const tipCode = tip.item;
+  const tipSlot = tipCode !== null ? slots.find((s) => s.code === tipCode) : undefined;
 
   return (
     <div className="flags3d" data-ready={stage ? "true" : "false"}>
@@ -291,9 +293,9 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
       <div className="flags3d-view">
         <div className="flags3d-stage" ref={ref} role="img"
           aria-label={`Flags on poles: ${metricLabel} in ${year}, one pole per country. Taller means a higher value.`} />
-        {tip && tipSlot && (
-          <div className="tooltip view3d-tip" style={{ left: tip.x, top: tip.y }}>
-            <div className="year">{names[tip.code] ?? tip.code} · {year}</div>
+        {tipCode !== null && tipSlot && (
+          <div className="tooltip view3d-tip" ref={tip.ref}>
+            <div className="year">{names[tipCode] ?? tipCode} · {year}</div>
             <div>{tipSlot.value === null ? "No statement this year"
               : <><strong>{format(tipSlot.value)}</strong> {metricLabel}</>}</div>
           </div>

@@ -59,3 +59,15 @@ export function tickFormat(id: string) {
 export function plural(n: number, singular: string, pluralForm = `${singular}s`) {
   return `${n.toLocaleString("en")} ${n === 1 ? singular : pluralForm}`;
 }
+
+/** Abbreviated country name for 3D labels ("Bosnia and Herzegovina" → "Bosnia and Her."). */
+export function shortName(name: string, max = 16) {
+  return name.length > max ? `${name.slice(0, max - 2).trimEnd()}.` : name;
+}
+
+/** Whole words up to `max` characters, then "…" ("Saint Vincent and the Grenadines" → "Saint Vincent…"). */
+export function fitWords(text: string, max: number) {
+  if (text.length <= max) return text;
+  const space = text.lastIndexOf(" ", max - 1);
+  return `${(space > 0 ? text.slice(0, space) : text.slice(0, max - 1)).trimEnd()}…`;
+}

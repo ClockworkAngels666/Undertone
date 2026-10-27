@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
   AmbientLight,
   BoxGeometry,
@@ -17,6 +17,7 @@ import { textSprite } from "./labels";
 import { scaleFor } from "./scales";
 import { isSmallScreen } from "./stage";
 import { disposeGroup, useStage } from "./useStage";
+import { useTip } from "./useTip";
 
 interface Props {
   sentences: SentenceScore[];
@@ -32,7 +33,7 @@ export default function SentenceLandscape({ sentences, onPick }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const scheme = useColorScheme();
   const { stage, failed } = useStage(ref, { fov: 36, minDistance: 0.5, maxDistance: 14 });
-  const [tip, setTip] = useState<{ s: SentenceScore; x: number; y: number } | null>(null);
+  const tip = useTip<SentenceScore>();
   const pickRef = useRef(onPick);
   pickRef.current = onPick;
   const layout = useMemo(() => {
@@ -107,8 +108,8 @@ export default function SentenceLandscape({ sentences, onPick }: Props) {
       raycaster.setFromCamera(pointer, stage.camera);
       const hit = raycaster.intersectObjects([hostile, coop, tiles], false)[0];
       const s = hit?.instanceId !== undefined ? sentences[hit.instanceId] : undefined;
-      setTip(s ? { s, x: Math.max(4, Math.min(e.clientX - rect.left + 12, rect.width - 260)),
-        y: Math.max(4, Math.min(e.clientY - rect.top + 12, rect.height - 110)) } : null);
+      tip.show(s ?? null, Math.max(4, Math.min(e.clientX - rect.left + 12, rect.width - 260)),
+        Math.max(4, Math.min(e.clientY - rect.top + 12, rect.height - 110)) + 30);
       el.style.cursor = s ? "pointer" : "grab";
       return s;
     };
@@ -126,15 +127,18 @@ export default function SentenceLandscape({ sentences, onPick }: Props) {
       }
       down = null;
     };
+    const onLeave = tip.hide;
     el.addEventListener("pointermove", onMove);
     el.addEventListener("pointerdown", onDown);
     el.addEventListener("pointerup", onUp);
+    el.addEventListener("pointerleave", onLeave);
     return () => {
       el.removeEventListener("pointermove", onMove);
       el.removeEventListener("pointerdown", onDown);
       el.removeEventListener("pointerup", onUp);
+      el.removeEventListener("pointerleave", onLeave);
       disposeGroup(group);
-      setTip(null);
+      tip.hide();
     };
   }, [stage, sentences, layout, scheme]);
 
@@ -148,11 +152,11 @@ export default function SentenceLandscape({ sentences, onPick }: Props) {
       </div>
       <div className="landscape3d-stage" ref={ref} role="img"
         aria-label={`3D landscape of ${sentences.length} sentences: columns show hostile and cooperative words. The table below lists every sentence.`} />
-      {tip && (
-        <div className="tooltip landscape3d-tip" style={{ left: tip.x, top: tip.y + 30 }}>
-          <div className="year">Sentence {tip.s.index + 1}</div>
-          <div className="small">{tip.s.sentence.length > 180 ? `${tip.s.sentence.slice(0, 180)}…` : tip.s.sentence}</div>
-          <div className="small muted">VADER {tip.s.vader.toFixed(2)} · {tip.s.hostile_hits} hostile · {tip.s.coop_hits} cooperative</div>
+      {tip.item && (
+        <div className="tooltip landscape3d-tip" ref={tip.ref}>
+          <div className="year">Sentence {tip.item.index + 1}</div>
+          <div className="small">{tip.item.sentence.length > 180 ? `${tip.item.sentence.slice(0, 180)}…` : tip.item.sentence}</div>
+          <div className="small muted">VADER {tip.item.vader.toFixed(2)} · {tip.item.hostile_hits} hostile · {tip.item.coop_hits} cooperative</div>
         </div>
       )}
     </div>

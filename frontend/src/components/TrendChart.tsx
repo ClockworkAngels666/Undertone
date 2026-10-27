@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import type { Point } from "../api/types";
 import { AVERAGE_COLOR, useColorScheme } from "../lib/colors";
+import { fitWords } from "../lib/format";
 
 export interface ChartSeries {
   key: string;
@@ -85,7 +86,7 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
       <div className={`chart-box${reloading ? " reloading" : ""}`} role="img"
         aria-label={`Line chart of ${valueLabel} by year, ${first}–${last}. The same values are in the table below.`}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={rows} margin={{ top: shownEvents.length ? 52 : 12, right: labelEnds ? 96 : 16, bottom: 4, left: 0 }}>
+          <LineChart data={rows} margin={{ top: shownEvents.length ? 52 : 12, right: labelEnds ? 108 : 16, bottom: 4, left: 0 }}>
             <CartesianGrid vertical={false} stroke={ink.grid} />
             <XAxis dataKey="year" type="number" domain={[first, last]} allowDecimals={false}
               tick={{ fill: ink.axis, fontSize: 12 }} tickLine={false} axisLine={{ stroke: ink.grid }} />
@@ -116,7 +117,7 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
       </div>
       <details className="table-view">
         <summary>Show the numbers as a table</summary>
-        <div className="table-wrap tall">
+        <div className="table-wrap tall" tabIndex={0} role="region" aria-label={`${valueLabel} by year`}>
           <table>
             <thead>
               <tr>
@@ -183,7 +184,10 @@ function EndLabel({ x, y, index, series, end, color, years }: LabelProps & {
   return (
     <g>
       <line x1={x + 6} x2={x + 12} y1={y} y2={y} stroke={series.color} strokeWidth={2} />
-      <text x={x + 16} y={y} dy="0.32em" fill={color} fontSize={12}>{series.label}</text>
+      <text x={x + 16} y={y} dy="0.32em" fill={color} fontSize={12}>
+        {fitWords(series.label, 16)}
+        {series.label.length > 16 && <title>{series.label}</title>}
+      </text>
     </g>
   );
 }
