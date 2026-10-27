@@ -37,8 +37,8 @@ export interface Stage {
   camera: PerspectiveCamera;
   controls: OrbitControls | null;
   reducedMotion: boolean;
-  /** Called every animation frame (only while the view is visible). Return nothing. */
-  onFrame: (fn: (seconds: number, delta: number) => void) => void;
+  /** Called every animation frame while the view is visible. Returns a function that stops it. */
+  onFrame: (fn: (seconds: number, delta: number) => void) => () => void;
   /** Ask for one more frame (for views that only redraw when something changes). */
   invalidate: () => void;
   /**
@@ -195,6 +195,11 @@ export function createStage(container: HTMLElement, options: Options = {}): Stag
     reducedMotion,
     onFrame: (fn) => {
       frameCallbacks.push(fn);
+      start();
+      return () => {
+        const i = frameCallbacks.indexOf(fn);
+        if (i >= 0) frameCallbacks.splice(i, 1);
+      };
     },
     invalidate: () => {
       dirty = true;
@@ -239,13 +244,4 @@ export function lonLatToVector3(lon: number, lat: number, radius = 1): Vector3 {
   const theta = (lat * Math.PI) / 180;
   return new Vector3(-Math.cos(phi) * Math.cos(theta) * radius, Math.sin(theta) * radius,
     Math.sin(phi) * Math.cos(theta) * radius);
-}
-
-/** Inverse of lonLatToVector3 (for a point on or near the sphere). */
-export function vector3ToLonLat(p: Vector3): [number, number] {
-  const r = p.length() || 1;
-  const lat = (Math.asin(Math.max(-1, Math.min(1, p.y / r))) * 180) / Math.PI;
-  let lon = (Math.atan2(p.z, -p.x) * 180) / Math.PI - 180;
-  if (lon < -180) lon += 360;
-  return [lon, lat];
 }

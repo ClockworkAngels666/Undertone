@@ -10,7 +10,7 @@ state-media articles, and 80 years of UN General Debate statements (1946–2025)
 | Page | What it does |
 |---|---|
 | **Analyze a text** | Paste a text or upload a `.txt`/`.pdf`. Get five tone metrics, a comparison with recent UN speeches, the text with hostile and cooperative words highlighted, a **3D sentence landscape** (every sentence as a tile, with columns for its hostile and cooperative words), a score for every sentence (CSV export), and save it to a dataset. |
-| **UN General Debate** | A **3D globe** of every delegation's tone, year by year (press Play to watch 1946–2025; click a country to add it). Explore 11,141 statements from 200 delegations by country, years and metric (or keyword), with the all-country average and key events, and follow each country through a **3D rhetoric space** (hostile × cooperative words × time). See the biggest year-to-year shifts, read the most notable sentences of any speech, rank all countries in a year, export CSV. |
+| **UN General Debate** | **Flags by year**: countries' flags on 3D poles whose height shows the chosen metric (your chart's countries, or the highest/lowest of the year); press Play to watch 1946–2025, tap a flag to read that speech. Explore 11,141 statements from 200 delegations by country, years and metric (or keyword), with the all-country average and key events, and follow each country through a **3D rhetoric space** (hostile × cooperative words × time, each path ending in its flag). See the biggest year-to-year shifts, read any speech at a **3D speaker's rostrum** with its most notable sentences, rank all countries in a year, export CSV. |
 | **My datasets** | Upload a CSV (`country`, `year`, `text`, optional `source`, `title`) and follow how its tone changes by country and year (chart and 3D rhetoric space), compare it with the same countries' UN speeches, track keywords, rescore, export, delete. |
 | **Dictionaries** | Edit the hostile and cooperative word lists for your research question. |
 | **Method** | How every number is computed, and the method's limitations. |
@@ -112,6 +112,9 @@ To run the browser tests against the live site: `cd frontend`, `set E2E_BASE_URL
 
 Jankin, S., Baturo, A., & Dasandi, N. (2024). *Words to unite nations: The complete United Nations General Debate
 Corpus, 1946–present.* Journal of Peace Research. Harvard Dataverse, https://doi.org/10.7910/DVN/0TJX8Y (CC0).
+
+Flags: [flag-icons](https://github.com/lipis/flag-icons) (MIT). Map outlines for the intro globe: Natural Earth via
+[world-atlas](https://github.com/topojson/world-atlas) (public domain).
 
 The `notebook/` folder holds the original step-by-step Google Colab notebook.
 

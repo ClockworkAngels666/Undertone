@@ -21,6 +21,7 @@ import {
   Vector3,
 } from "three";
 import { useColorScheme } from "../lib/colors";
+import { createFlagPole, flagTexture } from "./flags";
 import { textSprite } from "./labels";
 import { isSmallScreen } from "./stage";
 import { disposeGroup, useStage } from "./useStage";
@@ -159,6 +160,30 @@ export default function RhetoricSpace({ series, onPick }: Props) {
     }
     all.count = index;
     group.add(all);
+
+    // A small waving flag on each country's most recent point, so every path can be recognised at a glance
+    let cancelled = false;
+    const flags = series.flatMap((s, i) => {
+      const last = [...s.points].reverse().find((p) => p.hostility !== null && p.cooperation !== null);
+      if (!last) return [];
+      const pole = createFlagPole({ width: small ? 0.2 : 0.16, segments: small ? [6, 3] : [10, 5], phase: i * 1.3 });
+      pole.setHeight(small ? 0.28 : 0.22);
+      pole.group.position.set(sx(last.hostility!), sy(last.cooperation!), sz(last.year));
+      group.add(pole.group);
+      void flagTexture(s.key, s.color).then((texture) => {
+        if (cancelled) texture.dispose();
+        else {
+          pole.setFlag(texture);
+          stage.invalidate();
+        }
+      });
+      return [pole];
+    });
+    const stopWave = stage.onFrame((seconds) => {
+      if (stage.reducedMotion || !flags.length) return;
+      for (const flag of flags) flag.wave(seconds, 0.8);
+      stage.invalidate();
+    });
     stage.scene.add(group);
     stage.invalidate();
 
@@ -198,6 +223,8 @@ export default function RhetoricSpace({ series, onPick }: Props) {
       el.removeEventListener("pointermove", onMove);
       el.removeEventListener("pointerdown", onDown);
       el.removeEventListener("pointerup", onUp);
+      cancelled = true;
+      stopWave();
       disposeGroup(group);
       setTip(null);
     };

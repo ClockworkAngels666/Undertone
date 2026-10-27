@@ -182,7 +182,7 @@ def score_corpus(archive: Path, workers: int | None = None):
         raise PipelineError("No statements found (expected files named like RUS_77_2022.txt).")
     workers = workers or max(1, (os.cpu_count() or 2) - 1)
     log(f"📚 Scoring {len(statements):,} statements with {workers} worker(s)...")
-    started, results = time.time(), []
+    started, results = time.perf_counter(), []
     if workers == 1:
         iterator = map(score_statement, statements)
         pool = None
@@ -193,7 +193,7 @@ def score_corpus(archive: Path, workers: int | None = None):
         for i, result in enumerate(iterator, 1):
             results.append(result)
             if i % 1000 == 0 or i == len(statements):
-                rate = i / (time.time() - started)
+                rate = i / max(time.perf_counter() - started, 1e-6)     # a tiny corpus can finish within one clock tick
                 log(f"   {i:,}/{len(statements):,} · about {(len(statements) - i) / rate / 60:.1f} min left")
     finally:
         if pool:

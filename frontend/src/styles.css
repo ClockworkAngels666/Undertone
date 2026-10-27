@@ -1093,87 +1093,17 @@ dl.defs dd {
   }
 }
 
-.globe3d,
 .space3d,
 .landscape3d {
   position: relative;
 }
 
-.globe3d-stage {
-  height: 520px;
-  border-radius: 8px;
-  background: radial-gradient(circle at 50% 45%, var(--surface-2), var(--surface) 70%);
-  cursor: grab;
-}
-
-.globe3d-year {
-  position: absolute;
-  top: 10px;
-  left: 14px;
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: 2.6rem;
-  line-height: 1;
-  color: var(--ink);
-  pointer-events: none;
-}
-
-.globe3d-note {
-  position: absolute;
-  top: 54px;
-  left: 16px;
-  font-size: 0.82rem;
-  color: var(--muted);
-  pointer-events: none;
-}
-
-.globe3d-tip,
 .space3d-tip,
 .landscape3d-tip {
   position: absolute;
   pointer-events: none;
   z-index: 2;
   max-width: 260px;
-}
-
-.globe3d-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.globe3d-bar input[type="range"] {
-  flex: 1;
-  min-width: 0;
-  accent-color: var(--accent);
-  height: 28px;
-}
-
-.globe3d-legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 12px;
-  margin-top: 8px;
-  color: var(--ink-2);
-}
-
-.globe3d-scale {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  width: 180px;
-}
-
-.globe3d-ramp {
-  height: 10px;
-  border-radius: 5px;
-}
-
-.globe3d-ramp-labels {
-  display: flex;
-  justify-content: space-between;
 }
 
 .globe3d-swatch {
@@ -1205,19 +1135,96 @@ tr.focused td {
 }
 
 @media (max-width: 760px) {
-  .globe3d-stage {
-    height: 360px;
-  }
-  .globe3d-year {
-    font-size: 2rem;
-  }
-  .globe3d-note {
-    top: 44px;
-  }
   .space3d-stage {
     height: 360px;
   }
   .landscape3d-stage {
     height: 260px;
+  }
+}
+
+.flags3d,
+.rostrum3d {
+  position: relative;
+}
+
+.flags3d-controls {
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 4px;
+}
+
+.flags3d-year {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 2.4rem;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.flags3d-view {
+  position: relative;
+}
+
+.flags3d-stage {
+  height: 440px;
+  cursor: grab;
+}
+
+.flags3d-tip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.flags3d-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 4px;
+}
+
+.flags3d-bar input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  accent-color: var(--accent);
+}
+
+@media (max-width: 760px) {
+  .flags3d-stage {
+    height: 240px;      /* wider than tall: the camera can come closer to the row of flags */
+  }
+  .flags3d-year {
+    font-size: 1.9rem;
+  }
+}
+
+.reading-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.reading-title {
+  font-size: 1.6rem;
+  margin-bottom: 4px;
+}
+
+.rostrum3d {
+  height: 270px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: grab;
+}
+
+@media (max-width: 760px) {
+  .reading-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rostrum3d {
+    height: 220px;
   }
 }

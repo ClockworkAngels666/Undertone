@@ -18,6 +18,7 @@ export default defineConfig({
   },
   build: {
     sourcemap: true,
+    assetsInlineLimit: (file) => (file.includes("flag-icons") ? false : undefined),
     rollupOptions: {
       output: {
         manualChunks(id) {

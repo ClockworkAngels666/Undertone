@@ -14,7 +14,8 @@ import { useAsync, useDocumentTitle, useMeta } from "../lib/hooks";
 const PREFERRED = ["RUS", "USA", "CHN", "VNM"];
 
 // The 3D views (three.js) load only when this page is opened.
-const YearGlobe = lazy(() => import("../three/YearGlobe"));
+const FlagLine = lazy(() => import("../three/FlagLine"));
+const Rostrum = lazy(() => import("../three/Rostrum"));
 const RhetoricSpace = lazy(() => import("../three/RhetoricSpace"));
 
 export default function ExplorerPage() {
@@ -66,7 +67,7 @@ function Explorer({ summary }: { summary: UNSummary }) {
   const colorKey = countries.map((c) => `${c}=${PALETTE[scheme][slots[c] ?? 0]}`).join(",");
   const colors = useMemo(() => Object.fromEntries(colorKey.split(",").filter(Boolean).map((pair) => pair.split("="))),
     [colorKey]) as Record<string, string>;
-  const names = Object.fromEntries(summary.countries.map((c) => [c.code, c.name]));
+  const names = useMemo(() => Object.fromEntries(summary.countries.map((c) => [c.code, c.name])), [summary]);
   const label = metricLabel(metric, meta.metrics);
 
   const series = useAsync(
@@ -79,7 +80,7 @@ function Explorer({ summary }: { summary: UNSummary }) {
   );
 
   const [reading, setReading] = useState<{ country: string; year: number } | null>(null);
-  const [globeYear, setGlobeYear] = useState(end);
+  const [flagYear, setFlagYear] = useState(end);
   const [picked, setPicked] = useState<{ code: string; year: number; added: boolean } | null>(null);
   const matrix = useAsync(() => api.un.matrix(metric), [metric]);
   const space = useAsync(
@@ -89,6 +90,10 @@ function Explorer({ summary }: { summary: UNSummary }) {
     ]) : Promise.resolve(null)),
     [countries.join(","), start, end],
   );
+
+  const chosenFlags = useMemo(() => countries.map((code) => ({ code, color: colors[code] })),
+    [colorKey]);   // colorKey changes exactly when the countries or their colours do
+  const formatValue = useCallback((v: number) => formatMetric(metric, v), [metric]);
 
   const spaceSeries = useMemo(() => (space.data ? space.data[0].series.map((h) => {
     const coop = new Map(space.data![1].series.find((c) => c.country === h.country)?.points
@@ -159,15 +164,15 @@ function Explorer({ summary }: { summary: UNSummary }) {
 
       <div className="card">
         <div className="card-head">
-          <h2>The world in 3D</h2>
-          <span className="small muted">{label} · every delegation, year by year</span>
+          <h2>Flags by year</h2>
+          <span className="small muted">{label}</span>
         </div>
         {matrix.error ? <Notice kind="error" onRetry={matrix.reload}>{matrix.error}</Notice>
-          : !matrix.data ? <Loading label="Loading the globe…" /> : (
+          : !matrix.data ? <Loading /> : (
             <Suspense fallback={<Loading label="Loading 3D…" />}>
-              <YearGlobe matrix={matrix.data} metric={metric} metricLabel={label}
-                format={(v) => formatMetric(metric, v)} year={globeYear} onYearChange={setGlobeYear}
-                selected={colors} onPick={openSpeech} />
+              <FlagLine matrix={matrix.data} metricLabel={label} names={names}
+                format={formatValue} year={flagYear} onYearChange={setFlagYear}
+                chosen={chosenFlags} onPick={openSpeech} />
             </Suspense>
           )}
         {picked && (
@@ -395,10 +400,19 @@ function CloseReading({ countries, country, year, years, onChange }: {
       {statement.error ? <Notice kind="error" onRetry={statement.reload}>{statement.error}</Notice>
         : !statement.data ? (statement.loading ? <Loading /> : <p className="empty">No statement in the chosen years.</p>) : (
           <div style={{ opacity: statement.loading ? 0.6 : 1 }}>
-            <p className="muted small">
-              {statement.data.name}, session {statement.data.session} ({statement.data.year}) ·{" "}
-              {statement.data.counts.words.toLocaleString()} words · {statement.data.counts.sentences} sentences
-            </p>
+            <div className="reading-head">
+              <Suspense fallback={null}>
+                <Rostrum code={statement.data.country} name={statement.data.name} year={statement.data.year}
+                  session={statement.data.session} />
+              </Suspense>
+              <div>
+                <h3 className="reading-title">{statement.data.name}</h3>
+                <p className="muted small">
+                  Session {statement.data.session} · {statement.data.year} ·{" "}
+                  {statement.data.counts.words.toLocaleString()} words · {statement.data.counts.sentences} sentences
+                </p>
+              </div>
+            </div>
             <MetricCards metrics={statement.data.metrics} />
             <HighlightKeys />
             {(Object.keys(KIND_TITLES) as NotableSentence["kind"][]).map((kind) => {

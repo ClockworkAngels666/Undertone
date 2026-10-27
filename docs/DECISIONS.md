@@ -78,19 +78,23 @@ one. While no UN data is loaded, `/api/un/summary` answers `Cache-Control: no-st
 empty answer once the data arrives.
 
 ## 12. 3D views where a third dimension carries meaning
-- **Globe by year** (UN page): every delegation coloured and given a column for the chosen metric in one year,
-  with Play to animate 1946–2025. One colour scale spans all years, so colours stay comparable while it plays.
-  The data arrives in one request (`/api/un/matrix`, ~35 KB compressed) so the animation never waits.
+- **Flags by year** (UN page): flags on poles, pole height = the chosen metric in one year, Play animates
+  1946–2025, a flag at half-mast means no statement that year. Shows the chart's countries or the year's highest
+  or lowest. One height scale spans all years, so heights stay comparable while it plays; the data arrives in one
+  request (`/api/un/matrix`, ~30 KB compressed). This replaced a large 3D globe: the owner does not want a big
+  globe as every project's centrepiece, and flags are specific to diplomacy.
+- **Speaker's rostrum** (Close reading): a General Assembly-style lectern with the speaking country's flag and a
+  plaque with session and year. Decorative context only; the UN emblem is deliberately not used.
 - **Rhetoric space** (UN and dataset pages): hostile words × cooperative words × year, with the "tone balance = 0"
-  plane drawn in, so drift towards confrontation or conciliation is visible as a path.
+  plane drawn in; each path ends in a small waving flag, so lines can be told apart without the legend.
 - **Sentence landscape** (Analyze): every sentence in reading order, with hostile and cooperative columns.
-- **Intro globe** (start page): decorative only.
+- **Intro globe** (start page): small and decorative.
 
-All 3D is three.js, loaded lazily (the start page shows before it arrives), drawn only while visible and only when
-something changes, lighter on phones (smaller textures, fewer polygons, pixel density capped), with tap instead of
-hover and vertical swipes still scrolling the page. Every 3D view has a 2D equivalent with the same numbers (charts,
-tables, ranking), and the views degrade to a message where WebGL is unavailable. The map is Natural Earth 1:110m
-(public domain); 33 small or historical states without a shape are placed at their capitals.
+All 3D is three.js, loaded lazily (pages show before it arrives), drawn only while visible and only when something
+changes (waving flags excepted), lighter on phones (fewer polygons, pixel density capped, fewer flags), tap instead
+of hover, and vertical swipes still scroll the page. Each view frames itself for the screen's shape. Flags come
+from flag-icons (MIT) and are downloaded one by one, only when shown; states without an ISO flag (Yugoslavia,
+Czechoslovakia…) get a plain flag with their code. Every 3D view has a 2D equivalent with the same numbers.
 
 ## 13. Fonts
 The requested Gastromond and Europa are commercial fonts (Adobe Fonts, or paid self-hosting licences). As agreed,
