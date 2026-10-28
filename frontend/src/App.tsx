@@ -28,7 +28,11 @@ export default function App() {
       <header className="site-header">
         <div className="container">
           <NavLink to="/" className="brand">
-            <img src="/favicon.svg" alt="" />
+            <svg className="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+              <path d="M3 18c3.4-8 6.8-8 9-2.3s5.6 5.7 8-1.1 4.5-6.8 9-4" fill="none" stroke="currentColor"
+                strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M3 26h26" stroke="currentColor" strokeOpacity=".45" strokeWidth="2.2" strokeLinecap="round" />
+            </svg>
             <span className="brand-text">
               <span className="brand-name">Undertone Lab</span>
               <span className="brand-tag">Diplomatic language analyzer</span>

@@ -21,8 +21,8 @@ export default function DatasetsPage() {
       <div className="page-intro">
         <h1>Compare texts over time</h1>
         <p>
-          Upload your own collection, for example a ministry’s statements or a state broadcaster’s articles, and see how
-          its tone changes by country and year. Datasets are stored in the app’s database.
+          Your own collections, such as a ministry’s statements or a state broadcaster’s articles, scored by country and
+          year. Uploads are stored in the app’s database.
         </p>
       </div>
 

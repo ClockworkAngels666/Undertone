@@ -22,8 +22,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // d3-geo/topojson belong to the 3D globes, not the charts: keep them apart so each page loads only what it uses
-          if (id.includes("node_modules/d3-geo") || id.includes("node_modules/topojson")) return "geo";
           if (id.includes("node_modules/recharts") || id.includes("node_modules/d3-")) return "charts";
           if (id.includes("node_modules/react")) return "react";
         },

@@ -132,7 +132,7 @@ function Explorer({ summary }: { summary: UNSummary }) {
         <h1>UN General Debate, {firstYear}–{lastYear}</h1>
         <p>
           {plural(summary.statements, "statement")} by {plural(summary.countries.length, "delegation")}, scored with the
-          default dictionaries and VADER. Pick countries and a metric, then read the sentences behind the numbers.
+          default dictionaries and VADER.
         </p>
       </div>
       {summary.demo && (

@@ -1,14 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { expectNoHorizontalScroll, watchErrors } from "./helpers";
 
-test("the start page shows the 3D intro globe", async ({ page }) => {
-  const noErrors = watchErrors(page);
-  await page.goto("/");
-  await expect(page.locator(".intro-globe canvas")).toBeVisible();
-  await expectNoHorizontalScroll(page);
-  noErrors();
-});
-
 test("the analysis shows a 3D sentence landscape", async ({ page }) => {
   const noErrors = watchErrors(page);
   await page.goto("/");

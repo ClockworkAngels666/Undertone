@@ -101,7 +101,7 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
   }, [matrix, yearIndex]);
 
   // Scene: ground, lights, and the poles (kept by country so they glide when the order changes)
-  const scene = useRef<{ group: Group; poles: Map<string, PoleState>; avg: Mesh; avgLabel: Sprite | null } | null>(null);
+  const scene = useRef<{ group: Group; poles: Map<string, PoleState>; avg: Mesh } | null>(null);
   useEffect(() => {
     if (!stage) return;
     const group = new Group();
@@ -113,7 +113,7 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
       color: scheme === "dark" ? 0x8fd3f5 : 0x0072bc, transparent: true, opacity: 0.8, side: DoubleSide }));
     group.add(avg);
     stage.scene.add(group);
-    scene.current = { group, poles: new Map(), avg, avgLabel: null };
+    scene.current = { group, poles: new Map(), avg };
     const stopWave = stage.onFrame((seconds, delta) => {
       const current = scene.current;
       if (!current) return;
@@ -201,24 +201,12 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
       }
     });
 
-    // The all-country average as a thin line across the row
+    // The all-country average as a thin line across the row (named in the caption: a label in the scene ends up
+    // behind whichever flag reaches that height)
     const width = Math.max(1, perRow * spacing + 0.4);
     current.avg.visible = average !== null;
     current.avg.scale.x = width;
     current.avg.position.set(0, heightOf(average), 0.25);
-    if (current.avgLabel) {
-      const g = new Group();
-      current.group.remove(current.avgLabel);
-      g.add(current.avgLabel);
-      disposeGroup(g);
-      current.avgLabel = null;
-    }
-    if (average !== null) {
-      current.avgLabel = textSprite(`all-country average ${format(average)}`, {
-        color: scheme === "dark" ? "#8fd3f5" : "#0072bc", height: small ? 0.1 : 0.085, onTop: true });
-      current.avgLabel.position.set(width / 2 + 0.05, heightOf(average) + 0.06, 0.25);
-      current.group.add(current.avgLabel);
-    }
     // Frame this year's tallest pole (or the average line), gliding smoothly as the years play
     const tallest = Math.max(0.9, ...slots.map((sl) => heightOf(sl.value)), average === null ? 0 : heightOf(average));
     stage.frame({ x: width / 2 + 0.3, y: (tallest + 0.55) / 2 }, [0, tallest / 2 - 0.02, 0], [0, 0.22, 1],
@@ -302,7 +290,10 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
         )}
       </div>
       <YearPlayer years={matrix.years} year={year} onYearChange={onYearChange} label="Year shown by the flags" />
-      <p className="small muted">Pole height: {metricLabel}. Half-mast: no statement that year. Tap a flag to read the speech.</p>
+      <p className="small muted">
+        Pole height: {metricLabel}.{average !== null && <> Blue line: all-country average, {format(average)}.</>}{" "}
+        Half-mast: no statement that year. Tap a flag to read the speech.
+      </p>
     </div>
   );
 }

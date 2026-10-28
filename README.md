@@ -116,8 +116,7 @@ To run the browser tests against the live site: `cd frontend`, `set E2E_BASE_URL
 Jankin, S., Baturo, A., & Dasandi, N. (2024). *Words to unite nations: The complete United Nations General Debate
 Corpus, 1946–present.* Journal of Peace Research. Harvard Dataverse, https://doi.org/10.7910/DVN/0TJX8Y (CC0).
 
-Flags: [flag-icons](https://github.com/lipis/flag-icons) (MIT). Map outlines for the intro globe: Natural Earth via
-[world-atlas](https://github.com/topojson/world-atlas) (public domain).
+Flags: [flag-icons](https://github.com/lipis/flag-icons) (MIT).
 
 The `notebook/` folder holds the original step-by-step Google Colab notebook.
 

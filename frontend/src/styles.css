@@ -20,10 +20,6 @@
   --accent-hover: #005a9c;
   --link: #0068ad;
   --focus: #009edb;
-  --hero-from: #0072bc;
-  --hero-to: #00497f;
-  --hero-ink: #ffffff;
-  --hero-ink-2: #d6ebf8;
   --footer-bg: #0b2545;
   --footer-ink: #c9d8e6;
   --footer-link: #8fd3f5;
@@ -41,9 +37,9 @@
   --error-ink: #8a1c17;
   --info-bg: #e8f0fb;
   --info-ink: #1c3f6e;
-  --shadow: 0 1px 2px rgba(15, 28, 43, 0.05), 0 6px 18px rgba(15, 28, 43, 0.05);
+  --shadow: none;
   --selection: rgba(0, 158, 219, 0.24);
-  --radius: 10px;
+  --radius: 8px;
   /* Free stand-ins: Jost (Futura-like geometric sans, used at 300 like Europa Light) for text,
      Fraunces (heavy old-style display serif, in the spirit of Gastromond) for headings and figures. */
   --sans: "Jost Variable", Jost, "Futura", "Century Gothic", system-ui, sans-serif;
@@ -53,26 +49,22 @@
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --plane: #0a1622;
-    --surface: #10202f;
-    --surface-2: #16293b;
-    --ink: #eaf2f8;
-    --ink-2: #b9cad8;
-    --muted: #9fb3c8;
+    --plane: #111213;
+    --surface: #18191b;
+    --surface-2: #202124;
+    --ink: #f1f2f3;
+    --ink-2: #c6c9cd;
+    --muted: #a4a8ae;
     --axis: #898781;
-    --grid: #1f3346;
-    --border: rgba(234, 242, 248, 0.12);
+    --grid: #2a2c2f;
+    --border: rgba(255, 255, 255, 0.1);
     --accent: #4fb3ea;
     --accent-ink: #06121d;
     --accent-hover: #7cc8f0;
     --link: #7cc8f0;
     --focus: #4fb3ea;
-    --hero-from: #0b4f80;
-    --hero-to: #0a2a45;
-    --hero-ink: #ffffff;
-    --hero-ink-2: #c3dff2;
-    --footer-bg: #06111b;
-    --footer-ink: #9fb3c8;
+    --footer-bg: #0a0b0c;
+    --footer-ink: #a4a8ae;
     --footer-link: #7cc8f0;
     --hostile-bg: rgba(230, 103, 103, 0.3);
     --hostile-line: #e66767;
@@ -84,7 +76,7 @@
     --warn-ink: #f5d78a;
     --error-bg: #3d1a18;
     --error-ink: #ffb4ab;
-    --info-bg: #15263b;
+    --info-bg: #17222e;
     --info-ink: #b7d3f6;
     --shadow: none;
     --selection: rgba(79, 179, 234, 0.34);
@@ -146,14 +138,15 @@ h1,
 h2,
 h3 {
   font-family: var(--display);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.15;
   margin: 0 0 0.5rem;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
 }
 
+h2,
 h3 {
-  font-weight: 700;
+  font-weight: 650;
 }
 
 strong,
@@ -162,11 +155,11 @@ b {
 }
 
 h1 {
-  font-size: clamp(1.7rem, 4vw, 2.35rem);
+  font-size: clamp(1.45rem, 3vw, 1.75rem);
 }
 
 h2 {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
 }
 
 h3 {
@@ -208,10 +201,8 @@ a {
   padding: 0 16px;
 }
 
-/* Header: a UN-blue stripe over a clean white bar, as on many UN system websites. */
 .site-header {
   background: var(--surface);
-  border-top: 4px solid var(--un);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -235,9 +226,11 @@ a {
   white-space: nowrap;
 }
 
-.brand img {
-  width: 34px;
-  height: 34px;
+.brand-mark {
+  width: 30px;
+  height: 30px;
+  color: var(--un-deep);
+  flex: none;
 }
 
 .brand-text {
@@ -248,17 +241,13 @@ a {
 
 .brand-name {
   font-family: var(--display);
-  font-weight: 800;
-  font-size: 1.32rem;
-  letter-spacing: -0.005em;
+  font-weight: 700;
+  font-size: 1.25rem;
 }
 
 .brand-tag {
-  font-size: 0.72rem;
-  font-weight: 500;
+  font-size: 0.8rem;
   color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
 }
 
 @media (max-width: 360px) {
@@ -288,8 +277,8 @@ a {
   white-space: nowrap;
   font-size: 0.93rem;
   font-weight: 500;
-  border-bottom: 3px solid transparent;
-  border-top: 3px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-top: 2px solid transparent;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -300,9 +289,8 @@ a {
 }
 
 .nav a.active {
-  color: var(--link);
-  border-bottom-color: var(--un);
-  font-weight: 500;
+  color: var(--ink);
+  border-bottom-color: var(--ink);
 }
 
 @media (max-width: 760px) {
@@ -328,41 +316,26 @@ a {
 
 main {
   flex: 1 0 auto;
-  padding: 24px 0 48px;
+  padding: 32px 0 64px;
 }
 
-/* Page banner: deep UN blue with a faint speech-wave motif (the app's own mark, not the UN emblem). */
+/* Page title row: the h1 and one line about the data, on the page itself. */
 .page-intro {
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 22px;
-  padding: 26px 28px 50px;
-  border-radius: var(--radius);
-  color: var(--hero-ink);
-  background:
-    var(--flag-row) left bottom -6px / 64px 40px round no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120'%3E%3Cpath d='M0 80c40-60 80-60 110-10s70 50 100-10 70-60 100-20 60 30 90-5' fill='none' stroke='white' stroke-opacity='.13' stroke-width='3'/%3E%3Cpath d='M0 100c40-50 80-50 110-8s70 42 100-8 70-50 100-16 60 25 90-4' fill='none' stroke='white' stroke-opacity='.08' stroke-width='2'/%3E%3C/svg%3E")
-      right -40px top -6px / 520px auto no-repeat,
-    linear-gradient(120deg, var(--hero-from), var(--hero-to));
+  margin: 0 0 24px;
+  max-width: 78ch;
 }
 
 .page-intro h1 {
-  color: var(--hero-ink);
+  margin-bottom: 6px;
 }
 
 .page-intro p {
-  color: var(--hero-ink-2);
-  max-width: 70ch;
+  color: var(--ink-2);
   margin-bottom: 0;
 }
 
 .page-intro p + p {
   margin-top: 6px;
-}
-
-.page-intro a,
-.page-intro .muted {
-  color: var(--hero-ink);
 }
 
 .page-intro .back-link {
@@ -376,21 +349,10 @@ main {
   padding: 6px 0;
 }
 
-@media (max-width: 560px) {
-  .page-intro {
-    padding: 20px 18px 40px;
-    background-size: 52px 32px, 360px auto, auto;
-  }
-  .page-intro.with-globe {
-    background-size: 52px 32px, auto;
-  }
-}
-
 .site-footer {
-  background: var(--footer-bg);
+  background: var(--footer-bg) var(--flag-row) left bottom -6px / 64px 40px round no-repeat;
   color: var(--footer-ink);
-  border-top: 4px solid var(--un);
-  padding: 22px 0 30px;
+  padding: 24px 0 64px;
   font-size: 0.86rem;
 }
 
@@ -427,17 +389,6 @@ main {
 .card > h2:first-child,
 .card > h3:first-child {
   margin-top: 0;
-}
-
-/* Short UN-blue rule under section headings */
-.card h2::after {
-  content: "";
-  display: block;
-  width: 28px;
-  height: 3px;
-  margin-top: 6px;
-  border-radius: 2px;
-  background: var(--un);
 }
 
 .card-head {
@@ -703,46 +654,61 @@ select {
 }
 
 /* ── Metric cards ───────────────────────────────────────────────────────── */
+/* Five metrics in one strip split by 1px lines (the gap shows the border colour). Narrower screens use
+   six columns so 3 + 2 and 2 + 2 + 1 rows still close on both edges. */
 .metrics {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 16px;
 }
 
 @media (max-width: 980px) {
   .metrics {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .metric {
+    grid-column: span 2;
+  }
+  .metric:nth-child(4),
+  .metric:nth-child(5) {
+    grid-column: span 3;
   }
 }
 
 @media (max-width: 560px) {
-  .metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .metric,
+  .metric:nth-child(4) {
+    grid-column: span 3;
+  }
+  .metric:nth-child(5) {
+    grid-column: 1 / -1;
   }
 }
 
 .metric {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-top: 3px solid var(--un);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  box-shadow: var(--shadow);
+  padding: 14px 16px 16px;
+  min-width: 0;
 }
 
 .metric .label {
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   color: var(--ink-2);
   font-weight: 500;
 }
 
 .metric .value {
   font-family: var(--display);
-  font-size: 1.75rem;
-  font-weight: 750;
+  font-size: 1.6rem;
+  font-weight: 600;
+  font-variant-numeric: lining-nums tabular-nums;
   line-height: 1.25;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .metric .delta {
@@ -904,8 +870,7 @@ details.full-speech .reading {
   padding: 8px 12px;
   max-height: 10em;
   overflow-y: auto;
-  border-left: 3px solid var(--un);
-  border-radius: 0 8px 8px 0;
+  border-radius: 8px;
   background: var(--surface-2);
   font-size: 0.95rem;
 }
@@ -1290,38 +1255,6 @@ dl.defs dd {
 }
 
 /* ── 3D views ───────────────────────────────────────────────────────────── */
-.page-intro.with-globe {
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-  padding-top: 18px;
-  padding-bottom: 40px;
-  background:
-    var(--flag-row) left bottom -6px / 64px 40px round no-repeat,
-    linear-gradient(120deg, var(--hero-from), var(--hero-to));
-}
-
-.intro-globe {
-  height: 260px;
-  margin: -6px -10px -6px 0;
-  cursor: grab;
-}
-
-.intro-globe:active {
-  cursor: grabbing;
-}
-
-@media (max-width: 760px) {
-  .page-intro.with-globe {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .intro-globe {
-    height: 190px;
-    margin: 0 -8px -8px;
-  }
-}
-
 .space3d,
 .landscape3d {
   position: relative;
@@ -1485,8 +1418,9 @@ tr.focused td {
 }
 
 .tabs button[aria-selected="true"] {
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 0 0 1px var(--border);
 }
 
 .tabs button:focus-visible {

@@ -99,7 +99,6 @@ empty answer once the data arrives.
 - **Rhetoric space** (UN and dataset pages): hostile words × cooperative words × year, with the "tone balance = 0"
   plane drawn in; each path ends in a small waving flag, so lines can be told apart without the legend.
 - **Sentence landscape** (Analyze): every sentence in reading order, with hostile and cooperative columns.
-- **Intro globe** (start page): small and decorative.
 
 All 3D is three.js, loaded lazily (pages show before it arrives), drawn only while visible and only when something
 changes (waving flags excepted), lighter on phones (fewer polygons, pixel density capped, fewer flags), tap instead
@@ -150,3 +149,16 @@ when chosen.
 - `reading_text` splits the whole text exactly like the scorer but keeps short pieces ("Thank you."), so nothing
   is skipped and a notable sentence's number points at the same sentence. Checked against all 11,141 speeches.
 - The voice is not the delegate's: the Method page says so. The chosen voice and speed are remembered per browser.
+
+## 17. Look: a working tool, not a template
+In October 2026 the owner said the site still looked machine-made. The pages now read as a research tool:
+- Each page opens with its title and one line about the data, set on the page itself. The blue gradient banners,
+  the decorative globe on the start page and the wave pattern are gone; the row of flagpoles in front of UN
+  headquarters now closes the footer instead.
+- No resting shadows, coloured stripes or short bars under headings: surfaces are told apart by a 1px edge. The five
+  metrics sit in one strip divided by thin lines rather than five striped cards. Titles are app-sized (28px).
+- UN blue is kept for data, links and the one main button; the active menu item and the selected tab are marked in
+  ink. Dark mode uses neutral greys instead of navy.
+- The header shows the wave mark on its own (no blue tile), with the subtitle in sentence case.
+- The all-country average in the flag view is named in the caption under it: a label inside the 3D scene ended up
+  behind whichever flag reached that height.

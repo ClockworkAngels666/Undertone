@@ -12,7 +12,6 @@ import { errorText, useDictionaries, useDocumentTitle, useMeta } from "../lib/ho
 import { useSpeech } from "../lib/speech";
 
 // three.js loads after the page itself, so the form is usable straight away.
-const IntroGlobe = lazy(() => import("../three/IntroGlobe"));
 const SentenceLandscape = lazy(() => import("../three/SentenceLandscape"));
 const BalanceScale = lazy(() => import("../three/BalanceScale"));
 
@@ -92,18 +91,12 @@ export default function AnalyzePage() {
 
   return (
     <>
-      <div className="page-intro with-globe">
-        <div className="intro-text">
-          <h1>Analyze a diplomatic text</h1>
-          <p>
-            Paste a speech, joint statement or state-media article in English. The tool counts hostile and cooperative
-            vocabulary, scores every sentence with VADER and compares the result with recent UN General Debate
-            speeches.
-          </p>
-        </div>
-        <Suspense fallback={null}>
-          <IntroGlobe />
-        </Suspense>
+      <div className="page-intro">
+        <h1>Analyze a diplomatic text</h1>
+        <p>
+          A speech, joint statement or state-media article in English: its hostile and cooperative vocabulary, the
+          sentiment of every sentence, and how it compares with recent UN General Debate speeches.
+        </p>
       </div>
 
       <form className="card stack" onSubmit={analyze}>
