@@ -70,6 +70,15 @@ class SentenceOut(BaseModel):
     context: dict | None = None
 
 
+class ReadingSentence(BaseModel):
+    text: str
+    index: int | None = Field(description="Number of the scored sentence (null for pieces under 4 words)")
+    highlights: list[tuple[int, int, str]]
+
+
+Reading = list[list[ReadingSentence]]   # paragraphs of sentences, the whole text in order
+
+
 class Baseline(BaseModel):
     first_year: int
     last_year: int
@@ -85,6 +94,7 @@ class AnalyzeResponse(BaseModel):
     default_dictionaries: bool
     baseline: Baseline | None
     highlights: list[tuple[int, int, str]]
+    reading: Reading
     top_terms: dict[str, list[tuple[str, int]]]
     sentences: list[SentenceOut]
     context_model: dict
@@ -188,6 +198,12 @@ class Statement(BaseModel):
     metrics: Metrics
     keywords: dict[str, float | None]
     sentences: list[NotableSentence]
+
+
+class StatementText(BaseModel):
+    country: str
+    year: int
+    reading: Reading
 
 
 # ── Datasets ──────────────────────────────────────────────────────────────────────────────────

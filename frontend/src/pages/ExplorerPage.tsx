@@ -1,15 +1,18 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { api } from "../api/client";
-import type { CountryInfo, NotableSentence, Statement, UNSummary } from "../api/types";
+import type { CountryInfo, NotableSentence, Statement, StatementText, UNSummary } from "../api/types";
 import CountryPicker from "../components/CountryPicker";
 import { DownloadLink, HighlightedText, HighlightKeys, Limitations, Loading, Notice } from "../components/common";
+import { PlayIcon } from "../components/icons";
+import { ListenBar, NowReading, ReadingText, useFlatReading } from "../components/Listen";
 import MetricCards from "../components/MetricCards";
 import MetricSelect from "../components/MetricSelect";
 import TrendChart from "../components/TrendChart";
 import { PALETTE, useColorScheme, useStableSlots } from "../lib/colors";
 import { formatDelta, formatMetric, metricLabel, plural, tickFormat } from "../lib/format";
 import { useAsync, useDocumentTitle, useMeta } from "../lib/hooks";
+import { useSpeech } from "../lib/speech";
 
 const PREFERRED = ["RUS", "USA", "CHN", "VNM"];
 
@@ -404,6 +407,16 @@ function CloseReading({ countries, country, year, years, onChange }: {
     () => (country && year ? api.un.statement(country, year) : Promise.resolve(null)),
     [country, year],
   );
+  const fullText = useAsync<StatementText | null>(
+    () => (country && year ? api.un.statementText(country, year) : Promise.resolve(null)),
+    [country, year],
+  );
+  const loaded = fullText.data;
+  const reading = loaded && loaded.country === country && loaded.year === year ? loaded.reading : null;
+  const { flat, texts } = useFlatReading(reading);
+  const speech = useSpeech(texts);
+  const listening = speech.status !== "idle";
+  const position = useMemo(() => new Map(flat.map((s, i) => [s.index, i])), [flat]);   // scored number → reading order
   if (!countries.length) return null;
   return (
     <div className="card" id="close-reading">
@@ -430,7 +443,7 @@ function CloseReading({ countries, country, year, years, onChange }: {
             <div className="reading-head">
               <Suspense fallback={null}>
                 <Rostrum code={statement.data.country} name={statement.data.name} year={statement.data.year}
-                  session={statement.data.session} />
+                  session={statement.data.session} speaking={speech.status === "playing"} />
               </Suspense>
               <div>
                 <h3 className="reading-title">{statement.data.name}</h3>
@@ -438,6 +451,10 @@ function CloseReading({ countries, country, year, years, onChange }: {
                   Session {statement.data.session} · {statement.data.year} ·{" "}
                   {plural(statement.data.counts.words, "word")} · {plural(statement.data.counts.sentences, "sentence")}
                 </p>
+                {fullText.error && !fullText.loading
+                  ? <p className="muted small">The full text of this speech is not available.</p>
+                  : <ListenBar speech={speech} what="this speech" />}
+                {listening && <NowReading sentence={flat[speech.current]} />}
               </div>
             </div>
             <MetricCards metrics={statement.data.metrics} />
@@ -453,7 +470,14 @@ function CloseReading({ countries, country, year, years, onChange }: {
                         <li key={`${kind}-${s.position}`}>
                           <HighlightedText text={s.sentence} spans={s.highlights} />
                           <span className="score">
-                            {kind === "negative" ? `VADER ${s.score.toFixed(2)}` : `${s.score} ${kind} word${s.score === 1 ? "" : "s"}`} · sentence {s.position + 1}
+                            {kind === "negative" ? `VADER ${s.score.toFixed(2)}` : `${s.score} ${kind} word${s.score === 1 ? "" : "s"}`} ·{" "}
+                            {speech.supported && position.has(s.position) ? (
+                              <button type="button" className="btn link listen-from"
+                                aria-label={`Listen from sentence ${s.position + 1}`}
+                                onClick={() => speech.play(position.get(s.position))}>
+                                <PlayIcon /> sentence {s.position + 1}
+                              </button>
+                            ) : `sentence ${s.position + 1}`}
                           </span>
                         </li>
                       ))}
@@ -462,6 +486,13 @@ function CloseReading({ countries, country, year, years, onChange }: {
                 </div>
               );
             })}
+            {reading && (
+              <details className="table-view full-speech">
+                <summary>Full speech</summary>
+                <ReadingText reading={reading} current={listening ? speech.current : null} label="Full speech"
+                  onPick={speech.supported ? speech.play : undefined} testId="full-speech" />
+              </details>
+            )}
             <details className="table-view">
               <summary>Keyword rates in this statement</summary>
               <ul className="terms">

@@ -59,6 +59,7 @@ export interface AnalyzeResult {
     hostility_share_below: number | null;
   } | null;
   highlights: Span[];
+  reading: Reading;
   top_terms: { hostile: [string, number][]; cooperative: [string, number][] };
   sentences: SentenceScore[];
   context_model: { available: boolean; used: boolean; name: string | null };
@@ -144,6 +145,22 @@ export interface Statement {
   metrics: Metrics;
   keywords: Record<string, number | null>;
   sentences: NotableSentence[];
+}
+
+/** One piece of a text in reading order. `index` is the scored sentence's number (null for short pieces). */
+export interface ReadingSentence {
+  text: string;
+  index: number | null;
+  highlights: Span[];
+}
+
+/** A whole text as paragraphs of sentences. */
+export type Reading = ReadingSentence[][];
+
+export interface StatementText {
+  country: string;
+  year: number;
+  reading: Reading;
 }
 
 export interface Dataset {

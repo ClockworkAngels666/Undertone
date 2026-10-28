@@ -36,6 +36,10 @@ export const RESULT: AnalyzeResult = {
     hostility_share_below: 0.876,
   },
   highlights: [[7, 16, "hostile"], [33, 41, "cooperative"]],
+  reading: [[
+    { text: "We reject sanctions as bad policy.", index: 0, highlights: [[10, 19, "hostile"]] },
+    { text: "We welcome dialogue and cooperation.", index: 1, highlights: [[11, 19, "cooperative"]] },
+  ]],
   top_terms: { hostile: [["sanctions", 1]], cooperative: [["dialogue", 1], ["cooperation", 1]] },
   sentences: [
     { index: 0, sentence: "We reject sanctions as bad policy.", vader: -0.5, hostile_hits: 1, coop_hits: 0, context: null },

@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import func, select
 
 from dla import db, pipeline
-from dla.models import Country, PipelineRun, UNCountryYear, UNKeywordRate, UNSentence
+from dla.models import Country, PipelineRun, UNCountryYear, UNKeywordRate, UNSentence, UNText
 
 SPEECHES = {
     "TXT/Session 77 - 2022/RUS_77_2022.txt": "We condemn the sanctions and NATO expansion. We welcome dialogue.",
@@ -59,9 +59,28 @@ def test_run_loads_everything_and_is_safe_to_repeat(client, archive, tmp_path, m
             assert rus.session == 77 and rus.hostile_hits == 2 and rus.coop_hits == 2
             nato = session.get(UNKeywordRate, (rus.id, "NATO"))
             assert nato.hits == 1 and nato.per_1000 == pytest.approx(1000 / rus.words)
+            assert count(UNText) == 3
     assert len(list((tmp_path / "cache").glob("*.json.gz"))) == 1     # the second run used the cache
     body = client.get("/api/un/summary").json()
     assert body["loaded"] and not body["demo"] and body["countries"][0]["name"] == "Russia"
+    reading = client.get("/api/un/statements/RUS/2022/text").json()["reading"]
+    assert [s["text"] for p in reading for s in p] == ["We condemn the sanctions and NATO expansion.",
+                                                       "We welcome dialogue."]
+
+
+def test_texts_join_a_years_documents_in_session_order():
+    texts = pipeline.statement_texts([("FRA", 2, 1947, "Second."), ("FRA", 1, 1947, "First."),
+                                      ("GBR", 2, 1947, "Other.")])
+    assert texts == {("FRA", 1947): "First.\n\nSecond.", ("GBR", 1947): "Other."}
+
+
+def test_load_un_texts_only_replaces_the_texts(client, archive, no_network):
+    with db.new_session() as session:
+        stored = pipeline.run_texts(session, archive)
+    assert stored["texts"] == 3
+    with db.new_session() as session:
+        assert session.scalar(select(func.count()).select_from(UNText)) == 3
+        assert session.scalar(select(func.count()).select_from(UNCountryYear)) == 0
 
 
 def test_parallel_scoring_matches_serial(archive):

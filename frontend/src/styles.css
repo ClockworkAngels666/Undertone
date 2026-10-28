@@ -801,6 +801,128 @@ mark.cooperative,
   font-size: 0.97rem;
 }
 
+.highlighted.reading {
+  white-space: normal;
+}
+
+.highlighted.reading p {
+  margin: 0 0 0.8em;
+}
+
+.highlighted.reading p:last-child {
+  margin-bottom: 0;
+}
+
+.reading span.now {
+  background: var(--selection);
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px var(--selection);
+}
+
+.reading.pickable span {
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .reading.pickable span:hover {
+    text-decoration: underline;
+    text-decoration-color: var(--axis);
+    text-underline-offset: 3px;
+  }
+}
+
+details.full-speech .reading {
+  margin-top: 8px;
+}
+
+/* ── Listening ──────────────────────────────────────────────────────────── */
+.listen {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0 12px;
+  min-width: 0;
+}
+
+.listen-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.listen-main input[type="range"] {
+  flex: 1 1 120px;
+  min-width: 48px;
+  height: 28px;
+  accent-color: var(--accent);
+}
+
+.listen-count {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.listen-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  min-width: 0;
+}
+
+.listen-settings label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.listen-settings select {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 32px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+}
+
+.listen-error {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--error-bg);
+  color: var(--error-ink);
+  font-size: 0.85rem;
+}
+
+.now-reading {
+  margin: 0;
+  padding: 8px 12px;
+  max-height: 10em;
+  overflow-y: auto;
+  border-left: 3px solid var(--un);
+  border-radius: 0 8px 8px 0;
+  background: var(--surface-2);
+  font-size: 0.95rem;
+}
+
+.btn.link.listen-from {
+  min-height: 28px;
+  padding: 0 2px;
+  gap: 3px;
+  font-size: inherit;
+  vertical-align: baseline;
+}
+
+.listen-from .icon {
+  width: 11px;
+  height: 11px;
+}
+
 .legend-keys {
   display: flex;
   gap: 14px;
@@ -1097,7 +1219,6 @@ progress {
   font-size: 0.8rem;
   color: var(--muted);
   margin-left: 6px;
-  white-space: nowrap;
 }
 
 .kind-title {

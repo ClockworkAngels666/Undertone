@@ -25,9 +25,10 @@ Dataverse, scores all statements in parallel (about 1.5 minutes for 11,141 speec
 replaces the UN tables in a single transaction, so re-running is safe and the live site never sees half-loaded
 data. It runs on a computer or CI job, never inside a web request.
 
-Only scores, keyword rates and the 15 most notable sentences per speech are stored (about 160,000 sentences),
-not the full texts, which keeps the database well inside Neon's free tier. Consequence: new keywords can be
-counted for uploaded datasets at any time, but for the UN data only the pre-counted keyword list is available.
+Scores, keyword rates and the 15 most notable sentences per speech are stored (about 160,000 sentences). The full
+texts were added later for listening (see 16), zlib-compressed: 78 MB instead of 202 MB, which keeps the database
+well inside Neon's free tier. New keywords can be counted for uploaded datasets at any time, but for the UN data
+only the pre-counted keyword list is available (the texts are not rescored on request).
 
 Harvard Dataverse requires a short guestbook form before the archive can be downloaded. The pipeline never
 fills it in; it explains the manual download and then works from the local file.
@@ -129,8 +130,23 @@ country names, one-sentence and 200,000-character texts) and a 320px-wide screen
   the view.
 
 ## 15. Name
-The project is called **Undertone**: the tone underneath diplomatic wording is what it measures. The header shows
-"Undertone" with "Diplomatic language analyzer" beneath it, and the GitHub repository is
-ClockworkAngels666/Undertone (GitHub redirects the old address). Kept as they were: the web address
-(diplomatic-language-analyzer.vercel.app), the Python package `dla` and its `python -m dla` commands, and the
-`dla.` prefix on browser storage keys, so datasets and dictionaries people saved before the rename are still there.
+The project is called **Undertone Lab**: the tone underneath diplomatic wording is what it measures, and the tool
+is a workbench for measuring it. The header shows "Undertone Lab" with "Diplomatic language analyzer" beneath it.
+The GitHub repository is ClockworkAngels666/UndertoneLab and the site is undertonelab.vercel.app; the old
+repository names and the old web address forward to the new ones. Kept on purpose: the Python package `dla` and
+its `python -m dla` commands, and the `dla.` prefix on browser storage keys, so datasets, dictionaries and voice
+settings people saved before the rename are still there.
+
+## 16. Listening
+Texts are read aloud by the voices built into the visitor's browser and operating system (Web Speech API). There
+are no recordings of the speeches and no paid text-to-speech service, so it costs nothing. Voices differ by device.
+The default is a voice that runs on the device; online voices (Chrome's Google voices, Edge's natural voices)
+sound better but send the text to Google's or Microsoft's servers, so they are marked "(online)" and only used
+when chosen.
+- Each sentence is its own utterance, so the page can light up the sentence being read, start from any sentence
+  (tap it, use the slider, or a notable sentence's "sentence N" link) and change voice or speed mid-way. Long
+  sentences are spoken in parts of at most 180 characters, because Chrome's online voices stop after about 15
+  seconds of one utterance. Pause is a stop that remembers the sentence, as pause/resume is unreliable in Chrome.
+- `reading_text` splits the whole text exactly like the scorer but keeps short pieces ("Thank you."), so nothing
+  is skipped and a notable sentence's number points at the same sentence. Checked against all 11,141 speeches.
+- The voice is not the delegate's: the Method page says so. The chosen voice and speed are remembered per browser.

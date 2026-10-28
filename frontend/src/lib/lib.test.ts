@@ -1,6 +1,7 @@
 import { batches, parseDocumentsCsv, toCsv } from "./csv";
 import { assignSlots } from "./colors";
 import { fitWords, formatDelta, formatMetric, metricLabel, percent, plural, shortName } from "./format";
+import { englishVoices, speechChunks, voiceLabel } from "./speech";
 import { storage } from "./storage";
 import { checkTerms, parseTerms, sameTerms } from "./terms";
 import { META } from "../test/fixtures";
@@ -115,5 +116,37 @@ describe("storage", () => {
   it("survives corrupt stored data", () => {
     window.localStorage.setItem("dla.datasets.v1", "{not json");
     expect(storage.datasets()).toEqual([]);
+  });
+});
+
+describe("speech", () => {
+  const voice = (name: string, lang: string, isDefault = false, localService = true) =>
+    ({ name, lang, default: isDefault, voiceURI: name, localService }) as SpeechSynthesisVoice;
+
+  it("splits long sentences at commas, never mid-word, and keeps short ones whole", () => {
+    expect(speechChunks("We welcome dialogue.")).toEqual(["We welcome dialogue."]);
+    const long = `${"word ".repeat(30)}and so, ${"more ".repeat(30)}end.`;
+    const chunks = speechChunks(long, 180);
+    expect(chunks.every((c) => c.length <= 180)).toBe(true);
+    expect(chunks.join(" ").replace(/\s+/g, " ")).toBe(long.replace(/\s+/g, " ").trim());
+    expect(chunks[0].endsWith("so,")).toBe(true);
+  });
+
+  it("keeps English voices only: on the device first, natural ones before plain ones, online ones last", () => {
+    const voices = englishVoices([voice("Microsoft David - English (United States)", "en-US", true),
+      voice("Microsoft Hortense - French (France)", "fr-FR"),
+      voice("Microsoft Aria Online (Natural) - English (United States)", "en-US", false, false),
+      voice("Daniel (Enhanced)", "en-GB")]);
+    expect(voices.map((v) => v.name.split(" ")[0])).toEqual(["Daniel", "Microsoft", "Microsoft"]);
+    expect(voices[2].name).toContain("Aria");
+    expect(voiceLabel(voices[2])).toBe("Aria (Natural), United States (online)");
+    expect(voiceLabel(voices[1])).toBe("David, United States");
+  });
+
+  it("remembers the voice and speed, and ignores nonsense", () => {
+    storage.saveListen({ voice: "Aria", rate: 1.5 });
+    expect(storage.listen()).toEqual({ voice: "Aria", rate: 1.5 });
+    window.localStorage.setItem("dla.listen.v1", JSON.stringify({ voice: 3, rate: 40 }));
+    expect(storage.listen()).toEqual({ voice: null, rate: 1 });
   });
 });

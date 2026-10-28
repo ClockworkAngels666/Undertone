@@ -4,6 +4,12 @@
 
 const DATASETS_KEY = "dla.datasets.v1";
 const DICTIONARIES_KEY = "dla.dictionaries.v1";
+const LISTEN_KEY = "dla.listen.v1";
+
+export interface ListenSettings {
+  voice: string | null;     // voiceURI of the chosen voice; null = the best English voice found
+  rate: number;
+}
 
 export interface SavedDataset {
   id: string;
@@ -65,5 +71,20 @@ export const storage = {
       return true;
     }
     return write(DICTIONARIES_KEY, d);
+  },
+  listen(): ListenSettings {
+    const s = read<Partial<ListenSettings> | null>(LISTEN_KEY, null);
+    return {
+      voice: typeof s?.voice === "string" ? s.voice : null,
+      rate: typeof s?.rate === "number" && s.rate >= 0.5 && s.rate <= 2 ? s.rate : 1,
+    };
+  },
+  saveListen(s: ListenSettings) {
+    try {
+      window.localStorage.setItem(LISTEN_KEY, JSON.stringify(s));   // no storage event: only this page cares
+      return true;
+    } catch {
+      return false;
+    }
   },
 };

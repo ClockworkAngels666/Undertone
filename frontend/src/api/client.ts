@@ -12,6 +12,7 @@ import type {
   SeriesResponse,
   Shift,
   Statement,
+  StatementText,
   UNSummary,
   YearlyRow,
 } from "./types";
@@ -109,6 +110,8 @@ export const api = {
       ),
     statement: (country: string, year: number) =>
       request<Statement>(`/un/statements/${encodeURIComponent(country)}/${year}`),
+    statementText: (country: string, year: number) =>
+      request<StatementText>(`/un/statements/${encodeURIComponent(country)}/${year}/text`),
     ranking: (year: number, metric: string) => request<Ranking>(`/un/ranking${query({ year, metric })}`),
     exportUrl: (p: { countries?: string[]; start?: number; end?: number }) =>
       `/api/un/export.csv${query({ countries: p.countries?.join(","), start: p.start, end: p.end })}`,

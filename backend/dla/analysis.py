@@ -119,16 +119,51 @@ _ABBREVIATIONS = re.compile(r"\b(Mr|Mrs|Ms|Dr|St|No|Nos|Art|Arts|Vol|para|paras|
 _SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+(?=[\"“'(\[]?[A-Z])")
 
 
-def clean_text(text):
+def _strip_paragraph_numbers(text):
     text = str(text).replace("\ufeff", " ")
-    text = re.sub(r"(?m)^\s*\d{1,3}\.\s+", "", text)     # paragraph numbers at the start of a line
-    return re.sub(r"\s+", " ", text).strip()
+    return re.sub(r"(?m)^\s*\d{1,3}\.\s+", "", text)     # paragraph numbers at the start of a line
+
+
+def clean_text(text):
+    return re.sub(r"\s+", " ", _strip_paragraph_numbers(text)).strip()
+
+
+def _protect(clean):
+    """Hide the full stops of abbreviations from the sentence splitter (same length as the input)."""
+    return _ABBREVIATIONS.sub(lambda m: m.group(0).replace(".", "§"), clean)
 
 
 def split_sentences(clean):
-    protected = _ABBREVIATIONS.sub(lambda m: m.group(0).replace(".", "§"), clean)
-    sentences = [s.replace("§", ".").strip() for s in _SENTENCE_BREAK.split(protected)]
+    sentences = [s.replace("§", ".").strip() for s in _SENTENCE_BREAK.split(_protect(clean))]
     return [s for s in sentences if len(s.split()) >= 4]
+
+
+def reading_text(text, hostile_rx, coop_rx):
+    """The whole text as paragraphs of sentences, for reading along and listening.
+
+    Splits exactly like split_sentences but keeps short pieces too. `index` is the sentence's number in
+    split_sentences (None for pieces under 4 words), so it matches the positions of scored sentences.
+    """
+    lines = (re.sub(r"\s+", " ", line).strip() for line in _strip_paragraph_numbers(text).splitlines())
+    paragraphs = [line for line in lines if line]
+    clean = " ".join(paragraphs)                 # == clean_text(text)
+    starts, offset = set(), 0
+    for p in paragraphs:
+        starts.add(offset)
+        offset += len(p) + 1
+    breaks = [m.span() for m in _SENTENCE_BREAK.finditer(_protect(clean))] + [(len(clean), len(clean))]
+    out, index, begin = [], 0, 0
+    for end, next_begin in breaks:
+        piece = clean[begin:end]
+        if piece:
+            if begin in starts or not out:
+                out.append([])
+            counted = len(piece.split()) >= 4
+            out[-1].append({"text": piece, "index": index if counted else None,
+                            "highlights": highlight_spans(piece, hostile_rx, coop_rx)})
+            index += counted
+        begin = next_begin
+    return out
 
 
 # ─────────────────────────────────────────────────────────────────────────────

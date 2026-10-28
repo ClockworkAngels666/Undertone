@@ -75,7 +75,15 @@ export default function MethodPage() {
 
         <h2>Data</h2>
         <p>{meta.citation}. The corpus is released under CC0. Statements are scored once with the default dictionaries,
-          and the most notable sentences of each are stored for close reading.</p>
+          and their full texts are stored for close reading and listening.</p>
+
+        <h2>Listening</h2>
+        <p>
+          Listen reads a text aloud with a voice built into your browser or device. It is not a recording of the speech
+          and not the delegate’s voice. Voices marked “online” sound more natural but send the text to Google or
+          Microsoft to be spoken; the others stay on your device. Your choice of voice and speed is remembered in this
+          browser.
+        </p>
         <p>
           Texts you upload are stored in the app’s database. Anyone with a dataset’s link can view it; only the browser
           that created it can change or delete it.

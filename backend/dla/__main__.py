@@ -4,7 +4,8 @@ Operator commands (run from backend/):
     uv run python -m dla migrate        create or upgrade the database tables
     uv run python -m dla download-un    download and verify the UN General Debate Corpus
     uv run python -m dla load-un        score the corpus and load it into the database
-    uv run python -m dla seed-demo      load small FICTIONAL demo data (tests / offline development)
+    uv run python -m dla load-un-texts  load only the full texts (for reading along and listening)
+    uv run python -m dla seed-demo     load small FICTIONAL demo data (tests / offline development)
     uv run python -m dla status         which database is in use and what it contains
 """
 import argparse
@@ -35,7 +36,7 @@ def masked_url():
 
 def status():
     from .db import new_session
-    from .models import Dataset, Document, UNCountryYear, UNSentence
+    from .models import Dataset, Document, UNCountryYear, UNSentence, UNText
     from .un_data import latest_run
 
     print(f"Database: {masked_url()}")
@@ -47,7 +48,7 @@ def status():
             print(f"UN data: {run.speeches:,} statements from {run.countries} countries, "
                   f"{run.first_year}–{run.last_year} (source: {run.source}, loaded {run.finished_at:%Y-%m-%d %H:%M})")
         for label, model in (("country-years", UNCountryYear), ("notable sentences", UNSentence),
-                             ("user datasets", Dataset), ("user texts", Document)):
+                             ("full texts", UNText), ("user datasets", Dataset), ("user texts", Document)):
             print(f"  {label}: {session.scalar(select(func.count()).select_from(model)):,}")
 
 
@@ -59,7 +60,7 @@ def main(argv=None):
     # Migrations and bulk loads use Neon's direct connection; the web app uses the pooled one.
     if os.environ.get("DATABASE_URL_UNPOOLED"):
         os.environ["DATABASE_URL"] = os.environ["DATABASE_URL_UNPOOLED"]
-    parser = argparse.ArgumentParser(prog="python -m dla", description="Undertone operator CLI")
+    parser = argparse.ArgumentParser(prog="python -m dla", description="Undertone Lab operator CLI")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("migrate", help="create or upgrade the database tables")
     sub.add_parser("download-un", help="download and verify the UN General Debate Corpus")
@@ -67,7 +68,10 @@ def main(argv=None):
     load.add_argument("--file", type=Path, help="the corpus archive (default: newest data/raw/UNGDC_*)")
     load.add_argument("--workers", type=int, help="parallel scoring processes (default: CPU count − 1)")
     load.add_argument("--no-cache", action="store_true", help="re-score even if cached scores exist")
-    demo = sub.add_parser("seed-demo", help="load small fictional demo data instead of the real corpus")
+    load.add_argument("--no-texts", action="store_true", help="skip loading the full texts")
+    texts = sub.add_parser("load-un-texts", help="load only the full texts of the UN corpus")
+    texts.add_argument("--file", type=Path, help="the corpus archive (default: newest data/raw/UNGDC_*)")
+    demo =sub.add_parser("seed-demo", help="load small fictional demo data instead of the real corpus")
     demo.add_argument("--force", action="store_true", help="replace real UN data too")
     sub.add_parser("status", help="show which database is in use and what it contains")
     args = parser.parse_args(argv)
@@ -84,7 +88,11 @@ def main(argv=None):
         elif args.command == "load-un":
             print(f"Database: {masked_url()}")
             with new_session() as session:
-                pipeline.run(session, args.file, args.workers, use_cache=not args.no_cache)
+                pipeline.run(session, args.file, args.workers, use_cache=not args.no_cache, texts=not args.no_texts)
+        elif args.command == "load-un-texts":
+            print(f"Database: {masked_url()}")
+            with new_session() as session:
+                pipeline.run_texts(session, args.file)
         elif args.command == "seed-demo":
             with new_session() as session:
                 from .un_data import latest_run

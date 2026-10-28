@@ -75,6 +75,7 @@ def analyze(req: AnalyzeRequest):
         "default_dictionaries": default,
         "baseline": base,
         "highlights": analysis.highlight_spans(req.text, scorer.hostile_rx, scorer.coop_rx),
+        "reading": analysis.reading_text(req.text, scorer.hostile_rx, scorer.coop_rx),
         "top_terms": {"hostile": analysis.top_terms(req.text, scorer.hostile_rx),
                       "cooperative": analysis.top_terms(req.text, scorer.coop_rx)},
         "sentences": out_sentences,

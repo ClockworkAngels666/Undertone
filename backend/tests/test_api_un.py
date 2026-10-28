@@ -95,6 +95,19 @@ def test_missing_statement(demo_client):
     assert r.status_code == 404
 
 
+def test_statement_text(demo_client):
+    body = demo_client.get("/api/un/statements/vld/2014/text").json()
+    assert body["country"] == "VLD" and body["year"] == 2014
+    assert len(body["reading"]) == 4                         # the demo speeches have four paragraphs
+    sentences = [s for p in body["reading"] for s in p]
+    assert [s["index"] for s in sentences] == list(range(24))
+    notable = demo_client.get("/api/un/statements/vld/2014").json()["sentences"]
+    for s in notable:                                        # positions point at the same sentences
+        assert sentences[s["position"]]["text"] == s["sentence"]
+    assert any(s["highlights"] for s in sentences)
+    assert demo_client.get("/api/un/statements/VLD/1950/text").status_code == 404
+
+
 def test_ranking(demo_client):
     body = demo_client.get("/api/un/ranking", params={"year": 2020, "metric": "hostility"}).json()
     values = [row["value"] for row in body["rows"]]

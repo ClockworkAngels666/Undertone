@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 // Local and CI runs start their own backend (fictional demo data in a throwaway SQLite file) and a production
 // build of the frontend. Set E2E_BASE_URL to run the same tests against a deployed site instead, e.g.
-//   E2E_BASE_URL=https://diplomatic-language-analyzer.vercel.app npx playwright test
+//   E2E_BASE_URL=https://undertonelab.vercel.app npx playwright test
 const deployed = process.env.E2E_BASE_URL;
 const API_PORT = "8021";
 // Headless Chrome has no graphics card; these switches give it software WebGL so the 3D views are tested too.

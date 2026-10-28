@@ -9,6 +9,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
@@ -91,6 +92,16 @@ class UNSentence(Base):
     score: Mapped[float] = mapped_column(Float)
     position: Mapped[int] = mapped_column(Integer)          # sentence number within the statement
     sentence: Mapped[str] = mapped_column(Text)
+
+
+class UNText(Base):
+    """The full text of each statement, zlib-compressed (about 78 MB for the whole corpus instead of 200)."""
+
+    __tablename__ = "un_texts"
+
+    country_code: Mapped[str] = mapped_column(String(8), primary_key=True)
+    year: Mapped[int] = mapped_column(Integer, primary_key=True)
+    body: Mapped[bytes] = mapped_column(LargeBinary)
 
 
 class PipelineRun(Base):

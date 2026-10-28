@@ -8,10 +8,12 @@ import {
   DirectionalLight,
   Group,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
   SphereGeometry,
   SRGBColorSpace,
+  TorusGeometry,
 } from "three";
 import { useColorScheme } from "../lib/colors";
 import { createFlagPole, flagTexture } from "./flags";
@@ -23,6 +25,8 @@ interface Props {
   name: string;
   year: number;
   session: number;
+  /** The speech is being read aloud: the microphone lights up and sound rings spread from it. */
+  speaking?: boolean;
 }
 
 function plaque(lines: [string, string]) {
@@ -47,10 +51,15 @@ function plaque(lines: [string, string]) {
 }
 
 /** A General Assembly-style speaker's rostrum with the speaking country's flag beside it. */
-export default function Rostrum({ code, name, year, session }: Props) {
+export default function Rostrum({ code, name, year, session, speaking = false }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const scheme = useColorScheme();
   const { stage, failed } = useStage(ref, { fov: 32, zoom: false, minDistance: 1, maxDistance: 20 });
+  const speakingRef = useRef(speaking);
+  useEffect(() => {
+    speakingRef.current = speaking;
+    stage?.invalidate();
+  }, [speaking, stage]);
 
   useEffect(() => {
     if (!stage) return;
@@ -99,6 +108,20 @@ export default function Rostrum({ code, name, year, session }: Props) {
     mic.position.set(0.17, 1.3, 0.21);
     group.add(neck, mic);
 
+    // While the speech is read aloud: a red light ring on the microphone and sound rings spreading from it
+    const lamp = new MeshStandardMaterial({ color: 0x401818, emissive: 0xff2a1a, emissiveIntensity: 0, roughness: 0.4 });
+    const light = new Mesh(new TorusGeometry(0.034, 0.007, 8, 24), lamp);
+    light.position.copy(mic.position);
+    group.add(light);
+    const rings = [0, 1, 2].map(() => {
+      const ring = new Mesh(new TorusGeometry(0.06, 0.004, 6, 40), new MeshBasicMaterial({
+        color: scheme === "dark" ? 0x8fd3f5 : 0x0072bc, transparent: true, opacity: 0, depthWrite: false }));
+      ring.position.copy(mic.position);
+      ring.visible = false;
+      group.add(ring);
+      return ring;
+    });
+
     // The country's flag on a pole beside the rostrum
     const flag = createFlagPole({ width: 0.7, segments: small ? [12, 6] : [22, 10] });
     flag.group.position.set(-0.95, 0, -0.35);
@@ -123,6 +146,16 @@ export default function Rostrum({ code, name, year, session }: Props) {
     stage.frame({ x: 1.1, y: 0.92 }, [-0.22, 0.88, 0], [0.3, 0.14, 1]);
     const stop = stage.onFrame((seconds) => {
       if (!stage.reducedMotion) flag.wave(seconds, 1.3);
+      const on = speakingRef.current;
+      lamp.emissiveIntensity = on ? 2.4 : 0;
+      rings.forEach((ring, k) => {
+        ring.visible = on && (!stage.reducedMotion || k === 0);
+        if (!ring.visible) return;
+        const t = stage.reducedMotion ? 0.3 : (seconds * 0.8 + k / 3) % 1;     // each ring a third apart
+        ring.scale.setScalar(1 + t * 2.4);
+        ring.position.z = mic.position.z + t * 0.22;
+        (ring.material as MeshBasicMaterial).opacity = 0.6 * (1 - t);
+      });
       stage.invalidate();
     });
     return () => {

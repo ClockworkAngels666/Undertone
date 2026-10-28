@@ -56,6 +56,23 @@ class TestSentences:
     def test_short_fragments_are_dropped(self):
         assert an.split_sentences("Thank you. This sentence is long enough.") == ["This sentence is long enough."]
 
+    def test_reading_text_keeps_paragraphs_and_every_piece(self):
+        text = ("1. Mr. President, we condemn the  aggression. Thank you.\n\n"
+                "2. We welcome dialogue with all partners. A heading without a full stop\n"
+                "Continues here in the same sentence.")
+        hostile, coop = an.build_regex(an.HOSTILE_TERMS), an.build_regex(an.COOPERATIVE_TERMS)
+        reading = an.reading_text(text, hostile, coop)
+        assert [[s["text"] for s in p] for p in reading] == [
+            ["Mr. President, we condemn the aggression.", "Thank you."],
+            ["We welcome dialogue with all partners.",
+             "A heading without a full stop Continues here in the same sentence."],
+        ]
+        assert [s["index"] for p in reading for s in p] == [0, None, 1, 2]
+        counted = [s["text"] for p in reading for s in p if s["index"] is not None]
+        assert counted == an.split_sentences(an.clean_text(text))
+        first = reading[0][0]
+        assert [first["text"][a:b] for a, b, _ in first["highlights"]] == ["condemn", "aggression"]
+
 
 class TestScoring:
     def setup_method(self):

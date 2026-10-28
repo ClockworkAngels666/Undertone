@@ -1,6 +1,7 @@
 """Explore the pre-scored UN General Debate Corpus: trends, shifts, close reading, rankings, export."""
 import csv
 import io
+import zlib
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
@@ -9,9 +10,9 @@ from sqlalchemy.orm import Session
 
 from ... import analysis, config, un_data
 from ...countries import country_name, normalize_code
-from ...models import UNCountryYear, UNKeywordRate, UNSentence
+from ...models import UNCountryYear, UNKeywordRate, UNSentence, UNText
 from ..deps import get_db, public_cache
-from ..schemas import Matrix, Ranking, SeriesResponse, Shift, Statement, UNSummary
+from ..schemas import Matrix, Ranking, SeriesResponse, Shift, Statement, StatementText, UNSummary
 
 router = APIRouter(prefix="/un", tags=["un"], dependencies=[Depends(public_cache)])
 
@@ -144,6 +145,19 @@ def statement(country: str, year: int, db: Session = Depends(get_db)):
                        "highlights": analysis.highlight_spans(s.sentence, hostile_rx, coop_rx)}
                       for s in sentences],
     }
+
+
+@router.get("/statements/{country}/{year}/text", response_model=StatementText)
+def statement_text(country: str, year: int, db: Session = Depends(get_db)):
+    """The whole statement as paragraphs of sentences, with dictionary hits, for reading along and listening."""
+    code = normalize_code(country)
+    row = db.get(UNText, (code, year))
+    if row is None:
+        raise HTTPException(status_code=404, detail=f"No full text of {code}'s {year} statement is loaded.")
+    text = zlib.decompress(row.body).decode("utf-8")
+    hostile_rx, coop_rx = analysis.build_regex(analysis.HOSTILE_TERMS), analysis.build_regex(
+        analysis.COOPERATIVE_TERMS)
+    return {"country": code, "year": year, "reading": analysis.reading_text(text, hostile_rx, coop_rx)}
 
 
 @router.get("/ranking", response_model=Ranking)

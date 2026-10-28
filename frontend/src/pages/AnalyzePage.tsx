@@ -1,13 +1,15 @@
 import { lazy, Suspense, useId, useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { api } from "../api/client";
-import type { AnalyzeResult, SentenceScore } from "../api/types";
-import { HighlightedText, HighlightKeys, Limitations, Notice } from "../components/common";
+import type { AnalyzeResult, Reading, SentenceScore } from "../api/types";
+import { HighlightKeys, Limitations, Notice } from "../components/common";
+import { ListenBar, ReadingText, useFlatReading } from "../components/Listen";
 import MetricCards from "../components/MetricCards";
 import SaveToDataset from "../components/SaveToDataset";
 import { downloadText, toCsv } from "../lib/csv";
 import { percent, plural } from "../lib/format";
 import { errorText, useDictionaries, useDocumentTitle, useMeta } from "../lib/hooks";
+import { useSpeech } from "../lib/speech";
 
 // three.js loads after the page itself, so the form is usable straight away.
 const IntroGlobe = lazy(() => import("../three/IntroGlobe"));
@@ -177,13 +179,7 @@ function Results({ result, text }: { result: AnalyzeResult; text: string }) {
       </p>
 
       <div className="grid-2">
-        <div className="card">
-          <h2>Highlighted text</h2>
-          <HighlightKeys />
-          <div className="highlighted" data-testid="highlighted-text" tabIndex={0} role="region" aria-label="Highlighted text">
-            <HighlightedText text={text} spans={result.highlights} />
-          </div>
-        </div>
+        <HighlightedCard reading={result.reading} />
         <div className="card">
           <h2>Balance of words</h2>
           <Suspense fallback={null}>
@@ -223,6 +219,20 @@ function TermList({ terms }: { terms: [string, number][] }) {
     <ul className="terms">
       {terms.map(([term, count]) => <li key={term}>{term} <span className="muted">×{count}</span></li>)}
     </ul>
+  );
+}
+
+function HighlightedCard({ reading }: { reading: Reading }) {
+  const { texts } = useFlatReading(reading);
+  const speech = useSpeech(texts);
+  return (
+    <div className="card">
+      <h2>Highlighted text</h2>
+      <ListenBar speech={speech} what="the text" />
+      <HighlightKeys />
+      <ReadingText reading={reading} current={speech.status === "idle" ? null : speech.current} label="Highlighted text"
+        onPick={speech.supported ? speech.play : undefined} testId="highlighted-text" />
+    </div>
   );
 }
 

@@ -3,9 +3,11 @@ UN General Debate Corpus pipeline: download → verify → score every statement
 
 Run it from a computer or CI job (never inside a Vercel request):
     uv run python -m dla load-un                # uses data/raw/UNGDC_*.tar.gz, downloading if needed
+    uv run python -m dla load-un-texts          # only the full texts (for reading along and listening)
 
-Re-running is safe: scores are cached per archive checksum and dictionary version, and the UN tables
-are replaced in ONE transaction, so the live app never sees half-loaded data.
+Re-running is safe: scores are cached per archive checksum and dictionary version, and the scored UN tables
+are replaced in ONE transaction, so the live app never sees half-loaded data. The full texts follow in a
+second transaction; until it ends, a speech's text may be missing (the app says so).
 """
 import gzip
 import hashlib
@@ -16,6 +18,7 @@ import re
 import tarfile
 import time
 import zipfile
+import zlib
 from collections.abc import Iterator
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
@@ -27,7 +30,7 @@ from sqlalchemy.orm import Session
 from . import analysis, un_data
 from .config import DATA_DIR
 from .countries import country_name
-from .models import Country, PipelineRun, UNCountryYear, UNKeywordRate, UNSentence
+from .models import Country, PipelineRun, UNCountryYear, UNKeywordRate, UNSentence, UNText
 
 UNGDC_DOI = "doi:10.7910/DVN/0TJX8Y"
 DATAVERSE_API = "https://dataverse.harvard.edu/api"
@@ -35,7 +38,7 @@ LANDING_PAGE = "https://doi.org/10.7910/DVN/0TJX8Y"
 RAW_DIR = DATA_DIR / "raw"
 CACHE_DIR = DATA_DIR / "processed"
 FILENAME_PATTERN = re.compile(r"^([A-Z]{2,4})_(\d{1,3})_(\d{4})\.txt$")   # e.g. RUS_77_2022.txt
-HEADERS = {"User-Agent": "undertone/1.0 (UN General Debate research pipeline)"}
+HEADERS = {"User-Agent": "undertone-lab/1.0 (UN General Debate research pipeline)"}
 NOTABLE_PER_KIND = 5
 SCORING_VERSION = "2026-10-1"     # bump when the scoring code changes in a way that alters results
 
@@ -255,7 +258,26 @@ def load(session: Session, results, source: str, md5: str | None):
             "last_year": max(y["year"] for y in yearly)}
 
 
-def run(session: Session, archive: Path | None = None, workers=None, use_cache=True, allow_download=True):
+def statement_texts(statements) -> dict[tuple[str, int], str]:
+    """Full text per country and year from (country, session, year, text) items; a year's documents in session order."""
+    documents = {}
+    for country, session, year, text in statements:
+        documents.setdefault((country, year), []).append((session, text))
+    return {key: "\n\n".join(text for _, text in sorted(docs)) for key, docs in documents.items()}
+
+
+def load_texts(session: Session, texts: dict[tuple[str, int], str]):
+    """Replace all stored full texts with these, in one transaction."""
+    rows = [{"country_code": country, "year": year, "body": zlib.compress(text.encode("utf-8"), 9)}
+            for (country, year), text in texts.items()]
+    session.execute(delete(UNText))
+    for start in range(0, len(rows), 500):
+        session.execute(insert(UNText), rows[start:start + 500])
+    session.commit()
+    return {"texts": len(rows), "megabytes": round(sum(len(r["body"]) for r in rows) / 1e6, 1)}
+
+
+def _archive(archive: Path | None, allow_download: bool) -> Path:
     archive = archive or find_local_archive()
     if archive is None:
         if not allow_download:
@@ -264,12 +286,28 @@ def run(session: Session, archive: Path | None = None, workers=None, use_cache=T
     if not archive.exists():
         raise PipelineError(f"File not found: {archive}")
     log(f"📦 Archive: {archive}")
+    return archive
+
+
+def run_texts(session: Session, archive: Path | None = None, allow_download=True):
+    archive = _archive(archive, allow_download)
+    log("💾 Loading the full texts (one transaction)...")
+    stored = load_texts(session, statement_texts(iter_statements(archive)))
+    log(f"✅ Full texts: {stored['texts']:,} statements, {stored['megabytes']} MB compressed.")
+    return stored
+
+
+def run(session: Session, archive: Path | None = None, workers=None, use_cache=True, allow_download=True,
+        texts=True):
+    archive = _archive(archive, allow_download)
     md5 = verify(archive) or md5sum(archive)
     results = cached_scores(archive, md5, workers, use_cache)
     log("💾 Loading into the database (one transaction)...")
     summary = load(session, results, archive.name, md5)
     log(f"✅ Done: {summary['statements']:,} statements, {summary['countries']} countries, "
         f"{summary['first_year']}–{summary['last_year']}, {summary['sentences']:,} notable sentences.")
+    if texts:
+        run_texts(session, archive, allow_download=False)
     return summary
 
 
@@ -288,10 +326,10 @@ _DEMO_SENTENCES = {
 }
 
 
-def demo_results(first_year=2000, last_year=2025, seed=7):
-    """Synthetic statements for fictional countries, scored by the real pipeline code."""
+def demo_statements(first_year=2000, last_year=2025, seed=7):
+    """Synthetic (country, session, year, text) statements for fictional countries, in four paragraphs each."""
     rng = random.Random(seed)
-    results = []
+    statements = []
     for c, country in enumerate(DEMO_COUNTRIES):
         for year in range(first_year, last_year + 1):
             hostile_weight = 0.15 + 0.1 * c + (0.3 if year >= 2014 and c % 2 else 0)
@@ -299,9 +337,18 @@ def demo_results(first_year=2000, last_year=2025, seed=7):
             for _ in range(24):
                 kind = rng.choices(["hostile", "cooperative", "neutral"], [hostile_weight, 0.4, 0.5])[0]
                 parts.append(rng.choice(_DEMO_SENTENCES[kind]))
-            results.append(score_statement((country, year - 1945, year, " ".join(parts))))
-    return results
+            text = "\n".join(" ".join(parts[i:i + 6]) for i in range(0, len(parts), 6))
+            statements.append((country, year - 1945, year, text))
+    return statements
+
+
+def demo_results(first_year=2000, last_year=2025, seed=7):
+    """Synthetic statements for fictional countries, scored by the real pipeline code."""
+    return [score_statement(s) for s in demo_statements(first_year, last_year, seed)]
 
 
 def seed_demo(session: Session):
-    return load(session, demo_results(), "demo", None)
+    statements = demo_statements()
+    summary = load(session, [score_statement(s) for s in statements], "demo", None)
+    load_texts(session, statement_texts(statements))
+    return summary

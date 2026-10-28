@@ -92,6 +92,6 @@ export function useDictionaries(): { custom: CustomDictionaries | null; hostile:
 /** Set the browser tab title for the current page. */
 export function useDocumentTitle(title: string) {
   useEffect(() => {
-    document.title = title ? `${title} · Undertone` : "Undertone · Diplomatic language analyzer";
+    document.title = title ? `${title} · Undertone Lab` : "Undertone Lab · Diplomatic language analyzer";
   }, [title]);
 }
