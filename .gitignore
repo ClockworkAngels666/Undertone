@@ -40,3 +40,4 @@ project_results.zip
 .idea/
 .DS_Store
 Thumbs.db
+*.tsbuildinfo
