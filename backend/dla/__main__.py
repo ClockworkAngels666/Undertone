@@ -59,7 +59,7 @@ def main(argv=None):
     # Migrations and bulk loads use Neon's direct connection; the web app uses the pooled one.
     if os.environ.get("DATABASE_URL_UNPOOLED"):
         os.environ["DATABASE_URL"] = os.environ["DATABASE_URL_UNPOOLED"]
-    parser = argparse.ArgumentParser(prog="python -m dla", description="Diplomatic Language Analyzer operator CLI")
+    parser = argparse.ArgumentParser(prog="python -m dla", description="Undertone operator CLI")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("migrate", help="create or upgrade the database tables")
     sub.add_parser("download-un", help="download and verify the UN General Debate Corpus")

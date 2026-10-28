@@ -127,3 +127,10 @@ country names, one-sentence and 200,000-character texts) and a 320px-wide screen
   were removed.
 - 3D tooltips follow the mouse without re-rendering the page on every move, and disappear when the pointer leaves
   the view.
+
+## 15. Name
+The project is called **Undertone**: the tone underneath diplomatic wording is what it measures. The header shows
+"Undertone" with "Diplomatic language analyzer" beneath it, and the GitHub repository is
+ClockworkAngels666/Undertone (GitHub redirects the old address). Kept as they were: the web address
+(diplomatic-language-analyzer.vercel.app), the Python package `dla` and its `python -m dla` commands, and the
+`dla.` prefix on browser storage keys, so datasets and dictionaries people saved before the rename are still there.

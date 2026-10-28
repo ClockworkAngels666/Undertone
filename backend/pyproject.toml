@@ -1,7 +1,7 @@
 [project]
-name = "diplomatic-language-analyzer"
+name = "undertone"
 version = "1.0.0"
-description = "REST API, analysis core and data pipeline of the Diplomatic Language Analyzer"
+description = "REST API, analysis core and data pipeline of Undertone, a diplomatic language analyzer"
 license = "MIT"
 requires-python = ">=3.12,<3.13"
 dependencies = [

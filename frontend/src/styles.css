@@ -249,7 +249,7 @@ a {
 .brand-name {
   font-family: var(--display);
   font-weight: 800;
-  font-size: 1.05rem;
+  font-size: 1.32rem;
   letter-spacing: -0.005em;
 }
 
@@ -266,7 +266,7 @@ a {
     gap: 10px;
   }
   .brand-name {
-    font-size: 0.98rem;
+    font-size: 1.22rem;
   }
 }
 

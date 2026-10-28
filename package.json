@@ -1,5 +1,5 @@
 {
-  "name": "diplomatic-language-analyzer",
+  "name": "undertone",
   "private": true,
   "description": "Measure hostility, cooperation and rhetorical shifts in diplomatic texts and UN General Debate speeches.",
   "license": "MIT",

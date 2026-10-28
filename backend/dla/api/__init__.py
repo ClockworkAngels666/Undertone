@@ -28,7 +28,7 @@ def _first_validation_message(errors):
 def create_app() -> FastAPI:
     load_env_file()
     app = FastAPI(
-        title="Diplomatic Language Analyzer API",
+        title="Undertone API",
         version=__version__,
         description=(
             "Measures hostility, cooperation and tone in diplomatic texts with VADER and diplomatic "

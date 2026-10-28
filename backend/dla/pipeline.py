@@ -35,7 +35,7 @@ LANDING_PAGE = "https://doi.org/10.7910/DVN/0TJX8Y"
 RAW_DIR = DATA_DIR / "raw"
 CACHE_DIR = DATA_DIR / "processed"
 FILENAME_PATTERN = re.compile(r"^([A-Z]{2,4})_(\d{1,3})_(\d{4})\.txt$")   # e.g. RUS_77_2022.txt
-HEADERS = {"User-Agent": "diplomatic-language-analyzer/1.0 (UN General Debate research pipeline)"}
+HEADERS = {"User-Agent": "undertone/1.0 (UN General Debate research pipeline)"}
 NOTABLE_PER_KIND = 5
 SCORING_VERSION = "2026-10-1"     # bump when the scoring code changes in a way that alters results
 

@@ -1,6 +1,6 @@
-# Diplomatic Language Analyzer
+# Undertone
 
-Measure **hostility**, **cooperation** and **rhetorical shifts** in diplomatic texts: speeches, joint statements and
+A diplomatic language analyzer. Measure **hostility**, **cooperation** and **rhetorical shifts** in diplomatic texts: speeches, joint statements and
 state-media articles, and 80 years of UN General Debate statements (1946–2025).
 
 **Live app: https://diplomatic-language-analyzer.vercel.app** · API documentation: https://diplomatic-language-analyzer.vercel.app/api/docs

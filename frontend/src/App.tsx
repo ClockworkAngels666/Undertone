@@ -30,8 +30,8 @@ export default function App() {
           <NavLink to="/" className="brand">
             <img src="/favicon.svg" alt="" />
             <span className="brand-text">
-              <span className="brand-name">Diplomatic Language Analyzer</span>
-              <span className="brand-tag">Tone of nations · 1946–today</span>
+              <span className="brand-name">Undertone</span>
+              <span className="brand-tag">Diplomatic language analyzer</span>
             </span>
           </NavLink>
           <nav className="nav" aria-label="Main">
