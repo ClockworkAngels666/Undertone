@@ -67,7 +67,7 @@ export default function App() {
           <span>Built by Tuan Dung Nguyen</span>
           <span>UN data: Jankin, Baturo &amp; Dasandi (2024), <i>Journal of Peace Research</i></span>
           <a href="/api/docs">API documentation</a>
-          <a href="https://github.com/ClockworkAngels666/UndertoneLab">Source code</a>
+          <a href="https://github.com/dungnguyen0309/UndertoneLab">Source code</a>
           <span className="disclaimer">
             An independent research tool. Not affiliated with or endorsed by the United Nations.
           </span>

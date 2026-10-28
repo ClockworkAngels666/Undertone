@@ -132,7 +132,7 @@ country names, one-sentence and 200,000-character texts) and a 320px-wide screen
 ## 15. Name
 The project is called **Undertone Lab**: the tone underneath diplomatic wording is what it measures, and the tool
 is a workbench for measuring it. The header shows "Undertone Lab" with "Diplomatic language analyzer" beneath it.
-The GitHub repository is ClockworkAngels666/UndertoneLab and the site is undertonelab.vercel.app; the old
+The GitHub repository is dungnguyen0309/UndertoneLab and the site is undertonelab.vercel.app; the old
 repository names and the old web address forward to the new ones. Kept on purpose: the Python package `dla` and
 its `python -m dla` commands, and the `dla.` prefix on browser storage keys, so datasets, dictionaries and voice
 settings people saved before the rename are still there.
