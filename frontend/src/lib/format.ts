@@ -31,6 +31,12 @@ export function formatDelta(id: string, delta: number): string {
   return signed(delta, id === "tone_balance" || id === "vader_mean" ? 2 : 1);
 }
 
+/** A number with a real minus sign when negative and no sign otherwise: "−0.60", "0.84". */
+export function fixed(value: number, digits: number) {
+  const s = Math.abs(value).toFixed(digits);
+  return value < 0 && Number(s) !== 0 ? `−${s}` : s;
+}
+
 export function signed(value: number, digits: number) {
   const fixed = Math.abs(value).toFixed(digits);
   if (Number(fixed) === 0) return (0).toFixed(digits);
@@ -50,7 +56,7 @@ export function compactNumber(n: number) {
 export function tickFormat(id: string) {
   return (value: number) => {
     if (id === "negative_share") return `${Math.round(value * 100)}%`;
-    if (id === "tone_balance" || id === "vader_mean") return value.toFixed(1);
+    if (id === "tone_balance" || id === "vader_mean") return fixed(value, 1);
     return Number.isInteger(value) ? String(value) : value.toFixed(1);
   };
 }

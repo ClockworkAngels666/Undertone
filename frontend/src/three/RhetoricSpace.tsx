@@ -81,7 +81,7 @@ export default function RhetoricSpace({ series, onPick }: Props) {
 
   useEffect(() => {
     if (!stage) return;
-    const ink = scheme === "dark" ? { grid: 0x1f3346, axis: 0x5a7189, text: "#b9cad8", plane: 0x4fb3ea }
+    const ink = scheme === "dark" ? { grid: 0x2a2c2f, axis: 0x6b6f75, text: "#c6c9cd", plane: 0x4fb3ea }
       : { grid: 0xdfe6ed, axis: 0x9aa8b6, text: "#3d4c5c", plane: 0x0072bc };
     const small = isSmallScreen();
     const { maxH, maxC, first, last } = extent;

@@ -1,5 +1,5 @@
-/* UN-inspired palette. UN blue (#009EDB) is used only for decoration (stripes, icon, accents):
-   it is too light for white text. Buttons, links and banners use deeper blues that pass WCAG AA. */
+/* UN-inspired palette. UN blue (#009EDB) is too light for white text, so it only marks focus and data;
+   buttons, links and the header mark use the deeper blues, which pass WCAG AA. */
 :root {
   color-scheme: light;
   --un: #009edb;
@@ -314,9 +314,10 @@ a {
   flex-direction: column;
 }
 
-main {
+main.container {
   flex: 1 0 auto;
-  padding: 32px 0 64px;
+  padding-top: 32px;
+  padding-bottom: 64px;
 }
 
 /* Page title row: the h1 and one line about the data, on the page itself. */
@@ -409,6 +410,7 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   gap: 20px;
+  align-items: start;
 }
 
 @media (max-width: 860px) {
@@ -607,9 +609,31 @@ select {
 }
 
 .file-input {
+  font: inherit;
   font-size: 0.9rem;
   max-width: 100%;
   padding: 6px 0;
+  color: var(--ink-2);
+}
+
+.file-input::file-selector-button {
+  font: inherit;
+  font-weight: 500;
+  min-height: 40px;
+  margin-right: 12px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color 120ms ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .file-input:not(:disabled)::file-selector-button:hover {
+    background: var(--surface-2);
+  }
 }
 
 /* ── Notices ────────────────────────────────────────────────────────────── */
@@ -648,9 +672,8 @@ select {
 .limitations {
   font-size: 0.86rem;
   color: var(--muted);
-  border-left: 3px solid var(--grid);
-  padding: 2px 0 2px 12px;
-  margin: 8px 0 0;
+  margin: 12px 0 0;
+  max-width: 90ch;
 }
 
 /* ── Metric cards ───────────────────────────────────────────────────────── */
@@ -940,7 +963,10 @@ td {
 }
 
 th {
-  background: var(--surface-2);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: 0.85rem;
+  border-bottom-color: var(--border);
   font-weight: 500;
   white-space: nowrap;
   position: sticky;

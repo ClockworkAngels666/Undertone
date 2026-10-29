@@ -316,7 +316,7 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
   useEffect(() => {
     const current = scene.current;
     if (!stage || !current) return;
-    const ink = scheme === "dark" ? "#eaf2f8" : "#0f1c2b";
+    const ink = scheme === "dark" ? "#f1f2f3" : "#0f1c2b";
     const indexOf = new Map(matrix.countries.map((c, i) => [c.code, i]));
     const created: string[] = [];
     for (const { code, color } of chosen) {

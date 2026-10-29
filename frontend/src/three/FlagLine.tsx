@@ -155,7 +155,7 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
       disposeGroup(g);
       current.poles.delete(code);
     }
-    const ink = scheme === "dark" ? "#eaf2f8" : "#0f1c2b";
+    const ink = scheme === "dark" ? "#f1f2f3" : "#0f1c2b";
     // Long rows are shown from further away, so their labels are drawn larger to stay readable
     const labelSize = (small ? 0.12 : 0.1) * Math.max(1, Math.sqrt(slots.length / 5));
     slots.forEach((slot, i) => {

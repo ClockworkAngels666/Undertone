@@ -83,7 +83,7 @@ export default function App() {
 
 function NotFound() {
   return (
-    <div className="card">
+    <div className="page-intro">
       <h1>Page not found</h1>
       <p>
         That address does not exist. <NavLink to="/">Go to the start page</NavLink>.

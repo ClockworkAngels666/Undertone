@@ -14,7 +14,7 @@ test("analyzes the sample text", async ({ page }) => {
   const sentences = page.getByRole("table").last();
   await expect(sentences.getByRole("row")).toHaveCount(11);           // header + 10 sentences
   await page.getByLabel("Most negative (VADER)").check();
-  await expect(sentences.getByRole("row").nth(1)).toContainText("-0.");
+  await expect(sentences.getByRole("row").nth(1)).toContainText("−0.");    // a real minus sign
   await expectNoHorizontalScroll(page);
   noErrors();
 });

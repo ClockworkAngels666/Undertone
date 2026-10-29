@@ -7,7 +7,7 @@ import { ListenBar, ReadingText, useFlatReading } from "../components/Listen";
 import MetricCards from "../components/MetricCards";
 import SaveToDataset from "../components/SaveToDataset";
 import { downloadText, toCsv } from "../lib/csv";
-import { percent, plural } from "../lib/format";
+import { fixed, percent, plural } from "../lib/format";
 import { errorText, useDictionaries, useDocumentTitle, useMeta } from "../lib/hooks";
 import { useSpeech } from "../lib/speech";
 
@@ -280,7 +280,7 @@ function SentenceTable({ sentences, contextUsed, focus }: {
               <tr key={s.index} id={`sentence-${s.index}`} className={s.index === focus ? "focused" : undefined}>
                 <td className="num">{s.index + 1}</td>
                 <td>{s.sentence}</td>
-                <td className="num">{s.vader.toFixed(2)}</td>
+                <td className="num">{fixed(s.vader, 2)}</td>
                 <td className="num">{s.hostile_hits}</td>
                 <td className="num">{s.coop_hits}</td>
                 {contextUsed && <td>{s.context ? `${s.context.label} (${Math.round(s.context.score * 100)}%)` : "–"}</td>}

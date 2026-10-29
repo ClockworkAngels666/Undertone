@@ -162,3 +162,7 @@ In October 2026 the owner said the site still looked machine-made. The pages now
 - The header shows the wave mark on its own (no blue tile), with the subtitle in sentence case.
 - The all-country average in the flag view is named in the caption under it: a label inside the 3D scene ended up
   behind whichever flag reached that height.
+- A polish pass followed: cards side by side keep their own height instead of stretching over a blank band;
+  negative numbers carry a real minus sign everywhere (a hyphen read faint on chart axes); table headers sit on the
+  card's surface instead of a filled band; the CSV picker's button matches the others; dark-mode charts and 3D
+  labels use the same neutral greys as the page; and pages leave 32px between the header and the title.

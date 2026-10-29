@@ -65,7 +65,7 @@ export default function Podium({ rows, format, onPick }: Props) {
   useEffect(() => {
     if (!stage) return;
     const dark = scheme === "dark";
-    const ink = dark ? "#eaf2f8" : "#0f1c2b";
+    const ink = dark ? "#f1f2f3" : "#0f1c2b";
     const group = new Group();
     group.add(new AmbientLight(0xffffff, 1.4));
     const sun = new DirectionalLight(0xffffff, 1.8);

@@ -13,6 +13,7 @@ import {
 } from "three";
 import type { SentenceScore } from "../api/types";
 import { useColorScheme } from "../lib/colors";
+import { fixed } from "../lib/format";
 import { textSprite } from "./labels";
 import { scaleFor } from "./scales";
 import { isSmallScreen } from "./stage";
@@ -85,7 +86,7 @@ export default function SentenceLandscape({ sentences, onPick }: Props) {
     });
     group.add(tiles, hostile, coop);
 
-    const ink = scheme === "dark" ? "#b9cad8" : "#3d4c5c";
+    const ink = scheme === "dark" ? "#c6c9cd" : "#3d4c5c";
     const start = textSprite("start", { color: ink, height: small ? 0.075 : 0.06, onTop: true });
     const [sx, sz] = pos(0);
     start.position.set(sx, 0.05, sz - STEP * 1.2);
@@ -156,7 +157,7 @@ export default function SentenceLandscape({ sentences, onPick }: Props) {
         <div className="tooltip landscape3d-tip" ref={tip.ref}>
           <div className="year">Sentence {tip.item.index + 1}</div>
           <div className="small">{tip.item.sentence.length > 180 ? `${tip.item.sentence.slice(0, 180)}…` : tip.item.sentence}</div>
-          <div className="small muted">VADER {tip.item.vader.toFixed(2)} · {tip.item.hostile_hits} hostile · {tip.item.coop_hits} cooperative</div>
+          <div className="small muted">VADER {fixed(tip.item.vader, 2)} · {tip.item.hostile_hits} hostile · {tip.item.coop_hits} cooperative</div>
         </div>
       )}
     </div>

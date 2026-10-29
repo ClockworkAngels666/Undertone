@@ -39,7 +39,7 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
   tickFormat, valueLabel, reloading }: Props) {
   const scheme = useColorScheme();
   // Chart chrome follows the page theme (see styles.css); series colours come from lib/colors.ts.
-  const ink = scheme === "dark" ? { grid: "#1f3346", axis: "#8fa3b7", text: "#b9cad8", surface: "#10202f" }
+  const ink = scheme === "dark" ? { grid: "#2a2c2f", axis: "#9a9ea4", text: "#c6c9cd", surface: "#18191b" }
     : { grid: "#dfe6ed", axis: "#7a8794", text: "#3d4c5c", surface: "#ffffff" };
 
   const { rows, years } = useMemo(() => {

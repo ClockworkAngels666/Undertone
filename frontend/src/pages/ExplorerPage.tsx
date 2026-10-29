@@ -10,7 +10,7 @@ import MetricCards from "../components/MetricCards";
 import MetricSelect from "../components/MetricSelect";
 import TrendChart from "../components/TrendChart";
 import { PALETTE, useColorScheme, useStableSlots } from "../lib/colors";
-import { formatDelta, formatMetric, metricLabel, plural, tickFormat } from "../lib/format";
+import { fixed, formatDelta, formatMetric, metricLabel, plural, tickFormat } from "../lib/format";
 import { useAsync, useDocumentTitle, useMeta } from "../lib/hooks";
 import { useSpeech } from "../lib/speech";
 
@@ -470,7 +470,7 @@ function CloseReading({ countries, country, year, years, onChange }: {
                         <li key={`${kind}-${s.position}`}>
                           <HighlightedText text={s.sentence} spans={s.highlights} />
                           <span className="score">
-                            {kind === "negative" ? `VADER ${s.score.toFixed(2)}` : `${s.score} ${kind} word${s.score === 1 ? "" : "s"}`} ·{" "}
+                            {kind === "negative" ? `VADER ${fixed(s.score, 2)}` : `${s.score} ${kind} word${s.score === 1 ? "" : "s"}`} ·{" "}
                             {speech.supported && position.has(s.position) ? (
                               <button type="button" className="btn link listen-from"
                                 aria-label={`Listen from sentence ${s.position + 1}`}
