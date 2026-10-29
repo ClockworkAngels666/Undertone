@@ -30,7 +30,7 @@ test("the 3D flag line plays through the years and switches views", async ({ pag
   await expect(yearLabel).not.toHaveText(min!, { timeout: 5_000 });
   await page.getByRole("button", { name: /Pause/ }).click();
 
-  const mode = page.getByLabel("Flags", { exact: true });
+  const mode = page.getByLabel("Show", { exact: true });
   await mode.selectOption("top");
   await mode.selectOption("bottom");
   await expect(mode).toHaveValue("bottom");

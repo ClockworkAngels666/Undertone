@@ -40,7 +40,7 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
   const scheme = useColorScheme();
   // Chart chrome follows the page theme (see styles.css); series colours come from lib/colors.ts.
   const ink = scheme === "dark" ? { grid: "#2a2c2f", axis: "#9a9ea4", text: "#c6c9cd", surface: "#18191b" }
-    : { grid: "#dfe6ed", axis: "#7a8794", text: "#3d4c5c", surface: "#ffffff" };
+    : { grid: "#dfe6ed", axis: "#5b6b7a", text: "#3d4c5c", surface: "#ffffff" };
 
   const { rows, years } = useMemo(() => {
     const byYear = new Map<number, Record<string, number | null>>();
@@ -86,7 +86,7 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
       <div className={`chart-box${reloading ? " reloading" : ""}`} role="img"
         aria-label={`Line chart of ${valueLabel} by year, ${first}–${last}. The same values are in the table below.`}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={rows} margin={{ top: shownEvents.length ? 52 : 12, right: labelEnds ? 108 : 16, bottom: 4, left: 0 }}>
+          <LineChart accessibilityLayer={false} data={rows} margin={{ top: shownEvents.length ? 52 : 12, right: labelEnds ? 108 : 16, bottom: 4, left: 0 }}>
             <CartesianGrid vertical={false} stroke={ink.grid} />
             <XAxis dataKey="year" type="number" domain={[first, last]} allowDecimals={false}
               tick={{ fill: ink.axis, fontSize: 12 }} tickLine={false} axisLine={{ stroke: ink.grid }} />
@@ -94,7 +94,7 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
               axisLine={false} width={44} domain={["auto", "auto"]} />
             {shownEvents.map((e, i) => (
               <ReferenceLine key={e.year} x={e.year} stroke={ink.grid} strokeWidth={1}
-                label={{ value: e.label, position: "top", fill: ink.axis, fontSize: 11, offset: 6 + 15 * (i % 3) }} />
+                label={{ value: e.label, position: "top", fill: ink.axis, fontSize: 12, offset: 6 + 15 * (i % 3) }} />
             ))}
             {average && (
               <Line dataKey={AVERAGE_KEY} name={averageLabel} stroke={AVERAGE_COLOR[scheme]} strokeWidth={1.5}

@@ -269,14 +269,14 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
     <div className="flags3d" data-ready={stage ? "true" : "false"}>
       <div className="row view3d-controls">
         <div className="field">
-          <label htmlFor="flag-mode">Flags</label>
+          <label htmlFor="flag-mode">Show</label>
           <select id="flag-mode" value={mode} onChange={(e) => setMode(e.target.value as FlagMode)}>
             <option value="chosen" disabled={!chosen.length}>Countries in the chart</option>
             <option value="top">Highest {rankCount}</option>
             <option value="bottom">Lowest {rankCount}</option>
           </select>
         </div>
-        <div className="view3d-year" aria-live="polite">{year}</div>
+        <div className="view3d-year" aria-hidden="true">{year}</div>
       </div>
       <div className="flags3d-view">
         <div className="flags3d-stage" ref={ref} role="img"

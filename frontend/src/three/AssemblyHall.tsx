@@ -410,7 +410,7 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
             <option value="name">Alphabetical</option>
           </select>
         </div>
-        <div className="view3d-year" aria-live="polite">{year}</div>
+        <div className="view3d-year" aria-hidden="true">{year}</div>
       </div>
       <div className="flags3d-view">
         <div className="hall3d-stage" ref={ref} role="img" aria-label={`The General Assembly hall in ${year}: `

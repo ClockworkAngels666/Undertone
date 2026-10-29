@@ -11,6 +11,8 @@ export default function DictionariesPage() {
   const [hostile, setHostile] = useState(joinTerms(current.hostile));
   const [cooperative, setCooperative] = useState(joinTerms(current.cooperative));
   const [message, setMessage] = useState<{ kind: "info" | "error"; text: string } | null>(null);
+  // What Reset replaced: the lists on screen and what was saved, so Undo can put both back
+  const [undo, setUndo] = useState<{ hostile: string; cooperative: string; saved: typeof current.custom } | null>(null);
 
   const hostileTerms = parseTerms(hostile);
   const coopTerms = parseTerms(cooperative);
@@ -19,6 +21,7 @@ export default function DictionariesPage() {
     && sameTerms(coopTerms, meta.default_dictionaries.cooperative);
 
   const save = () => {
+    setUndo(null);
     if (problem) return setMessage({ kind: "error", text: problem });
     const ok = storage.saveDictionaries(isDefault ? null : { hostile: hostileTerms, cooperative: coopTerms });
     setMessage(ok ? { kind: "info", text: isDefault ? "Using the default dictionaries." : "Saved in this browser." }
@@ -26,10 +29,20 @@ export default function DictionariesPage() {
   };
 
   const reset = () => {
+    setUndo({ hostile, cooperative, saved: current.custom });
     setHostile(joinTerms(meta.default_dictionaries.hostile));
     setCooperative(joinTerms(meta.default_dictionaries.cooperative));
     storage.saveDictionaries(null);
-    setMessage({ kind: "info", text: "Back to the default dictionaries." });
+    setMessage(null);
+  };
+
+  const undoReset = () => {
+    if (!undo) return;
+    setHostile(undo.hostile);
+    setCooperative(undo.cooperative);
+    storage.saveDictionaries(undo.saved);
+    setUndo(null);
+    setMessage({ kind: "info", text: "Your lists are back." });
   };
 
   return (
@@ -63,8 +76,15 @@ export default function DictionariesPage() {
       </div>
       <div className="row">
         <button type="button" className="btn primary" onClick={save}>Save dictionaries</button>
-        <button type="button" className="btn" onClick={reset}>Reset to default</button>
+        <button type="button" className="btn" onClick={reset} disabled={isDefault && !current.custom}>
+          Reset to default
+        </button>
       </div>
+      {undo && (
+        <div style={{ marginTop: 12 }}>
+          <Notice kind="info" action={{ label: "Undo", onClick: undoReset }}>Back to the default dictionaries.</Notice>
+        </div>
+      )}
       {problem && <Notice kind="error">{problem}</Notice>}
       {message && <div style={{ marginTop: 12 }}><Notice kind={message.kind}>{message.text}</Notice></div>}
     </>

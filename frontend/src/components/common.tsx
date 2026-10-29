@@ -1,13 +1,16 @@
 import type { ReactNode } from "react";
 import type { Span } from "../api/types";
 
-export function Notice({ kind = "info", children, onRetry }: {
+export function Notice({ kind = "info", children, onRetry, action }: {
   kind?: "info" | "warn" | "error"; children: ReactNode; onRetry?: () => void;
+  /** A button that acts on what the notice reports, such as Undo. */
+  action?: { label: string; onClick: () => void };
 }) {
   return (
     <div className={`notice ${kind}`} role={kind === "error" ? "alert" : "status"}>
       <div>{children}</div>
       {onRetry && <button type="button" className="btn small" onClick={onRetry}>Try again</button>}
+      {action && <button type="button" className="btn small" onClick={action.onClick}>{action.label}</button>}
     </div>
   );
 }

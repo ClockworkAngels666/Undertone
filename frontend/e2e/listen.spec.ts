@@ -47,17 +47,18 @@ const said = (page: Page) => page.evaluate(() => (window as unknown as { said: s
 
 test("listens to a UN speech at the rostrum, and jumps to a notable sentence", async ({ page }) => {
   const noErrors = watchErrors(page);
-  await fakeVoice(page);
+  await fakeVoice(page, 900);
   await page.goto("/un");
   const reading = page.locator("#close-reading");
+  const bar = reading.getByRole("group", { name: "Listen to this speech" });
   await reading.scrollIntoViewIfNeeded();
-  await reading.getByRole("button", { name: "Listen", exact: true }).click();
-  await expect(reading.getByRole("button", { name: "Pause" })).toBeVisible();
+  await bar.getByRole("button", { name: "Listen", exact: true }).click();
+  await expect(bar.getByRole("button", { name: "Pause" })).toBeVisible();
   await expect(page.getByTestId("now-reading")).not.toBeEmpty();
-  await expect(reading.locator(".listen-count")).not.toHaveText(/^1 \//);     // it moves on by itself
+  await expect(bar.locator(".listen-count")).not.toHaveText(/^1 \//);     // it moves on by itself
 
-  await reading.getByRole("button", { name: "Pause" }).click();
-  await expect(reading.getByRole("button", { name: "Resume" })).toBeVisible();
+  await bar.getByRole("button", { name: "Pause" }).click();
+  await expect(bar.getByRole("button", { name: "Resume" })).toBeVisible();
 
   await reading.locator("summary", { hasText: "Full speech" }).click();
   const jump = reading.locator(".listen-from").last();
@@ -74,8 +75,13 @@ test("listens to a UN speech at the rostrum, and jumps to a notable sentence", a
     return Boolean(now && now.top >= b.top - 1 && now.bottom <= b.bottom + 1);
   })).toBe(true);
 
-  await reading.getByRole("button", { name: "Stop" }).click();
-  await expect(reading.getByRole("button", { name: "Listen", exact: true })).toBeVisible();
+  // with the main controls scrolled away, a pinned player keeps Pause and Stop in reach
+  await bar.evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().bottom + window.scrollY + 400));
+  const pinned = page.getByRole("group", { name: /^Reading .* aloud$/ });
+  await expect(pinned).toBeVisible();
+  await pinned.getByRole("button", { name: "Stop" }).click();
+  await expect(pinned).toHaveCount(0);
+  await expect(bar.getByRole("button", { name: "Listen", exact: true })).toBeVisible();
   await expect(page.getByTestId("now-reading")).toHaveCount(0);
   await expectNoHorizontalScroll(page);
   noErrors();

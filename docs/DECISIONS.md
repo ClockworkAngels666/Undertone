@@ -166,3 +166,22 @@ In October 2026 the owner said the site still looked machine-made. The pages now
   negative numbers carry a real minus sign everywhere (a hyphen read faint on chart axes); table headers sit on the
   card's surface instead of a filled band; the CSV picker's button matches the others; dark-mode charts and 3D
   labels use the same neutral greys as the page; and pages leave 32px between the header and the title.
+
+## 18. Hardening after the design critique
+A design critique (October 2026, 23/40) found controls that broke under real use. Fixed:
+- Year fields (From, To, ranking year) take a typed year: a complete year in range applies at once, anything else
+  is checked on Enter or when the field is left, with the allowed range shown beside it.
+- Every table row that opens a speech (Biggest shifts, the year table, the rhetoric-space table, the ranking) does
+  the same thing: Close reading shows it, the page scrolls there and focus moves to its heading. Row names are
+  buttons, so Enter and Space work.
+- After Analyze the page scrolls to the results, focus moves to them and a status line announces them; an empty
+  submit marks the text box itself. Ctrl/Cmd+Enter analyzes.
+- While a text is read aloud, Pause/Resume, Stop and the position stay pinned to the foot of the screen once the
+  main controls scroll away.
+- The flag and hall views and the rhetoric space each have a table of the same numbers; the year numeral no longer
+  announces itself every 0.7 s during Play; the year tabs work with the arrow keys.
+- The country search understands UK, US, UAE, USSR and similar, and asks instead of guessing when a search fits
+  several countries ("Korea").
+- Reset to default on the Dictionaries page can be undone.
+- Chart labels and input placeholders pass 4.5:1 contrast in both themes; the chart is no longer an extra Tab stop
+  (its numbers are in the table under it).

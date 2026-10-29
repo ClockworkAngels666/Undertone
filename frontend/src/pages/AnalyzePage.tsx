@@ -1,13 +1,13 @@
-import { lazy, Suspense, useId, useMemo, useState, type FormEvent } from "react";
+import { lazy, Suspense, useEffect, useId, useMemo, useRef, useState, type FormEvent, type Ref } from "react";
 import { Link } from "react-router";
 import { api } from "../api/client";
 import type { AnalyzeResult, Reading, SentenceScore } from "../api/types";
 import { HighlightKeys, Limitations, Notice } from "../components/common";
-import { ListenBar, ReadingText, useFlatReading } from "../components/Listen";
+import { ListenBar, MiniPlayer, ReadingText, useFlatReading } from "../components/Listen";
 import MetricCards from "../components/MetricCards";
 import SaveToDataset from "../components/SaveToDataset";
 import { downloadText, toCsv } from "../lib/csv";
-import { fixed, percent, plural } from "../lib/format";
+import { fixed, formatMetric, percent, plural } from "../lib/format";
 import { errorText, useDictionaries, useDocumentTitle, useMeta } from "../lib/hooks";
 import { useSpeech } from "../lib/speech";
 
@@ -46,13 +46,29 @@ export default function AnalyzePage() {
   const [busy, setBusy] = useState(false);
   const [fileNote, setFileNote] = useState<string | null>(null);
   const [useContext, setUseContext] = useState(false);
+  const [empty, setEmpty] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
+  const results = useRef<HTMLElement>(null);
+  const textBox = useRef<HTMLTextAreaElement>(null);
+
+  // A new result: bring it into view and move focus to it, so keyboard and screen-reader users land on it too
+  useEffect(() => {
+    if (!result) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    results.current?.scrollIntoView?.({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    results.current?.focus({ preventScroll: true });
+    setAnnouncement(`Results ready: ${plural(result.counts.words, "word")}, tone balance ${
+      formatMetric("tone_balance", result.metrics.tone_balance)}.`);
+  }, [result]);
 
   const analyze = async (event?: FormEvent) => {
     event?.preventDefault();
     if (!text.trim()) {
-      setError("Paste a text or upload a file first.");
+      setEmpty(true);
+      textBox.current?.focus();
       return;
     }
+    setEmpty(false);
     setBusy(true);
     setError(null);
     try {
@@ -102,11 +118,21 @@ export default function AnalyzePage() {
       <form className="card stack" onSubmit={analyze}>
         <div className="field">
           <label htmlFor={textId}>Text</label>
-          <textarea id={textId} rows={9} value={text} maxLength={meta.limits.max_text_chars}
-            placeholder="Paste an English text here…" onChange={(e) => {
+          <textarea id={textId} ref={textBox} rows={9} value={text} maxLength={meta.limits.max_text_chars}
+            placeholder="Paste an English text here…" aria-keyshortcuts="Control+Enter Meta+Enter"
+            aria-invalid={empty || undefined} aria-describedby={empty ? `${textId}-empty` : undefined}
+            onChange={(e) => {
               setText(e.target.value);
               setFileNote(null);
+              setEmpty(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                void analyze();
+              }
             }} />
+          {empty && <span className="field-error" id={`${textId}-empty`} role="alert">Paste a text or upload a file first.</span>}
           <span className="hint">
             {text.length.toLocaleString()} / {meta.limits.max_text_chars.toLocaleString()} characters
             {fileNote ? ` · ${fileNote}` : ""}
@@ -146,16 +172,19 @@ export default function AnalyzePage() {
       </form>
 
       {error && <Notice kind="error">{error}</Notice>}
-      {result && <Results result={result} text={analyzedText} />}
+      <p className="visually-hidden" role="status">{announcement}</p>
+      {result && <Results result={result} text={analyzedText} sectionRef={results} />}
     </>
   );
 }
 
-function Results({ result, text }: { result: AnalyzeResult; text: string }) {
+function Results({ result, text, sectionRef }: {
+  result: AnalyzeResult; text: string; sectionRef: Ref<HTMLElement>;
+}) {
   const base = result.baseline;
   const [focus, setFocus] = useState<number | null>(null);
   return (
-    <section aria-label="Results">
+    <section aria-label="Results" className="results" tabIndex={-1} ref={sectionRef}>
       {result.warnings.map((w) => <Notice key={w} kind="warn">{w}</Notice>)}
       <MetricCards metrics={result.metrics} compareTo={base?.averages}
         compareLabel={base ? `UN avg ${base.first_year}–${base.last_year}` : undefined} />
@@ -218,10 +247,12 @@ function TermList({ terms }: { terms: [string, number][] }) {
 function HighlightedCard({ reading }: { reading: Reading }) {
   const { texts } = useFlatReading(reading);
   const speech = useSpeech(texts);
+  const bar = useRef<HTMLDivElement>(null);
   return (
     <div className="card">
       <h2>Highlighted text</h2>
-      <ListenBar speech={speech} what="the text" />
+      <ListenBar speech={speech} what="the text" barRef={bar} />
+      <MiniPlayer speech={speech} anchor={bar} what="the text" />
       <HighlightKeys />
       <ReadingText reading={reading} current={speech.status === "idle" ? null : speech.current} label="Highlighted text"
         onPick={speech.supported ? speech.play : undefined} testId="highlighted-text" />

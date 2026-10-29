@@ -1,11 +1,11 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router";
 import { api } from "../api/client";
-import type { CountryInfo, NotableSentence, Statement, StatementText, UNSummary } from "../api/types";
+import type { CountryInfo, Matrix, NotableSentence, Statement, StatementText, UNSummary } from "../api/types";
 import CountryPicker from "../components/CountryPicker";
 import { DownloadLink, HighlightedText, HighlightKeys, Limitations, Loading, Notice } from "../components/common";
 import { PlayIcon } from "../components/icons";
-import { ListenBar, NowReading, ReadingText, useFlatReading } from "../components/Listen";
+import { ListenBar, MiniPlayer, NowReading, ReadingText, useFlatReading } from "../components/Listen";
 import MetricCards from "../components/MetricCards";
 import MetricSelect from "../components/MetricSelect";
 import TrendChart from "../components/TrendChart";
@@ -118,6 +118,13 @@ function Explorer({ summary }: { summary: UNSummary }) {
     setReading({ country: code, year });
     setPicked({ code, year, added });
   }, [countries.join(","), start, end, max, params]);
+  const readAndShow = useCallback((code: string, year: number) => {
+    openSpeech(code, year);
+    window.setTimeout(() => {
+      document.getElementById("close-reading")?.scrollIntoView?.({ behavior: scrollBehavior(), block: "start" });
+      document.getElementById("close-reading-title")?.focus({ preventScroll: true });
+    }, 50);
+  }, [openSpeech]);
   const readCountry = reading?.country && countries.includes(reading.country) ? reading.country : countries[0];
   const readYears = useMemo(() => {
     const s = series.data?.series.find((x) => x.country === readCountry);
@@ -143,16 +150,10 @@ function Explorer({ summary }: { summary: UNSummary }) {
         <div className="row">
           <CountryPicker options={summary.countries} value={countries} max={max} colors={colors}
             onChange={(codes) => update({ c: codes.join(",") })} />
-          <div className="field">
-            <label htmlFor="year-from">From</label>
-            <input id="year-from" type="number" min={firstYear} max={lastYear} value={start}
-              onChange={(e) => update({ from: e.target.value })} />
-          </div>
-          <div className="field">
-            <label htmlFor="year-to">To</label>
-            <input id="year-to" type="number" min={firstYear} max={lastYear} value={end}
-              onChange={(e) => update({ to: e.target.value })} />
-          </div>
+          <YearInput id="year-from" label="From" value={start} min={firstYear} max={lastYear}
+            onCommit={(y) => update({ from: String(y) })} />
+          <YearInput id="year-to" label="To" value={end} min={firstYear} max={lastYear}
+            onCommit={(y) => update({ to: String(y) })} />
           <MetricSelect value={metric} onChange={(m) => update({ m })} keywords={summary.keywords} />
         </div>
         <div className="row" style={{ marginTop: 8 }}>
@@ -170,13 +171,20 @@ function Explorer({ summary }: { summary: UNSummary }) {
       <div className="card">
         <div className="card-head">
           <h2>Year by year</h2>
-          <div className="tabs" role="tablist" aria-label="View">
+          <div className="tabs" role="tablist" aria-label="View" onKeyDown={(e) => {
+            if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+            const next = yearView === "flags" ? "hall" : "flags";
+            setYearView(next);
+            document.getElementById(`year-tab-${next}`)?.focus();
+          }}>
             {([["flags", "Flags"], ["hall", "Assembly hall"]] as const).map(([key, text]) => (
-              <button key={key} type="button" role="tab" aria-selected={yearView === key}
+              <button key={key} id={`year-tab-${key}`} type="button" role="tab" aria-selected={yearView === key}
+                aria-controls="year-panel" tabIndex={yearView === key ? 0 : -1}
                 onClick={() => setYearView(key)}>{text}</button>
             ))}
           </div>
         </div>
+        <div id="year-panel" role="tabpanel" aria-labelledby={`year-tab-${yearView}`}>
         {matrix.error ? <Notice kind="error" onRetry={matrix.reload}>{matrix.error}</Notice>
           : !matrix.data ? <Loading /> : (
             <Suspense fallback={<Loading label="Loading 3D…" />}>
@@ -191,6 +199,11 @@ function Explorer({ summary }: { summary: UNSummary }) {
               )}
             </Suspense>
           )}
+        {matrix.data && (
+          <YearTable matrix={matrix.data} year={flagYear} names={names} label={label} format={formatValue}
+            onPick={readAndShow} />
+        )}
+        </div>
         {picked && (
           <Notice kind="info">
             {names[picked.code] ?? picked.code}, {picked.year}:{" "}
@@ -236,18 +249,14 @@ function Explorer({ summary }: { summary: UNSummary }) {
           : !countries.length ? <p className="empty">Choose at least one country.</p>
           : !space.data ? <Loading /> : (
             <Suspense fallback={<Loading label="Loading 3D…" />}>
-              <RhetoricSpace
-                series={spaceSeries}
-                onPick={(code, year) => {
-                  setReading({ country: code, year });
-                  document.getElementById("close-reading")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }} />
+              <RhetoricSpace series={spaceSeries} onPick={readAndShow} />
             </Suspense>
           )}
         <p className="small muted">
           Each line is one country&apos;s path through the years. Points above the shaded plane used more cooperative
           than hostile words that year.
         </p>
+        {spaceSeries.length > 0 && <SpaceTable series={spaceSeries} onPick={readAndShow} />}
       </div>
 
       <div className="grid-2">
@@ -264,12 +273,9 @@ function Explorer({ summary }: { summary: UNSummary }) {
                   </thead>
                   <tbody>
                     {shifts.data.map((s) => (
-                      <tr key={`${s.country}-${s.year}`} className="clickable" tabIndex={0}
-                        onClick={() => setReading({ country: s.country, year: s.year })}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") setReading({ country: s.country, year: s.year });
-                        }}>
-                        <td>{s.name}</td>
+                      <tr key={`${s.country}-${s.year}`} className="clickable"
+                        onClick={() => readAndShow(s.country, s.year)}>
+                        <td><RowLink onClick={() => readAndShow(s.country, s.year)}>{s.name}</RowLink></td>
                         <td>{s.from_year}→{s.year}</td>
                         <td className="num">{formatDelta(metric, s.change)}</td>
                         <td className="num">{formatMetric(metric, s.value)}</td>
@@ -281,11 +287,7 @@ function Explorer({ summary }: { summary: UNSummary }) {
             )}
         </div>
         <RankingCard metric={metric} defaultYear={end} firstYear={firstYear} lastYear={lastYear} names={names}
-          onPick={(code, year) => {
-            openSpeech(code, year);
-            window.setTimeout(() => document.getElementById("close-reading")
-              ?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-          }} />
+          onPick={readAndShow} />
       </div>
 
       <CloseReading
@@ -307,6 +309,124 @@ function Explorer({ summary }: { summary: UNSummary }) {
 function clamp(value: number, min: number, max: number) {
   if (!Number.isFinite(value)) return min;
   return Math.min(max, Math.max(min, Math.round(value)));
+}
+
+function scrollBehavior(): ScrollBehavior {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+}
+
+/** A year field that can be typed into. A complete year in range applies at once (so the arrow keys and the
+ *  spinner still step); anything else is checked against the range on Enter or when the field is left. */
+function YearInput({ id, label, value, min, max, onCommit }: {
+  id: string; label: string; value: number; min: number; max: number; onCommit: (year: number) => void;
+}) {
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+  const isYear = (s: string) => /^\d{4}$/.test(s.trim()) && Number(s) >= min && Number(s) <= max;
+  const finish = () => {
+    if (!draft.trim()) return setDraft(String(value));
+    const year = clamp(Number(draft), min, max);
+    setDraft(String(year));
+    if (year !== value) onCommit(year);
+  };
+  const ok = isYear(draft);
+  return (
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      <input id={id} type="number" inputMode="numeric" min={min} max={max} value={draft}
+        aria-invalid={ok ? undefined : true} aria-describedby={ok ? undefined : `${id}-range`}
+        onChange={(e) => {
+          const next = e.target.value;
+          setDraft(next);
+          if (isYear(next) && Number(next) !== value) onCommit(Number(next));
+        }}
+        onBlur={finish}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") finish();
+        }} />
+      {!ok && <span className="hint" id={`${id}-range`}>{min}–{max}</span>}
+    </div>
+  );
+}
+
+/** A country's name in a table row, as a button: the row opens that speech from the keyboard too. */
+function RowLink({ onClick, children }: { onClick: () => void; children: ReactNode }) {
+  return (
+    <button type="button" className="row-link" onClick={(e) => {
+      e.stopPropagation();
+      onClick();
+    }}>{children}</button>
+  );
+}
+
+/** The year shown by the flags and the hall, as a table: every delegation that spoke, highest first. */
+function YearTable({ matrix, year, names, label, format, onPick }: {
+  matrix: Matrix; year: number; names: Record<string, string>; label: string; format: (v: number) => string;
+  onPick: (code: string, year: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const i = matrix.years.indexOf(year);
+  const rows = open && i >= 0
+    ? matrix.countries.flatMap((c) => {
+      const value = matrix.values[c.code]?.[i];
+      return value === null || value === undefined ? [] : [{ code: c.code, name: names[c.code] ?? c.name, value }];
+    }).sort((a, b) => b.value - a.value)
+    : [];
+  return (
+    <details className="table-view" onToggle={(e) => setOpen(e.currentTarget.open)}>
+      <summary>Show {year} as a table</summary>
+      {open && (rows.length ? (
+        <div className="table-wrap tall" tabIndex={0} role="region" aria-label={`${label} in ${year}`}>
+          <table>
+            <thead><tr><th className="num">#</th><th>Country</th><th className="num">{label}</th></tr></thead>
+            <tbody>
+              {rows.map((r, k) => (
+                <tr key={r.code} className="clickable" onClick={() => onPick(r.code, year)}>
+                  <td className="num">{k + 1}</td>
+                  <td><RowLink onClick={() => onPick(r.code, year)}>{r.name}</RowLink></td>
+                  <td className="num">{format(r.value)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : <p className="empty">No statements in {year}.</p>)}
+    </details>
+  );
+}
+
+/** The rhetoric space's points as a table: one row per country and year. */
+function SpaceTable({ series, onPick }: {
+  series: { key: string; label: string; points: { year: number; hostility: number | null; cooperation: number | null }[] }[];
+  onPick: (code: string, year: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const rows = open ? series.flatMap((s) => s.points.map((p) => ({ code: s.key, name: s.label, ...p }))) : [];
+  const cell = (v: number | null) => (v === null ? "–" : v.toFixed(1));
+  return (
+    <details className="table-view" onToggle={(e) => setOpen(e.currentTarget.open)}>
+      <summary>Show the points as a table</summary>
+      {open && (
+        <div className="table-wrap tall" tabIndex={0} role="region" aria-label="Rhetoric space points">
+          <table>
+            <thead>
+              <tr><th>Country</th><th>Year</th><th className="num">Hostile / 1,000</th><th className="num">Cooperative / 1,000</th></tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={`${r.code}-${r.year}`} className="clickable" onClick={() => onPick(r.code, r.year)}>
+                  <td>{r.name}</td>
+                  <td><RowLink onClick={() => onPick(r.code, r.year)}>{r.year}</RowLink></td>
+                  <td className="num">{cell(r.hostility)}</td>
+                  <td className="num">{cell(r.cooperation)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </details>
+  );
 }
 
 function RankingCard({ metric, defaultYear, firstYear, lastYear, names, onPick }: {
@@ -335,11 +455,7 @@ function RankingCard({ metric, defaultYear, firstYear, lastYear, names, onPick }
       <div className="card-head">
         <h2>Country ranking</h2>
         <div className="row">
-          <div className="field">
-            <label htmlFor="rank-year">Year</label>
-            <input id="rank-year" type="number" min={firstYear} max={lastYear} value={year}
-              onChange={(e) => setYear(clamp(Number(e.target.value), firstYear, lastYear))} />
-          </div>
+          <YearInput id="rank-year" label="Year" value={year} min={firstYear} max={lastYear} onCommit={setYear} />
           <div className="field">
             <label htmlFor="rank-filter">Find</label>
             <input id="rank-filter" type="search" value={filter} placeholder="Country" style={{ width: "9rem" }}
@@ -416,12 +532,13 @@ function CloseReading({ countries, country, year, years, onChange }: {
   const { flat, texts } = useFlatReading(reading);
   const speech = useSpeech(texts);
   const listening = speech.status !== "idle";
+  const bar = useRef<HTMLDivElement>(null);
   const position = useMemo(() => new Map(flat.map((s, i) => [s.index, i])), [flat]);   // scored number → reading order
   if (!countries.length) return null;
   return (
     <div className="card" id="close-reading">
       <div className="card-head">
-        <h2>Close reading</h2>
+        <h2 id="close-reading-title" tabIndex={-1}>Close reading</h2>
         <div className="row">
           <div className="field">
             <label htmlFor="read-country">Country</label>
@@ -453,10 +570,11 @@ function CloseReading({ countries, country, year, years, onChange }: {
                 </p>
                 {fullText.error && !fullText.loading
                   ? <p className="muted small">The full text of this speech is not available.</p>
-                  : <ListenBar speech={speech} what="this speech" />}
+                  : <ListenBar speech={speech} what="this speech" barRef={bar} />}
                 {listening && <NowReading sentence={flat[speech.current]} />}
               </div>
             </div>
+            <MiniPlayer speech={speech} anchor={bar} what={`${statement.data.name}'s speech`} />
             <MetricCards metrics={statement.data.metrics} />
             <HighlightKeys />
             {(Object.keys(KIND_TITLES) as NotableSentence["kind"][]).map((kind) => {

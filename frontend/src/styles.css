@@ -102,6 +102,11 @@ textarea {
   caret-color: var(--accent);
 }
 
+::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
 /* Numbers line up in tables and metric cards */
 table,
 .metric .value {
@@ -469,6 +474,18 @@ label {
   max-width: 100%;   /* a select sized by a long option ("Saint Vincent and the Grenadines") must not widen the page */
 }
 
+.field-error {
+  color: var(--bad);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+/* Results and Close reading take focus when they open, for screen readers; no ring around a whole section */
+.results:focus,
+#close-reading-title:focus {
+  outline: none;
+}
+
 .field .hint {
   font-weight: 300;
   color: var(--muted);
@@ -825,6 +842,43 @@ details.full-speech .reading {
 }
 
 /* ── Listening ──────────────────────────────────────────────────────────── */
+/* While reading aloud, the controls stay pinned to the foot of the screen once the main ones scroll away */
+.mini-player {
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(15, 28, 43, 0.16);
+  animation: mini-player-in 160ms ease-out;
+}
+
+@media (prefers-color-scheme: dark) {
+  .mini-player {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@keyframes mini-player-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mini-player {
+    animation: none;
+  }
+}
+
 .listen {
   display: flex;
   flex-direction: column;
@@ -987,6 +1041,24 @@ tbody tr:last-child td {
 
 tr.clickable {
   cursor: pointer;
+}
+
+/* A table row's name as a button: the row opens from the keyboard as well as the mouse */
+.row-link {
+  font: inherit;
+  color: var(--link);
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .row-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
 }
 
 tr.clickable:active td {

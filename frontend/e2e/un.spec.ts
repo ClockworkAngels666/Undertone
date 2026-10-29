@@ -13,12 +13,23 @@ test("explores the UN General Debate data", async ({ page }) => {
   await expect(page).toHaveURL(/m=hostility/);
   await expect(page.getByRole("heading", { name: "Hostile words / 1,000" })).toBeVisible();
 
-  // A turning point opens the speech in the close-reading panel.
+  // A year can be typed digit by digit; one outside the data is pulled back when the field is left.
+  const from = page.getByLabel("From", { exact: true });
+  await from.fill("");
+  await from.pressSequentially("2005");
+  await expect(page).toHaveURL(/from=2005/);
+  await from.fill("");
+  await from.pressSequentially("1800");
+  await from.press("Tab");
+  await expect(from).not.toHaveValue("1800");
+
+  // A turning point opens the speech in the close-reading panel and moves focus there.
   const shift = page.locator("tr.clickable").first();
   await expect(shift).toBeVisible();
-  const [country] = (await shift.locator("td").first().innerText()).split("\n");
-  await shift.click();
+  const country = await shift.getByRole("button").innerText();
+  await shift.getByRole("button").press("Enter");
   await expect(page.locator("#read-country option:checked")).toHaveText(country);
+  await expect(page.getByRole("heading", { name: "Close reading" })).toBeFocused();
   await expect(page.locator("#close-reading .sentences li").first()).toBeVisible();
   await expect(page.locator("#close-reading mark").first()).toBeVisible();
 

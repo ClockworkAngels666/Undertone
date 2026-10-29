@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState, type Ref, type RefObject } from "react";
 import type { Reading, ReadingSentence } from "../api/types";
 import { RATES, voiceLabel, type Speech } from "../lib/speech";
 import { HighlightedText } from "./common";
@@ -13,11 +13,11 @@ export function useFlatReading(reading: Reading | null | undefined) {
 }
 
 /** Listen / pause / stop, a position slider, and the voice and speed. */
-export function ListenBar({ speech, what }: { speech: Speech; what: string }) {
+export function ListenBar({ speech, what, barRef }: { speech: Speech; what: string; barRef?: Ref<HTMLDivElement> }) {
   if (!speech.supported) return <p className="muted small">This browser can't read text aloud.</p>;
   const { status, current, total } = speech;
   return (
-    <div className="listen" role="group" aria-label={`Listen to ${what}`}>
+    <div className="listen" role="group" aria-label={`Listen to ${what}`} ref={barRef}>
       <div className="listen-main">
         {status === "playing" ? (
           <button type="button" className="btn primary" onClick={speech.pause}><PauseIcon /> Pause</button>
@@ -51,6 +51,38 @@ export function ListenBar({ speech, what }: { speech: Speech; what: string }) {
         </label>
       </div>
       {speech.error && <p className="listen-error" role="alert">{speech.error}</p>}
+    </div>
+  );
+}
+
+/** While a text is being read aloud, Pause/Resume, Stop and the position stay pinned to the foot of the screen
+ *  once the main controls (`anchor`) have scrolled out of view. */
+export function MiniPlayer({ speech, anchor, what }: {
+  speech: Speech; anchor: RefObject<HTMLElement | null>; what: string;
+}) {
+  const [away, setAway] = useState(false);
+  const active = speech.status !== "idle";
+  useEffect(() => {
+    const el = anchor.current;
+    if (!active || !el) {
+      setAway(false);
+      return;
+    }
+    const io = new IntersectionObserver(([entry]) => setAway(!entry.isIntersecting), { rootMargin: "-64px 0px 0px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [active, anchor]);
+  if (!active || !away) return null;
+  const { status, current, total } = speech;
+  return (
+    <div className="mini-player" role="group" aria-label={`Reading ${what} aloud`}>
+      {status === "playing" ? (
+        <button type="button" className="btn small primary" onClick={speech.pause}><PauseIcon /> Pause</button>
+      ) : (
+        <button type="button" className="btn small primary" onClick={() => speech.play()}><PlayIcon /> Resume</button>
+      )}
+      <button type="button" className="btn small" onClick={speech.stop}><StopIcon /> Stop</button>
+      <span className="listen-count">{(current + 1).toLocaleString("en")} / {total.toLocaleString("en")}</span>
     </div>
   );
 }
