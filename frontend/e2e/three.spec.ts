@@ -16,7 +16,7 @@ test("the analysis shows a 3D sentence landscape", async ({ page }) => {
 
 test("the 3D flag line plays through the years and switches views", async ({ page }) => {
   const noErrors = watchErrors(page);
-  await page.goto("/un");
+  await page.goto("/un?v=year");
   await expect(page.locator(".globe3d")).toHaveCount(0);                // the big globe is gone
   const flags = page.locator('.flags3d[data-ready="true"]');
   await expect(flags.locator("canvas")).toBeVisible();
@@ -40,7 +40,7 @@ test("the 3D flag line plays through the years and switches views", async ({ pag
 
 test("the assembly hall seats the year's delegations and plays the years", async ({ page }) => {
   const noErrors = watchErrors(page);
-  await page.goto("/un");
+  await page.goto("/un?v=year");
   await page.getByRole("tab", { name: "Assembly hall" }).click();
   await expect(page.getByRole("tab", { name: "Assembly hall" })).toHaveAttribute("aria-selected", "true");
   await expect(page.locator('.hall3d[data-ready="true"] canvas')).toBeVisible();
@@ -64,7 +64,7 @@ test("the assembly hall seats the year's delegations and plays the years", async
 
 test("the ranking shows the year's top three on a podium", async ({ page }) => {
   const noErrors = watchErrors(page);
-  await page.goto("/un");
+  await page.goto("/un?v=year");
   const podium = page.locator('.podium3d[data-ready="true"]');
   await podium.scrollIntoViewIfNeeded();
   await expect(podium.locator("canvas")).toBeVisible();
@@ -74,9 +74,9 @@ test("the ranking shows the year's top three on a podium", async ({ page }) => {
 
 test("close reading shows the speaker's rostrum, and the rhetoric space draws", async ({ page }) => {
   const noErrors = watchErrors(page);
-  await page.goto("/un");
+  await page.goto("/un?v=space");
   await expect(page.locator('.space3d[data-ready="true"] canvas')).toBeVisible();
-  await page.locator("#close-reading").scrollIntoViewIfNeeded();
+  await page.getByRole("tab", { name: "Close reading" }).click();
   await expect(page.locator('.rostrum3d[data-ready="true"] canvas')).toBeVisible();
   await expect(page.locator(".reading-title")).not.toBeEmpty();
   noErrors();

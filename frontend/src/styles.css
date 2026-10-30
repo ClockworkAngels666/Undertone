@@ -1466,6 +1466,94 @@ tr.focused td {
   position: relative;
 }
 
+/* UN page: the views as tabs under the filters, held under the header while the page scrolls on wide screens */
+#views {
+  scroll-margin-top: 65px;
+}
+
+.view-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 0 20px;
+  background: var(--plane);
+  border-bottom: 1px solid var(--border);
+}
+
+.view-tabs button {
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ink-2);
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 10px 14px;
+  min-height: 44px;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.view-tabs button[aria-selected="true"] {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .view-tabs button:hover {
+    color: var(--ink);
+  }
+}
+
+@media (min-width: 761px) {
+  .view-tabs {
+    position: sticky;
+    top: 65px;
+    z-index: 4;
+  }
+}
+
+@media (max-width: 760px) {
+  #views {
+    scroll-margin-top: 110px;
+  }
+  .view-tabs button {
+    padding: 10px;
+  }
+}
+
+/* Loading placeholders keep a section's height, so the page does not jump when it arrives */
+.view3d-loading {
+  min-height: 560px;
+}
+
+.chart-loading {
+  min-height: 470px;
+}
+
+.space-loading {
+  min-height: 540px;
+}
+
+.reading-loading {
+  min-height: 420px;
+}
+
+@media (max-width: 560px) {
+  .view3d-loading {
+    min-height: 360px;
+  }
+  .chart-loading {
+    min-height: 370px;
+  }
+  .space-loading {
+    min-height: 420px;
+  }
+}
+
 .view3d-controls {
   justify-content: space-between;
   align-items: flex-end;

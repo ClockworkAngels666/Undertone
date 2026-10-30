@@ -200,3 +200,11 @@ UN statements while its tone balance was positive. Now:
   the median length of the UN statements for scale.
 - The metric explanations give the tone-balance formula and say what VADER is; the sentence table explains its
   columns; the datasets page title matches the menu; a disabled Create dataset says it is waiting for a file.
+
+## 20. The UN page as tabs
+The UN page had grown into one 5,500px scroll with Close reading at the bottom. Under the filters it now has four
+tabs, kept in the address (`?v=`): Over time (the chart and the biggest shifts), Year by year (flags or the
+Assembly hall, and the country ranking, all showing one shared year), Rhetoric space, and Close reading. Opening
+a speech from any tab, table or 3D view switches to Close reading, scrolls there and moves focus to its heading.
+On wide screens the tab bar stays under the header while the page scrolls. Loading placeholders keep each
+section's height, so the page no longer jumps as data arrives.

@@ -33,6 +33,8 @@ test("explores the UN General Debate data", async ({ page }) => {
   await expect(page.locator("#close-reading .sentences li").first()).toBeVisible();
   await expect(page.locator("#close-reading mark").first()).toBeVisible();
 
+  await page.getByRole("tab", { name: "Year by year" }).click();
+  await expect(page).toHaveURL(/v=year/);
   await expect(page.getByRole("heading", { name: "Country ranking" })).toBeVisible();
   await expect(page.locator(".bar-fill").first()).toBeVisible();
   await expectNoHorizontalScroll(page);
@@ -55,4 +57,10 @@ test("keeps the view in the address so it can be shared", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Share of negative sentences" })).toBeVisible();
   await expect(page.getByLabel("Average of all countries")).not.toBeChecked();
   await expect(page.getByRole("spinbutton", { name: "From" })).toHaveValue("2000");
+  // the chosen tab is part of the address too, and the arrow keys move between tabs
+  await page.goto("/un?v=space");
+  await expect(page.getByRole("tab", { name: "Rhetoric space" })).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("tab", { name: "Rhetoric space" }).press("ArrowRight");
+  await expect(page.getByRole("tab", { name: "Close reading" })).toBeFocused();
+  await expect(page).toHaveURL(/v=read/);
 });

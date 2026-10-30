@@ -48,7 +48,7 @@ const said = (page: Page) => page.evaluate(() => (window as unknown as { said: s
 test("listens to a UN speech at the rostrum, and jumps to a notable sentence", async ({ page }) => {
   const noErrors = watchErrors(page);
   await fakeVoice(page, 900);
-  await page.goto("/un");
+  await page.goto("/un?v=read");
   const reading = page.locator("#close-reading");
   const bar = reading.getByRole("group", { name: "Listen to this speech" });
   await reading.scrollIntoViewIfNeeded();

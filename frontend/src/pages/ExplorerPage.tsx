@@ -16,6 +16,10 @@ import { useSpeech } from "../lib/speech";
 
 const PREFERRED = ["RUS", "USA", "CHN", "VNM"];
 
+/** The page's views, as tabs under the filters; the choice is kept in the address (?v=). */
+const VIEWS = [["trend", "Over time"], ["year", "Year by year"], ["space", "Rhetoric space"], ["read", "Close reading"]] as const;
+type View = typeof VIEWS[number][0];
+
 // The 3D views (three.js) load only when this page is opened.
 const FlagLine = lazy(() => import("../three/FlagLine"));
 const AssemblyHall = lazy(() => import("../three/AssemblyHall"));
@@ -84,10 +88,13 @@ function Explorer({ summary }: { summary: UNSummary }) {
     [countries.join(","), metric, start, end],
   );
 
+  const view: View = VIEWS.some(([key]) => key === params.get("v")) ? params.get("v") as View : "trend";
   const [reading, setReading] = useState<{ country: string; year: number } | null>(null);
-  const [flagYear, setFlagYear] = useState(end);
+  const [year, setYear] = useState(end);     // the one year shown by the flags, the hall and the ranking
+  useEffect(() => setYear(end), [end]);
   const [yearView, setYearView] = useState<"flags" | "hall">("flags");
   const [picked, setPicked] = useState<{ code: string; year: number; added: boolean } | null>(null);
+  const [arrivals, setArrivals] = useState(0);   // counts speeches opened from elsewhere on the page
   const matrix = useAsync(() => api.un.matrix(metric), [metric]);
   const space = useAsync(
     () => (countries.length ? Promise.all([
@@ -108,23 +115,32 @@ function Explorer({ summary }: { summary: UNSummary }) {
       points: h.points.map((p) => ({ year: p.year, hostility: p.value, cooperation: coop.get(p.year) ?? null })) };
   }) : []), [space.data, colors, scheme]);
 
-  const openSpeech = useCallback((code: string, year: number) => {
-    const changes: Record<string, string | null> = {};
-    if (year < start) changes.from = String(year);
-    if (year > end) changes.to = String(year);
+  /** Show a tab from its top: when the tab bar is held under the header, the page returns to it. */
+  const chooseView = (next: View) => {
+    update({ v: next === "trend" ? null : next });
+    const anchor = document.getElementById("views");
+    if (anchor && anchor.getBoundingClientRect().top < 0) anchor.scrollIntoView?.({ block: "start" });
+  };
+
+  /** Open a speech from anywhere on the page: Close reading shows it (adding the country to the chart when there is
+   *  room), the page goes there and focus moves to its heading. */
+  const openSpeech = useCallback((code: string, y: number) => {
+    const changes: Record<string, string | null> = { v: "read" };
+    if (y < start) changes.from = String(y);
+    if (y > end) changes.to = String(y);
     const added = !countries.includes(code) && countries.length < max;
     if (added) changes.c = [...countries, code].join(",");
-    if (Object.keys(changes).length) update(changes);
-    setReading({ country: code, year });
-    setPicked({ code, year, added });
+    update(changes);
+    setReading({ country: code, year: y });
+    setPicked({ code, year: y, added });
+    setArrivals((n) => n + 1);
   }, [countries.join(","), start, end, max, params]);
-  const readAndShow = useCallback((code: string, year: number) => {
-    openSpeech(code, year);
-    window.setTimeout(() => {
-      document.getElementById("close-reading")?.scrollIntoView?.({ behavior: scrollBehavior(), block: "start" });
-      document.getElementById("close-reading-title")?.focus({ preventScroll: true });
-    }, 50);
-  }, [openSpeech]);
+  // Once Close reading has rendered with the chosen speech, go there and move focus to its heading
+  useEffect(() => {
+    if (!arrivals || view !== "read") return;
+    document.getElementById("views")?.scrollIntoView?.({ behavior: scrollBehavior(), block: "start" });
+    document.getElementById("close-reading-title")?.focus({ preventScroll: true });
+  }, [arrivals, view]);
   const readCountry = reading?.country && countries.includes(reading.country) ? reading.country : countries[0];
   const readYears = useMemo(() => {
     const s = series.data?.series.find((x) => x.country === readCountry);
@@ -168,135 +184,163 @@ function Explorer({ summary }: { summary: UNSummary }) {
         </div>
       </div>
 
-      <div className="card">
-        <div className="card-head">
-          <h2>Year by year</h2>
-          <div className="tabs" role="tablist" aria-label="View" onKeyDown={(e) => {
-            if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-            const next = yearView === "flags" ? "hall" : "flags";
-            setYearView(next);
-            document.getElementById(`year-tab-${next}`)?.focus();
-          }}>
-            {([["flags", "Flags"], ["hall", "Assembly hall"]] as const).map(([key, text]) => (
-              <button key={key} id={`year-tab-${key}`} type="button" role="tab" aria-selected={yearView === key}
-                aria-controls="year-panel" tabIndex={yearView === key ? 0 : -1}
-                onClick={() => setYearView(key)}>{text}</button>
-            ))}
-          </div>
-        </div>
-        <div id="year-panel" role="tabpanel" aria-labelledby={`year-tab-${yearView}`}>
-        {matrix.error ? <Notice kind="error" onRetry={matrix.reload}>{matrix.error}</Notice>
-          : !matrix.data ? <Loading /> : (
-            <Suspense fallback={<Loading label="Loading 3D…" />}>
-              {yearView === "flags" ? (
-                <FlagLine matrix={matrix.data} metricLabel={label} names={names}
-                  format={formatValue} year={flagYear} onYearChange={setFlagYear}
-                  chosen={chosenFlags} onPick={openSpeech} />
-              ) : (
-                <AssemblyHall matrix={matrix.data} metricLabel={label} names={names}
-                  format={formatValue} year={flagYear} onYearChange={setFlagYear}
-                  chosen={chosenFlags} onPick={openSpeech} />
-              )}
-            </Suspense>
-          )}
-        {matrix.data && (
-          <YearTable matrix={matrix.data} year={flagYear} names={names} label={label} format={formatValue}
-            onPick={readAndShow} />
-        )}
-        </div>
-        {picked && (
-          <Notice kind="info">
-            {names[picked.code] ?? picked.code}, {picked.year}:{" "}
-            {picked.added ? "added to the chart. " : countries.includes(picked.code) ? "" : "the chart is full (8 countries). "}
-            <a href="#close-reading">Read this speech ↓</a>
-          </Notice>
-        )}
+      <div id="views" />
+      <div className="view-tabs" role="tablist" aria-label="Views of the speeches" onKeyDown={(e) => {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        const i = VIEWS.findIndex(([key]) => key === view);
+        const next = VIEWS[(i + (e.key === "ArrowRight" ? 1 : VIEWS.length - 1)) % VIEWS.length][0];
+        chooseView(next);
+        document.getElementById(`view-tab-${next}`)?.focus();
+      }}>
+        {VIEWS.map(([key, text]) => (
+          <button key={key} id={`view-tab-${key}`} type="button" role="tab" aria-selected={view === key}
+            aria-controls="view-panel" tabIndex={view === key ? 0 : -1} onClick={() => chooseView(key)}>{text}</button>
+        ))}
       </div>
 
-      <div className="card">
-        <div className="card-head">
-          <h2>{label}</h2>
-          <DownloadLink href={api.un.exportUrl({ countries, start, end })}>Download selection (CSV)</DownloadLink>
-        </div>
-        {start > end ? (
-          <Notice kind="warn">The start year is after the end year.</Notice>
-        ) : series.error ? (
-          <Notice kind="error" onRetry={series.reload}>{series.error}</Notice>
-        ) : !countries.length ? (
-          <p className="empty">Choose at least one country.</p>
-        ) : series.data ? (
-          <TrendChart
-            series={series.data.series.map((s) => ({ key: s.country, label: s.name, color: colors[s.country], points: s.points }))}
-            average={showAverage ? series.data.average : null}
-            events={showEvents ? meta.events : []}
-            format={(v) => formatMetric(metric, v)}
-            tickFormat={tickFormat(metric)}
-            valueLabel={label}
-            reloading={series.loading}
-          />
-        ) : (
-          <Loading />
-        )}
-        <Limitations />
-      </div>
-
-      <div className="card">
-        <div className="card-head">
-          <h2>Rhetoric space</h2>
-          <span className="small muted">hostile × cooperative words × time, {start}–{end}</span>
-        </div>
-        {space.error ? <Notice kind="error" onRetry={space.reload}>{space.error}</Notice>
-          : !countries.length ? <p className="empty">Choose at least one country.</p>
-          : !space.data ? <Loading /> : (
-            <Suspense fallback={<Loading label="Loading 3D…" />}>
-              <RhetoricSpace series={spaceSeries} onPick={readAndShow} />
-            </Suspense>
-          )}
-        <p className="small muted">
-          Each line is one country&apos;s path through the years. Points above the shaded plane used more cooperative
-          than hostile words that year.
-        </p>
-        {spaceSeries.length > 0 && <SpaceTable series={spaceSeries} onPick={readAndShow} />}
-      </div>
-
-      <div className="grid-2">
-        <div className="card">
-          <h2>Biggest shifts</h2>
-          <p className="muted small">Largest changes from one statement to the next. Click a row to read that speech.</p>
-          {shifts.error ? <Notice kind="error" onRetry={shifts.reload}>{shifts.error}</Notice>
-            : !shifts.data ? <Loading />
-            : !shifts.data.length ? <p className="empty">Not enough data.</p> : (
-              <div className="table-wrap" tabIndex={0} role="region" aria-label="Biggest shifts">
-                <table>
-                  <thead>
-                    <tr><th>Country</th><th>Years</th><th className="num">Change</th><th className="num">New value</th></tr>
-                  </thead>
-                  <tbody>
-                    {shifts.data.map((s) => (
-                      <tr key={`${s.country}-${s.year}`} className="clickable"
-                        onClick={() => readAndShow(s.country, s.year)}>
-                        <td><RowLink onClick={() => readAndShow(s.country, s.year)}>{s.name}</RowLink></td>
-                        <td>{s.from_year}→{s.year}</td>
-                        <td className="num">{formatDelta(metric, s.change)}</td>
-                        <td className="num">{formatMetric(metric, s.value)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+      <div id="view-panel" role="tabpanel" aria-labelledby={`view-tab-${view}`}>
+        {view === "trend" && (
+          <>
+            <div className="card">
+              <div className="card-head">
+                <h2>{label}</h2>
+                <DownloadLink href={api.un.exportUrl({ countries, start, end })}>Download selection (CSV)</DownloadLink>
               </div>
-            )}
-        </div>
-        <RankingCard metric={metric} defaultYear={end} firstYear={firstYear} lastYear={lastYear} names={names}
-          onPick={readAndShow} />
-      </div>
+              {start > end ? (
+                <Notice kind="warn">The start year is after the end year.</Notice>
+              ) : series.error ? (
+                <Notice kind="error" onRetry={series.reload}>{series.error}</Notice>
+              ) : !countries.length ? (
+                <p className="empty">Choose at least one country.</p>
+              ) : series.data ? (
+                <TrendChart
+                  series={series.data.series.map((s) => ({ key: s.country, label: s.name, color: colors[s.country], points: s.points }))}
+                  average={showAverage ? series.data.average : null}
+                  events={showEvents ? meta.events : []}
+                  format={(v) => formatMetric(metric, v)}
+                  tickFormat={tickFormat(metric)}
+                  valueLabel={label}
+                  reloading={series.loading}
+                />
+              ) : (
+                <div className="chart-loading"><Loading /></div>
+              )}
+              <Limitations />
+            </div>
 
-      <CloseReading
-        countries={countries.map((c) => summary.countries.find((x) => x.code === c)).filter(Boolean) as CountryInfo[]}
-        country={readCountry}
-        year={readYear}
-        years={readYears}
-        onChange={(country, year) => setReading({ country, year })}
-      />
+            <div className="card">
+              <h2>Biggest shifts</h2>
+              <p className="muted small">Largest changes from one statement to the next. Pick a row to read that speech.</p>
+              {shifts.error ? <Notice kind="error" onRetry={shifts.reload}>{shifts.error}</Notice>
+                : !shifts.data ? <Loading />
+                : !shifts.data.length ? <p className="empty">Not enough data.</p> : (
+                  <div className="table-wrap" tabIndex={0} role="region" aria-label="Biggest shifts">
+                    <table>
+                      <thead>
+                        <tr><th>Country</th><th>Years</th><th className="num">Change</th><th className="num">New value</th></tr>
+                      </thead>
+                      <tbody>
+                        {shifts.data.map((s) => (
+                          <tr key={`${s.country}-${s.year}`} className="clickable"
+                            onClick={() => openSpeech(s.country, s.year)}>
+                            <td><RowLink onClick={() => openSpeech(s.country, s.year)}>{s.name}</RowLink></td>
+                            <td>{s.from_year}→{s.year}</td>
+                            <td className="num">{formatDelta(metric, s.change)}</td>
+                            <td className="num">{formatMetric(metric, s.value)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+            </div>
+          </>
+        )}
+
+        {view === "year" && (
+          <>
+            <div className="card">
+              <div className="card-head">
+                <h2>Year by year</h2>
+                <div className="tabs" role="tablist" aria-label="Shown as" onKeyDown={(e) => {
+                  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+                  const next = yearView === "flags" ? "hall" : "flags";
+                  setYearView(next);
+                  document.getElementById(`year-tab-${next}`)?.focus();
+                }}>
+                  {([["flags", "Flags"], ["hall", "Assembly hall"]] as const).map(([key, text]) => (
+                    <button key={key} id={`year-tab-${key}`} type="button" role="tab" aria-selected={yearView === key}
+                      aria-controls="year-panel" tabIndex={yearView === key ? 0 : -1}
+                      onClick={() => setYearView(key)}>{text}</button>
+                  ))}
+                </div>
+              </div>
+              <div id="year-panel" role="tabpanel" aria-labelledby={`year-tab-${yearView}`}>
+                {matrix.error ? <Notice kind="error" onRetry={matrix.reload}>{matrix.error}</Notice>
+                  : !matrix.data ? <div className="view3d-loading"><Loading /></div> : (
+                    <Suspense fallback={<div className="view3d-loading"><Loading label="Loading 3D…" /></div>}>
+                      {yearView === "flags" ? (
+                        <FlagLine matrix={matrix.data} metricLabel={label} names={names}
+                          format={formatValue} year={year} onYearChange={setYear}
+                          chosen={chosenFlags} onPick={openSpeech} />
+                      ) : (
+                        <AssemblyHall matrix={matrix.data} metricLabel={label} names={names}
+                          format={formatValue} year={year} onYearChange={setYear}
+                          chosen={chosenFlags} onPick={openSpeech} />
+                      )}
+                    </Suspense>
+                  )}
+                {matrix.data && (
+                  <YearTable matrix={matrix.data} year={year} names={names} label={label} format={formatValue}
+                    onPick={openSpeech} />
+                )}
+              </div>
+            </div>
+            <RankingCard metric={metric} year={year} onYearChange={setYear} firstYear={firstYear} lastYear={lastYear}
+              names={names} onPick={openSpeech} />
+          </>
+        )}
+
+        {view === "space" && (
+          <div className="card">
+            <div className="card-head">
+              <h2>Rhetoric space</h2>
+              <span className="small muted">hostile × cooperative words × time, {start}–{end}</span>
+            </div>
+            {space.error ? <Notice kind="error" onRetry={space.reload}>{space.error}</Notice>
+              : !countries.length ? <p className="empty">Choose at least one country.</p>
+              : !space.data ? <div className="space-loading"><Loading /></div> : (
+                <Suspense fallback={<div className="space-loading"><Loading label="Loading 3D…" /></div>}>
+                  <RhetoricSpace series={spaceSeries} onPick={openSpeech} />
+                </Suspense>
+              )}
+            <p className="small muted">
+              Each line is one country&apos;s path through the years. Points above the shaded plane used more cooperative
+              than hostile words that year.
+            </p>
+            {spaceSeries.length > 0 && <SpaceTable series={spaceSeries} onPick={openSpeech} />}
+          </div>
+        )}
+
+        {view === "read" && (
+          <>
+            {picked && (picked.added || !countries.includes(picked.code)) && (
+              <Notice kind="info">
+                {picked.added
+                  ? `${names[picked.code] ?? picked.code} was added to the chart.`
+                  : `The chart is full (${max} countries): remove one to read ${names[picked.code] ?? picked.code}'s speech.`}
+              </Notice>
+            )}
+            <CloseReading
+              countries={countries.map((c) => summary.countries.find((x) => x.code === c)).filter(Boolean) as CountryInfo[]}
+              country={readCountry}
+              year={readYear}
+              years={readYears}
+              onChange={(country, y) => setReading({ country, year: y })}
+            />
+          </>
+        )}
+      </div>
 
       <p className="muted small">
         Data: {meta.citation} Texts are the official English versions. CC0 licence.{" "}
@@ -429,15 +473,13 @@ function SpaceTable({ series, onPick }: {
   );
 }
 
-function RankingCard({ metric, defaultYear, firstYear, lastYear, names, onPick }: {
-  metric: string; defaultYear: number; firstYear: number; lastYear: number; names: Record<string, string>;
-  onPick: (code: string, year: number) => void;
+function RankingCard({ metric, year, onYearChange, firstYear, lastYear, names, onPick }: {
+  metric: string; year: number; onYearChange: (year: number) => void; firstYear: number; lastYear: number;
+  names: Record<string, string>; onPick: (code: string, year: number) => void;
 }) {
   const meta = useMeta();
-  const [year, setYear] = useState(defaultYear);
   const [showAll, setShowAll] = useState(false);
   const [filter, setFilter] = useState("");
-  useEffect(() => setYear(defaultYear), [defaultYear]);
   const ranking = useAsync(() => api.un.ranking(year, metric), [year, metric]);
   const rows = (ranking.data?.rows ?? []).filter((r) =>
     !filter || `${r.name} ${r.country}`.toLowerCase().includes(filter.toLowerCase()));
@@ -455,7 +497,7 @@ function RankingCard({ metric, defaultYear, firstYear, lastYear, names, onPick }
       <div className="card-head">
         <h2>Country ranking</h2>
         <div className="row">
-          <YearInput id="rank-year" label="Year" value={year} min={firstYear} max={lastYear} onCommit={setYear} />
+          <YearInput id="rank-year" label="Year" value={year} min={firstYear} max={lastYear} onCommit={onYearChange} />
           <div className="field">
             <label htmlFor="rank-filter">Find</label>
             <input id="rank-filter" type="search" value={filter} placeholder="Country" style={{ width: "9rem" }}
@@ -555,7 +597,8 @@ function CloseReading({ countries, country, year, years, onChange }: {
         </div>
       </div>
       {statement.error ? <Notice kind="error" onRetry={statement.reload}>{statement.error}</Notice>
-        : !statement.data ? (statement.loading ? <Loading /> : <p className="empty">No statement in the chosen years.</p>) : (
+        : !statement.data ? (statement.loading ? <div className="reading-loading"><Loading /></div>
+          : <p className="empty">No statement in the chosen years.</p>) : (
           <div style={{ opacity: statement.loading ? 0.6 : 1 }}>
             <div className="reading-head">
               <Suspense fallback={null}>
