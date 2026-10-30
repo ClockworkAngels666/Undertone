@@ -19,7 +19,7 @@ export default function DatasetsPage() {
   return (
     <>
       <div className="page-intro">
-        <h1>Compare texts over time</h1>
+        <h1>My datasets</h1>
         <p>
           Your own collections, such as a ministry’s statements or a state broadcaster’s articles, scored by country and
           year. Uploads are stored in the app’s database.

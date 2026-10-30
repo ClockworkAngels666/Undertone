@@ -14,6 +14,7 @@ MAX_BATCH_DOCUMENTS = 100           # documents per upload request (the frontend
 MAX_DATASET_DOCUMENTS = 5_000
 MAX_TOTAL_DOCUMENTS = 200_000       # guard for the free database tier
 MAX_CHART_COUNTRIES = 8
+SHORT_TEXT_WORDS = 500          # below this, rates per 1,000 words swing too much for a fair comparison
 RESCORE_BATCH = 200
 
 DATA_CITATION = (

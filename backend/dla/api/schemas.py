@@ -84,8 +84,11 @@ class Baseline(BaseModel):
     last_year: int
     statements: int
     averages: Metrics
+    median_words: int | None = Field(default=None, description="Median length of those statements, in words")
     hostility_share_below: float | None = Field(
         description="Share of UN statements in the baseline years that are less hostile than this text")
+    cooperation_share_below: float | None = Field(
+        default=None, description="Share of those statements with fewer cooperative words per 1,000 than this text")
 
 
 class AnalyzeResponse(BaseModel):

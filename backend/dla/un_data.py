@@ -1,5 +1,6 @@
 """Queries over the pre-scored UN General Debate data."""
 import bisect
+import statistics
 import time
 
 from sqlalchemy import func, select
@@ -59,25 +60,33 @@ def baseline(session: Session):
         recent = UNCountryYear.year >= first_year
         row = session.execute(select(func.count(), *[func.avg(getattr(UNCountryYear, m)) for m in METRICS])
                               .where(recent)).one()
-        hostility = sorted(session.scalars(select(UNCountryYear.hostility).where(
-            recent, UNCountryYear.hostility.is_not(None))))
+        def sorted_values(column):
+            return sorted(session.scalars(select(column).where(recent, column.is_not(None))))
+        words = sorted_values(UNCountryYear.words)
         value = {
             "first_year": first_year,
             "last_year": last_year,
             "statements": row[0],
             "averages": {m: (float(v) if v is not None else None) for m, v in zip(METRICS, row[1:], strict=True)},
-            "_hostility": hostility,
+            "median_words": int(statistics.median(words)) if words else None,
+            "_hostility": sorted_values(UNCountryYear.hostility),
+            "_cooperation": sorted_values(UNCountryYear.cooperation),
         }
     _baseline_cache.update(value=value, at=time.monotonic())
     return value
 
 
+def share_below(base, metric, value):
+    """Share of baseline statements with a lower value of `metric` ("hostility" or "cooperation") than `value`."""
+    values = base[f"_{metric}"]
+    if value is None or not values:
+        return None
+    return bisect.bisect_left(values, value) / len(values)
+
+
 def hostility_share_below(base, hostility):
     """Share of baseline statements less hostile than the given value."""
-    values = base["_hostility"]
-    if hostility is None or not values:
-        return None
-    return bisect.bisect_left(values, hostility) / len(values)
+    return share_below(base, "hostility", hostility)
 
 
 def clear_cache():

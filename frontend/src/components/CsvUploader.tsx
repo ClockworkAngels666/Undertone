@@ -100,6 +100,7 @@ export default function CsvUploader({ submitLabel, onSubmit, onFileName, childre
         <button type="button" className="btn primary" disabled={busy || !parsed?.documents.length} onClick={() => void submit()}>
           {busy ? "Uploading…" : submitLabel}
         </button>
+        {!parsed && !busy && <span className="small muted">Choose a CSV file first.</span>}
       </div>
       {progress && busy && (
         <div>

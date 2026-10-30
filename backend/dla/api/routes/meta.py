@@ -49,6 +49,7 @@ def meta():
             "max_dataset_documents": config.MAX_DATASET_DOCUMENTS,
             "max_chart_countries": config.MAX_CHART_COUNTRIES,
             "max_terms": analysis.MAX_TERMS,
+            "short_text_words": config.SHORT_TEXT_WORDS,
         },
         "context_model": {"available": context_model.available(),
                           "name": context_model.MODEL_NAME if context_model.available() else None},

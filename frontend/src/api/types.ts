@@ -33,6 +33,7 @@ export interface Meta {
     max_dataset_documents: number;
     max_chart_countries: number;
     max_terms: number;
+    short_text_words: number;
   };
   context_model: { available: boolean; name: string | null };
   citation: string;
@@ -56,7 +57,9 @@ export interface AnalyzeResult {
     last_year: number;
     statements: number;
     averages: Metrics;
+    median_words: number | null;
     hostility_share_below: number | null;
+    cooperation_share_below: number | null;
   } | null;
   highlights: Span[];
   reading: Reading;

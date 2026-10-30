@@ -48,12 +48,18 @@ def analyze(req: AnalyzeRequest):
                 cached = un_data.baseline(session)
             if cached is not None:
                 base = {k: v for k, v in cached.items() if not k.startswith("_")}
-                base["hostility_share_below"] = un_data.hostility_share_below(cached, metrics["hostility"])
+                base["hostility_share_below"] = un_data.share_below(cached, "hostility", metrics["hostility"])
+                base["cooperation_share_below"] = un_data.share_below(cached, "cooperation", metrics["cooperation"])
         except Exception as err:  # noqa: BLE001 - the analysis itself must still work without a database
             log.warning("UN baseline unavailable: %s", err)
             warnings.append("The comparison with UN speeches is unavailable right now (database offline).")
     else:
         warnings.append("Custom dictionaries are in use, so the text is not compared with UN speeches.")
+    if counts["words"] < config.SHORT_TEXT_WORDS:
+        median = base.get("median_words") if base else None
+        typical = f" (UN statements have a median of {median:,} words)" if median else ""
+        warnings.append(f"This is a short text ({counts['words']:,} words). Rates per 1,000 words swing widely below "
+                        f"about {config.SHORT_TEXT_WORDS} words, so compare it with longer texts with care{typical}.")
 
     context = {"available": context_model.available(), "used": False, "name": None}
     out_sentences = [asdict(s) | {"context": None} for s in sentences]

@@ -28,7 +28,7 @@ describe("AnalyzePage", () => {
     expect(screen.getByRole("textbox", { name: "Text" })).toHaveValue(SAMPLE_TEXT);
     await user.click(screen.getByRole("button", { name: "Analyze" }));
 
-    expect(await screen.findByTestId("baseline-sentence")).toHaveTextContent("more hostile than 87%");
+    expect(await screen.findByTestId("baseline-sentence")).toHaveTextContent("hostile words is higher than 87% of them");
     expect(screen.getByTestId("metric-hostility")).toHaveTextContent("83.3");
     expect(screen.getByText("We welcome dialogue and cooperation.")).toBeInTheDocument();
     const body = JSON.parse(String(calls[0].init?.body));

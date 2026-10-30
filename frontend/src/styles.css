@@ -23,6 +23,9 @@
   --footer-bg: #0b2545;
   --footer-ink: #c9d8e6;
   --footer-link: #8fd3f5;
+  --banner: #005a9c;
+  --banner-ink: #ffffff;
+  --banner-ink-2: #d6ebf8;
   /* Faint row of flagpoles along the banners' lower edge (the flags in front of UN headquarters) */
   --flag-row: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='40' viewBox='0 0 64 40'%3E%3Cpath d='M8 6v34M40 6v34' stroke='white' stroke-opacity='.22' stroke-width='1.2'/%3E%3Ccircle cx='8' cy='5' r='1.4' fill='white' fill-opacity='.32'/%3E%3Ccircle cx='40' cy='5' r='1.4' fill='white' fill-opacity='.32'/%3E%3Cpath d='M9 7q5-3 10 0t10 0v10q-5 3-10 0t-10 0z' fill='white' fill-opacity='.16'/%3E%3Cpath d='M41 7q5-3 10 0t10 0v10q-5 3-10 0t-10 0z' fill='none' stroke='white' stroke-opacity='.26' stroke-width='1.1'/%3E%3C/svg%3E");
   --hostile-bg: rgba(227, 73, 72, 0.2);
@@ -66,6 +69,9 @@
     --footer-bg: #0a0b0c;
     --footer-ink: #a4a8ae;
     --footer-link: #7cc8f0;
+    --banner: #0b3d66;
+    --banner-ink: #ffffff;
+    --banner-ink-2: #c3dff2;
     --hostile-bg: rgba(230, 103, 103, 0.3);
     --hostile-line: #e66767;
     --coop-bg: rgba(25, 158, 112, 0.32);
@@ -325,23 +331,41 @@ main.container {
   padding-bottom: 64px;
 }
 
-/* Page title row: the h1 and one line about the data, on the page itself. */
+/* Page banner: one flat field of deep UN blue holding the title and a line about the data, with the row of
+   flagpoles in front of UN headquarters along its foot. */
 .page-intro {
   margin: 0 0 24px;
-  max-width: 78ch;
+  padding: 26px 28px 52px;
+  border-radius: var(--radius);
+  color: var(--banner-ink);
+  background: var(--flag-row) left bottom -6px / 64px 40px round no-repeat, var(--banner);
 }
 
 .page-intro h1 {
+  color: var(--banner-ink);
   margin-bottom: 6px;
 }
 
 .page-intro p {
-  color: var(--ink-2);
+  color: var(--banner-ink-2);
   margin-bottom: 0;
+  max-width: 70ch;
 }
 
 .page-intro p + p {
   margin-top: 6px;
+}
+
+.page-intro a,
+.page-intro .muted {
+  color: var(--banner-ink);
+}
+
+@media (max-width: 560px) {
+  .page-intro {
+    padding: 20px 18px 42px;
+    background-size: 52px 32px, auto;
+  }
 }
 
 .page-intro .back-link {
@@ -356,9 +380,9 @@ main.container {
 }
 
 .site-footer {
-  background: var(--footer-bg) var(--flag-row) left bottom -6px / 64px 40px round no-repeat;
+  background: var(--footer-bg);
   color: var(--footer-ink);
-  padding: 24px 0 64px;
+  padding: 24px 0 32px;
   font-size: 0.86rem;
 }
 
@@ -474,10 +498,44 @@ label {
   max-width: 100%;   /* a select sized by a long option ("Saint Vincent and the Grenadines") must not widen the page */
 }
 
+/* The result's one-line verdict, read before the numbers */
+.verdict {
+  margin-bottom: 16px;
+  max-width: 90ch;
+}
+
+.verdict-lead {
+  font-family: var(--display);
+  font-size: 1.35rem;
+  font-weight: 650;
+  line-height: 1.25;
+  margin-bottom: 6px;
+}
+
+.verdict-figure {
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ink-2);
+}
+
 .field-error {
   color: var(--bad);
   font-size: 0.88rem;
   font-weight: 500;
+}
+
+/* Sections the page scrolls to land below the sticky header, not under it */
+.results,
+#close-reading {
+  scroll-margin-top: 84px;
+}
+
+@media (max-width: 760px) {
+  .results,
+  #close-reading {
+    scroll-margin-top: 120px;   /* the header wraps to two rows on phones */
+  }
 }
 
 /* Results and Close reading take focus when they open, for screen readers; no ring around a whole section */

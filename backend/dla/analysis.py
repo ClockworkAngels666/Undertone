@@ -50,11 +50,14 @@ NEGATIVE_THRESHOLD = -0.05   # a sentence with VADER ≤ −0.05 counts as negat
 
 # Metric id → (label, explanation, higher_is_worse)
 METRICS = {
-    "tone_balance": ("Tone balance", "−1 = fully confrontational, +1 = fully conciliatory", False),
+    "tone_balance": ("Tone balance",
+                     "(cooperative − hostile) ÷ (cooperative + hostile) words: −1 all hostile, +1 all cooperative",
+                     False),
     "hostility": ("Hostile words / 1,000", "Hostile dictionary words per 1,000 words", True),
     "cooperation": ("Cooperative words / 1,000", "Cooperative dictionary words per 1,000 words", False),
-    "vader_mean": ("Avg sentiment (VADER)", "Mean VADER compound score per sentence, −1 to +1", False),
-    "negative_share": ("Share of negative sentences", "Share of sentences with VADER ≤ −0.05", True),
+    "vader_mean": ("Avg sentiment (VADER)",
+                   "Average sentence sentiment from VADER, a general-purpose model: −1 negative to +1 positive", False),
+    "negative_share": ("Share of negative sentences", "Share of sentences VADER scores at −0.05 or below", True),
 }
 KEYWORD_PREFIX = "kw::"         # metric id of a keyword rate, e.g. "kw::NATO" (hits per 1,000 words)
 KEYWORD_COUNT_PREFIX = "kwcount::"

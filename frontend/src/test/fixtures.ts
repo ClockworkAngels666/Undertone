@@ -19,6 +19,7 @@ export const META: Meta = {
     max_dataset_documents: 5000,
     max_chart_countries: 8,
     max_terms: 500,
+    short_text_words: 500,
   },
   context_model: { available: false, name: null },
   citation: "Jankin, Baturo & Dasandi (2024).",
@@ -33,7 +34,9 @@ export const RESULT: AnalyzeResult = {
     last_year: 2025,
     statements: 1935,
     averages: { tone_balance: 0.2, hostility: 7.0, cooperation: 11.0, vader_mean: 0.2, negative_share: 0.25 },
+    median_words: 2500,
     hostility_share_below: 0.876,
+    cooperation_share_below: 1,
   },
   highlights: [[7, 16, "hostile"], [33, 41, "cooperative"]],
   reading: [[

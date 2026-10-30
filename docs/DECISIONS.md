@@ -185,3 +185,18 @@ A design critique (October 2026, 23/40) found controls that broke under real use
 - Reset to default on the Dictionaries page can be undone.
 - Chart labels and input placeholders pass 4.5:1 contrast in both themes; the chart is no longer an extra Tab stop
   (its numbers are in the table under it).
+- The owner then asked to keep the deep blue background: page titles sit on a banner again, now one flat field of
+  deep UN blue (no gradient, no wave line) with the flagpole row along its foot; the footer is a plain deep-blue
+  close.
+
+## 19. Saying what a result means
+The critique also found the Analyze result overclaimed: a 141-word sample was called "more hostile than all"
+UN statements while its tone balance was positive. Now:
+- The result opens with a verdict in words taken from the tone balance (clearly or leaning conciliatory, evenly
+  balanced, leaning or clearly confrontational), then one sentence placing both its hostile and its cooperative
+  word rates among the UN statements of the last ten years (`cooperation_share_below` joins
+  `hostility_share_below` in the API).
+- Texts under 500 words (`config.SHORT_TEXT_WORDS`) get a warning that rates per 1,000 words swing widely, with
+  the median length of the UN statements for scale.
+- The metric explanations give the tone-balance formula and say what VADER is; the sentence table explains its
+  columns; the datasets page title matches the menu; a disabled Create dataset says it is waiting for a file.

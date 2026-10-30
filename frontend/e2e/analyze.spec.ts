@@ -8,7 +8,8 @@ test("analyzes the sample text", async ({ page }) => {
   await page.getByRole("button", { name: "Analyze" }).click();
 
   await expect(page.getByTestId("metric-tone_balance")).toContainText(/[+−]\d\.\d\d/);
-  await expect(page.getByTestId("baseline-sentence")).toContainText("more hostile than");
+  await expect(page.getByTestId("baseline-sentence")).toContainText(/hostile words is (higher|lower) than/);
+  await expect(page.getByText(/This is a short text/)).toBeVisible();      // the sample is under 500 words
   await expect(page.getByTestId("highlighted-text").locator("mark.hostile").first()).toBeVisible();
   await expect(page.getByTestId("highlighted-text").locator("mark.cooperative").first()).toBeVisible();
   const sentences = page.getByRole("table").last();

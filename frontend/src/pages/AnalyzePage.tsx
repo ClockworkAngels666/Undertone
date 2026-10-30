@@ -57,8 +57,7 @@ export default function AnalyzePage() {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     results.current?.scrollIntoView?.({ behavior: reduce ? "auto" : "smooth", block: "start" });
     results.current?.focus({ preventScroll: true });
-    setAnnouncement(`Results ready: ${plural(result.counts.words, "word")}, tone balance ${
-      formatMetric("tone_balance", result.metrics.tone_balance)}.`);
+    setAnnouncement(`Results ready. ${verdict(result.metrics.tone_balance)}.`);
   }, [result]);
 
   const analyze = async (event?: FormEvent) => {
@@ -185,15 +184,24 @@ function Results({ result, text, sectionRef }: {
   const [focus, setFocus] = useState<number | null>(null);
   return (
     <section aria-label="Results" className="results" tabIndex={-1} ref={sectionRef}>
+      <div className="verdict">
+        <p className="verdict-lead">
+          {verdict(result.metrics.tone_balance)}
+          {result.metrics.tone_balance !== null && (
+            <span className="verdict-figure"> · tone balance {formatMetric("tone_balance", result.metrics.tone_balance)}</span>
+          )}
+        </p>
+        {base && base.hostility_share_below !== null && base.cooperation_share_below !== null && (
+          <p data-testid="baseline-sentence">
+            Compared with the {base.statements.toLocaleString()} UN General Debate statements from {base.first_year}–{base.last_year},
+            its rate of hostile words is {rank(base.hostility_share_below)} and its rate of cooperative words
+            is {rank(base.cooperation_share_below)}.
+          </p>
+        )}
+      </div>
       {result.warnings.map((w) => <Notice key={w} kind="warn">{w}</Notice>)}
       <MetricCards metrics={result.metrics} compareTo={base?.averages}
         compareLabel={base ? `UN avg ${base.first_year}–${base.last_year}` : undefined} />
-      {base && base.hostility_share_below !== null && (
-        <p data-testid="baseline-sentence">
-          This text is <strong>more hostile than {base.hostility_share_below >= 1 ? "all" : percent(base.hostility_share_below)}</strong>{" "}
-          of the {base.statements.toLocaleString()} UN General Debate statements from {base.first_year}–{base.last_year}.
-        </p>
-      )}
       <p className="muted small">
         {plural(result.counts.words, "word")} · {plural(result.counts.sentences, "sentence")} ·{" "}
         {result.counts.hostile_hits.toLocaleString("en")} hostile and {result.counts.coop_hits.toLocaleString("en")} cooperative
@@ -233,6 +241,23 @@ function Results({ result, text, sectionRef }: {
       <SaveToDataset text={text} />
     </section>
   );
+}
+
+/** The overall tone in words, from the tone balance (−1 all hostile … +1 all cooperative). */
+function verdict(toneBalance: number | null) {
+  if (toneBalance === null) return "No hostile or cooperative dictionary words found";
+  if (toneBalance >= 0.5) return "Clearly conciliatory";
+  if (toneBalance >= 0.1) return "Leaning conciliatory";
+  if (toneBalance > -0.1) return "Evenly balanced between hostile and cooperative words";
+  if (toneBalance > -0.5) return "Leaning confrontational";
+  return "Clearly confrontational";
+}
+
+/** Where a rate sits among the UN statements: "higher than 87% of them", "higher than all of them". */
+function rank(shareBelow: number) {
+  if (shareBelow >= 0.995) return "higher than all of them";
+  if (shareBelow <= 0.005) return "lower than all of them";
+  return `higher than ${percent(shareBelow)} of them`;
 }
 
 function TermList({ terms }: { terms: [string, number][] }) {
@@ -285,6 +310,10 @@ function SentenceTable({ sentences, contextUsed, focus }: {
         <h2>Sentence scores</h2>
         <button type="button" className="btn small" onClick={exportCsv}>Download CSV</button>
       </div>
+      <p className="muted small">
+        VADER rates each sentence from −1 (negative) to +1 (positive); Hostile and Cooperative count its dictionary
+        words.
+      </p>
       <fieldset className="row" style={{ border: 0, padding: 0, margin: "0 0 10px" }}>
         <legend className="visually-hidden">Sort sentences</legend>
         {(Object.keys(SORTS) as SortKey[]).map((key) => (
