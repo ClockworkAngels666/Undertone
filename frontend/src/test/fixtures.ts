@@ -37,6 +37,8 @@ export const RESULT: AnalyzeResult = {
     median_words: 2500,
     hostility_share_below: 0.876,
     cooperation_share_below: 1,
+    tone_share_below: 0.62,
+    tone_histogram: [0, 0, 1, 2, 4, 8, 15, 30, 60, 120, 200, 320, 380, 330, 250, 130, 60, 20, 4, 1],
   },
   highlights: [[7, 16, "hostile"], [33, 41, "cooperative"]],
   reading: [[

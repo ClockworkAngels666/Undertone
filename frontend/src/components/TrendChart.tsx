@@ -57,6 +57,9 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
     return { rows: sorted, years: sorted.map((r) => r.year as number) };
   }, [series, average]);
 
+  // Before the early return: hooks must run on every render, data or not
+  const narrow = useNarrow();
+
   const hasData = series.some((s) => s.points.some((p) => p.value !== null));
   if (!hasData) return <p className="empty">No data for this selection.</p>;
 
@@ -68,7 +71,6 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
   const yearTicks: number[] = [];
   for (let y = Math.ceil(first / yearStep) * yearStep; y <= last; y += yearStep) yearTicks.push(y);
   // On a phone the event names would collide above the chart: the lines stay, the names go in a list below
-  const narrow = useNarrow();
   const eventLabels = shownEvents.length > 0 && !narrow;
   const showDots = last - first <= 25;
   const labelEnds = series.length <= 4;

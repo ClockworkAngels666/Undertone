@@ -240,7 +240,7 @@ a {
 .brand-mark {
   width: 30px;
   height: 30px;
-  color: var(--un-deep);
+  color: var(--link);
   flex: none;
 }
 
@@ -310,7 +310,7 @@ a {
   .nav-short {
     display: inline;
   }
-  .nav {
+  nav.nav {
     padding-right: 4px;
     mask-image: none;
   }
@@ -322,7 +322,7 @@ a {
 
 /* The smallest phones still scroll the menu and the tabs sideways: the fade shows there is more */
 @media (max-width: 400px) {
-  .nav {
+  nav.nav {
     padding-right: 28px;
     mask-image: linear-gradient(to right, #000 82%, transparent);
   }
@@ -537,18 +537,78 @@ label {
   max-width: 100%;   /* a select sized by a long option ("Saint Vincent and the Grenadines") must not widen the page */
 }
 
-/* The result's one-line verdict, read before the numbers */
-.verdict {
-  margin-bottom: 16px;
+/* The result's record: the verdict, where it sits among the UN statements, and the caveats that change it */
+.record > p {
   max-width: 90ch;
 }
 
-.verdict-lead {
-  font-family: var(--display);
+h2.verdict-lead {
   font-size: 1.35rem;
-  font-weight: 650;
   line-height: 1.25;
-  margin-bottom: 6px;
+  margin: 0;
+}
+
+.tone-record {
+  margin: 14px 0 6px;
+}
+
+.tone-record svg {
+  display: block;
+  max-width: 100%;
+  overflow: visible;
+}
+
+input[aria-invalid="true"] {
+  border-color: var(--bad);
+}
+
+.tone-record-bar {
+  fill: var(--grid);
+}
+
+.tone-record-zero {
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.tone-record-mark {
+  stroke: var(--un-deep);
+  stroke-width: 2.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.tone-record-label,
+.tone-record-axis {
+  font-family: var(--sans);
+  font-size: 13px;
+  fill: var(--ink-2);
+}
+
+.tone-record-label {
+  font-weight: 600;
+  fill: var(--ink);
+}
+
+@media (prefers-color-scheme: dark) {
+  .tone-record-mark {
+    stroke: var(--accent);
+  }
+}
+
+.metric-definitions {
+  margin: -6px 0 16px;
+}
+
+.save-details > summary {
+  list-style: none;
+  width: fit-content;
+  margin-bottom: 12px;
+}
+
+.save-details > summary::-webkit-details-marker {
+  display: none;
 }
 
 .verdict-figure {
@@ -650,6 +710,11 @@ select {
   text-decoration: none;
   white-space: nowrap;
   transition: background-color 120ms ease-out, border-color 120ms ease-out, transform 120ms ease-out;
+}
+
+.btn:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .btn .icon {
@@ -880,6 +945,30 @@ mark.cooperative,
   color: inherit;
   border-radius: 3px;
   padding: 0 2px;
+}
+
+/* Screen readers hear the kind after each highlighted word; the label is never copied or seen */
+mark.hostile,
+mark.cooperative {
+  position: relative;
+}
+
+mark.hostile::after,
+mark.cooperative::after {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+mark.hostile::after {
+  content: " (hostile)";
+}
+
+mark.cooperative::after {
+  content: " (cooperative)";
 }
 
 mark.hostile,
@@ -1690,30 +1779,27 @@ tr.focused td {
 /* Segmented control for switching between views of the same data */
 .tabs {
   display: inline-flex;
-  padding: 3px;
-  gap: 2px;
-  border-radius: 999px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
 }
 
 .tabs button {
   font: inherit;
   font-weight: 500;
-  font-size: 0.875rem;
-  min-height: 32px;
-  padding: 4px 14px;
+  font-size: 0.95rem;
+  min-height: 40px;
+  padding: 8px 12px;
   border: 0;
-  border-radius: 999px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
   background: none;
   color: var(--ink-2);
   cursor: pointer;
 }
 
 .tabs button[aria-selected="true"] {
-  background: var(--surface);
   color: var(--ink);
-  box-shadow: 0 0 0 1px var(--border);
+  border-bottom-color: var(--ink);
 }
 
 .tabs button:focus-visible {
@@ -1752,9 +1838,63 @@ tr.focused td {
   }
 }
 
+.nowrap {
+  white-space: nowrap;
+}
+
+/* Close reading: the speech is the main column; the notable sentences beside it jump into it */
+.reading-body {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 24px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+.reading-body .card-head h3 {
+  margin: 0;
+}
+
+.reading-main .highlighted {
+  max-height: 560px;
+}
+
+.reading-side {
+  max-height: 620px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+@media (max-width: 860px) {
+  .reading-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .reading-side {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+.year-field {
+  position: relative;
+}
+
+/* The range note sits under the field without pushing the row's other fields */
+.year-field .hint {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+.chart-options {
+  margin: -4px 0 8px;
+}
+
 .reading-head {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
   gap: 16px;
   align-items: center;
   margin-bottom: 14px;
@@ -1766,7 +1906,7 @@ tr.focused td {
 }
 
 .rostrum3d {
-  height: 270px;
+  height: 210px;
   border-radius: 8px;
   overflow: hidden;
   cursor: grab;

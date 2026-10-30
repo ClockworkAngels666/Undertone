@@ -189,10 +189,12 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
       }
       p.targetX = targetX;
       p.targetZ = targetZ;
-      p.labelY = slots.length > 6 && i % 2 ? -0.06 - labelSize * 1.15 : -0.06;
+      p.labelY = (slots.length > 6 || small) && i % 2 ? -0.06 - labelSize * 1.15 : -0.06;
       p.targetHeight = heightOf(slot.value);
       p.pole.setHalfMast(slot.value === null);
-      const text = slot.value === null ? "no statement" : format(slot.value);
+      const first = matrix.values[slot.code]?.findIndex((v) => v !== null) ?? -1;
+      const text = slot.value === null ? (first < 0 || yearIndex < first ? "no statement yet" : "no statement")
+        : format(slot.value);
       if (text !== p.valueText) {
         if (p.value) {
           current.group.remove(p.value);
@@ -298,7 +300,7 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
       <YearPlayer years={matrix.years} year={year} onYearChange={onYearChange} label="Year shown by the flags" />
       <p className="small muted">
         Pole height: {metricLabel}.{average !== null && <> Blue line: all-country average, {format(average)}.</>}{" "}
-        Half-mast: no statement that year. Tap a flag to read the speech.
+        Half-mast: no statement that year. Select a flag to read the speech.
       </p>
     </div>
   );

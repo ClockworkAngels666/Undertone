@@ -52,6 +52,11 @@ for (const scheme of ["light", "dark"] as const) {
     await page.getByRole("button", { name: "Use sample text" }).click();
     await page.getByRole("button", { name: "Analyze" }).click();
     await expect(page.getByTestId("highlighted-text")).toBeVisible();
+    // The page scrolls smoothly to the results; mid-scroll the sticky header covers the buttons, so wait for it to stop
+    await expect.poll(() => page.evaluate(() => new Promise<boolean>((done) => {
+      const y = window.scrollY;
+      setTimeout(() => done(window.scrollY === y), 200);
+    }))).toBe(true);
     await check("analysis");
   });
 }

@@ -227,3 +227,30 @@ section's height, so the page no longer jumps as data arrives.
   sets its tab title; the notable sentences lose their side bar; and the small type sizes collapse onto three steps.
 - **Not changed:** the transcript headers that VADER scores as negative (fixing them means rescoring all UN data in
   the live database), legend clicks to isolate a line, and dictionary hit counts.
+
+## 22. The second critique
+A second review scored the app 26/40: the result still read as a list of numbers, Close reading only worked for
+the chart's countries, and several controls behaved differently from page to page.
+- **The record.** The Analyze result opens with one card: the verdict, the tone balance as a figure, one sentence
+  placing it among the UN statements of the period (`tone_share_below` joins the other two shares), and a
+  histogram of every statement's tone balance (`tone_histogram`, twenty bands from −1 to +1) with this text marked
+  on it. "Edit the text" goes back to the box. The metric explanations are one "What these measures mean" list
+  instead of a line under every card; saving to a dataset sits behind a button; the limitations follow the
+  sentence table.
+- **Close reading for any delegation.** The delegation list has the chart's countries first and then every
+  delegation with statements; the years come from the data for that delegation. The speech comes first, with the
+  notable sentences beside it; selecting one scrolls the speech to it (or plays from it while listening).
+  Transcript headers ("Mr. President…") are left out of the notable lists.
+- **Controls that agree.** A start year after the end year is marked as an error and nothing is fetched; a year
+  outside the data is corrected with a note saying so. The ranking follows the year player, and its rows open the
+  speech. Every tab bar uses the same underline; the chart options sit in the chart's card; each UN view sets its
+  own tab title; the 404 page links the main pages.
+- **Smaller fixes.** Highlighted words carry a hidden "(hostile)" or "(cooperative)" for screen readers; the file
+  button shows a focus ring; the phone menu only fades below 400px, where it scrolls; flags say "no statement
+  yet" before a delegation's first statement; phone flag labels alternate heights; the Soviet flag is red with a
+  gold name; the 3D captions say "select" rather than "tap".
+- **A crash.** The trend chart called a hook after its "no data" return, so a chart that first rendered empty
+  and then received data (a dataset page, sometimes the UN page) blanked the whole app. The hook now runs first,
+  and a unit test renders the chart empty and then with data.
+- **Not changed:** the transcript headers inside the UN data (rescoring needs the live database), legend clicks
+  to isolate a line, and dictionary hit counts.

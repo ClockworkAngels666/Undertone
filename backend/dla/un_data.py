@@ -71,7 +71,9 @@ def baseline(session: Session):
             "median_words": int(statistics.median(words)) if words else None,
             "_hostility": sorted_values(UNCountryYear.hostility),
             "_cooperation": sorted_values(UNCountryYear.cooperation),
+            "_tone_balance": sorted_values(UNCountryYear.tone_balance),
         }
+        value["tone_histogram"] = tone_histogram(value["_tone_balance"])
     _baseline_cache.update(value=value, at=time.monotonic())
     return value
 
@@ -82,6 +84,17 @@ def share_below(base, metric, value):
     if value is None or not values:
         return None
     return bisect.bisect_left(values, value) / len(values)
+
+
+TONE_BINS = 20                  # tone balance runs from −1 to +1: bins 0.1 wide
+
+
+def tone_histogram(values):
+    """How many statements fall in each 0.1-wide band of tone balance, from −1 to +1."""
+    counts = [0] * TONE_BINS
+    for v in values:
+        counts[min(TONE_BINS - 1, max(0, int((v + 1) / 2 * TONE_BINS)))] += 1
+    return counts
 
 
 def hostility_share_below(base, hostility):

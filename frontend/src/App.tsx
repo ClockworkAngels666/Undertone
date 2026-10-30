@@ -89,7 +89,8 @@ function NotFound() {
     <div className="page-intro">
       <h1>Page not found</h1>
       <p>
-        That address does not exist. <NavLink to="/">Go to the start page</NavLink>.
+        That address does not exist. Go to <NavLink to="/">Analyze a text</NavLink>,{" "}
+        <NavLink to="/un">the UN General Debate</NavLink> or <NavLink to="/method">the method</NavLink>.
       </p>
     </div>
   );

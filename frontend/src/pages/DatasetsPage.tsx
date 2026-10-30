@@ -41,7 +41,7 @@ export default function DatasetsPage() {
               return result;
             }}
           >
-            <div className="row">
+            <div className="row" style={{ alignItems: "flex-start" }}>
               <div className="field" style={{ flex: "1 1 220px" }}>
                 <label htmlFor="dataset-name">Dataset name</label>
                 <input id="dataset-name" type="text" value={name} maxLength={120} placeholder="e.g. Xinhua 2015–2024"

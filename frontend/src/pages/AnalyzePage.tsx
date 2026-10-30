@@ -5,6 +5,7 @@ import type { AnalyzeResult, Reading, SentenceScore } from "../api/types";
 import { HighlightKeys, Limitations, Notice } from "../components/common";
 import { ListenBar, MiniPlayer, ReadingText, useFlatReading } from "../components/Listen";
 import MetricCards from "../components/MetricCards";
+import ToneRecord from "../components/ToneRecord";
 import SaveToDataset from "../components/SaveToDataset";
 import { downloadText, toCsv } from "../lib/csv";
 import { fixed, formatMetric, percent, plural } from "../lib/format";
@@ -172,34 +173,49 @@ export default function AnalyzePage() {
 
       {error && <Notice kind="error">{error}</Notice>}
       <p className="visually-hidden" role="status">{announcement}</p>
-      {result && <Results result={result} text={analyzedText} sectionRef={results} />}
+      {result && <Results result={result} text={analyzedText} sectionRef={results} onEdit={() => {
+        textBox.current?.focus({ preventScroll: true });
+        textBox.current?.scrollIntoView?.({ block: "center" });
+      }} />}
     </>
   );
 }
 
-function Results({ result, text, sectionRef }: {
-  result: AnalyzeResult; text: string; sectionRef: Ref<HTMLElement>;
+function Results({ result, text, sectionRef, onEdit }: {
+  result: AnalyzeResult; text: string; sectionRef: Ref<HTMLElement>; onEdit: () => void;
 }) {
   const base = result.baseline;
   const [focus, setFocus] = useState<number | null>(null);
   return (
     <section aria-label="Results" className="results" tabIndex={-1} ref={sectionRef}>
-      <div className="verdict">
-        <p className="verdict-lead">
-          {verdict(result.metrics.tone_balance)}
-          {result.metrics.tone_balance !== null && (
-            <span className="verdict-figure"> · tone balance {formatMetric("tone_balance", result.metrics.tone_balance)}</span>
-          )}
-        </p>
-        {base && base.hostility_share_below !== null && base.cooperation_share_below !== null && (
-          <p data-testid="baseline-sentence">
-            Compared with the {base.statements.toLocaleString()} UN General Debate statements from {base.first_year}–{base.last_year},
-            its rate of hostile words is {rank(base.hostility_share_below)} and its rate of cooperative words
-            is {rank(base.cooperation_share_below)}.
-          </p>
+      <div className="card record">
+        <div className="card-head">
+          <h2 className="verdict-lead">
+            {verdict(result.metrics.tone_balance)}
+            {result.metrics.tone_balance !== null && (
+              <span className="verdict-figure"> · tone balance {formatMetric("tone_balance", result.metrics.tone_balance)}</span>
+            )}
+          </h2>
+          <button type="button" className="btn small" onClick={onEdit}>Edit the text</button>
+        </div>
+        {base && base.tone_share_below !== null && base.hostility_share_below !== null
+          && base.cooperation_share_below !== null && (
+          <>
+            <p data-testid="baseline-sentence">
+              Among the {base.statements.toLocaleString()} UN General Debate statements from {base.first_year}–{base.last_year},
+              its tone balance is {rank(base.tone_share_below)}. It uses hostile words more often than
+              {" "}{share(base.hostility_share_below)} of them, and cooperative words more often than{" "}
+              {share(base.cooperation_share_below)}.
+            </p>
+            {base.tone_histogram.length > 0 && result.metrics.tone_balance !== null && (
+              <ToneRecord histogram={base.tone_histogram} value={result.metrics.tone_balance}
+                statements={base.statements} years={`${base.first_year}–${base.last_year}`}
+                shareBelow={base.tone_share_below} />
+            )}
+          </>
         )}
+        {result.warnings.map((w) => <Notice key={w} kind="warn">{w}</Notice>)}
       </div>
-      {result.warnings.map((w) => <Notice key={w} kind="warn">{w}</Notice>)}
       <MetricCards metrics={result.metrics} compareTo={base?.averages}
         compareLabel={base ? `UN avg ${base.first_year}–${base.last_year}` : undefined} />
       <p className="muted small">
@@ -221,7 +237,6 @@ function Results({ result, text, sectionRef }: {
           <TermList terms={result.top_terms.hostile} />
           <h3 className="small">Most frequent cooperative words</h3>
           <TermList terms={result.top_terms.cooperative} />
-          <Limitations />
         </div>
       </div>
 
@@ -238,7 +253,11 @@ function Results({ result, text, sectionRef }: {
         </Suspense>
       </div>
       <SentenceTable sentences={result.sentences} contextUsed={result.context_model.used} focus={focus} />
-      <SaveToDataset text={text} />
+      <Limitations />
+      <details className="save-details">
+        <summary className="btn">Save this text to a dataset</summary>
+        <SaveToDataset text={text} />
+      </details>
     </section>
   );
 }
@@ -253,11 +272,18 @@ function verdict(toneBalance: number | null) {
   return "Clearly confrontational";
 }
 
-/** Where a rate sits among the UN statements: "higher than 87% of them", "higher than all of them". */
+/** Where a value sits among the UN statements: "higher than 87% of them", "higher than all of them". */
 function rank(shareBelow: number) {
   if (shareBelow >= 0.995) return "higher than all of them";
   if (shareBelow <= 0.005) return "lower than all of them";
   return `higher than ${percent(shareBelow)} of them`;
+}
+
+/** "all", "none" or a percentage, for "more often than … of them". */
+function share(shareBelow: number) {
+  if (shareBelow >= 0.995) return "all";
+  if (shareBelow <= 0.005) return "none";
+  return percent(shareBelow);
 }
 
 function TermList({ terms }: { terms: [string, number][] }) {

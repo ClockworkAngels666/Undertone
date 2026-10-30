@@ -442,7 +442,7 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
         {scale.kind === "diverging" ? `Colour: ${metricLabel}; column height: distance from 0.`
           : `Colour and column height: ${metricLabel}.`}{" "}
         {order === "value" ? "Seats run from the lowest value on the left to the highest on the right. " : ""}
-        Flags mark the chart&apos;s countries. Tap a desk to read the speech.
+        Flags mark the chart&apos;s countries. Select a desk to read the speech.
       </p>
     </div>
   );

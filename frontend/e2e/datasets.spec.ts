@@ -46,6 +46,7 @@ test("saves an analyzed text into a new dataset", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Use sample text" }).click();
   await page.getByRole("button", { name: "Analyze" }).click();
+  await page.getByText("Save this text to a dataset").click();
   await page.getByLabel("New dataset name").fill(`Saved text ${Date.now()}`);
   await page.getByLabel("Country code").fill("VNM");
   await page.getByRole("button", { name: "Save text" }).click();

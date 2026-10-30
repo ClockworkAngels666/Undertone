@@ -101,6 +101,15 @@ describe("TrendChart", () => {
     render(<TrendChart series={[]} format={String} tickFormat={String} valueLabel="x" />);
     expect(screen.getByText("No data for this selection.")).toBeInTheDocument();
   });
+
+  it("draws the data when it arrives after an empty first render", () => {
+    // Pages render the chart before their data loads; a hook after the early return crashed the whole page
+    const props = { format: String, tickFormat: String, valueLabel: "x" };
+    const { rerender } = render(<TrendChart series={[]} {...props} />);
+    rerender(<TrendChart {...props}
+      series={[{ key: "VNM", label: "Vietnam", color: "#2a78d6", points: [{ year: 2022, value: 0.4 }] }]} />);
+    expect(within(screen.getByRole("list", { name: "Legend" })).getByText("Vietnam")).toBeInTheDocument();
+  });
 });
 
 describe("api client", () => {

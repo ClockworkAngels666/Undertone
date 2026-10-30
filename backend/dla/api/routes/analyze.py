@@ -50,6 +50,7 @@ def analyze(req: AnalyzeRequest):
                 base = {k: v for k, v in cached.items() if not k.startswith("_")}
                 base["hostility_share_below"] = un_data.share_below(cached, "hostility", metrics["hostility"])
                 base["cooperation_share_below"] = un_data.share_below(cached, "cooperation", metrics["cooperation"])
+                base["tone_share_below"] = un_data.share_below(cached, "tone_balance", metrics["tone_balance"])
         except Exception as err:  # noqa: BLE001 - the analysis itself must still work without a database
             log.warning("UN baseline unavailable: %s", err)
             warnings.append("The comparison with UN speeches is unavailable right now (database offline).")

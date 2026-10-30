@@ -35,6 +35,8 @@ def test_analyze_compares_with_un_baseline(demo_client):
     assert base["statements"] == 5 * 10
     assert 0 <= base["hostility_share_below"] <= 1
     assert 0 <= base["cooperation_share_below"] <= 1
+    assert 0 <= base["tone_share_below"] <= 1
+    assert len(base["tone_histogram"]) == 20 and sum(base["tone_histogram"]) == base["statements"]
     assert base["median_words"] > 0
     # a short text: the comparison comes with a short-text caution that names the typical length
     assert any("short text (" in w and "median" in w for w in body["warnings"])

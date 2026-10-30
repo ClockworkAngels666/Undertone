@@ -60,6 +60,8 @@ export interface AnalyzeResult {
     median_words: number | null;
     hostility_share_below: number | null;
     cooperation_share_below: number | null;
+    tone_share_below: number | null;
+    tone_histogram: number[];
   } | null;
   highlights: Span[];
   reading: Reading;

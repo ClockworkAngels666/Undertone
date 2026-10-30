@@ -60,11 +60,12 @@ test("listens to a UN speech at the rostrum, and jumps to a notable sentence", a
   await bar.getByRole("button", { name: "Pause" }).click();
   await expect(bar.getByRole("button", { name: "Resume" })).toBeVisible();
 
-  await reading.locator("summary", { hasText: "Full speech" }).click();
+  // a notable sentence jumps to its place in the speech; Resume reads on from there
   const jump = reading.locator(".listen-from").last();
   const item = await jump.locator("xpath=ancestor::li").innerText();
   const before = (await said(page)).length;
   await jump.click();
+  await bar.getByRole("button", { name: "Resume" }).click();
   await expect.poll(async () => (await said(page)).slice(before).some((s) => item.includes(s.slice(0, 40)))).toBe(true);
   // the full speech lights up the sentence being read and keeps it in view inside its box
   const box = page.getByTestId("full-speech");

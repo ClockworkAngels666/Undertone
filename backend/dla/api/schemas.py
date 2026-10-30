@@ -89,6 +89,10 @@ class Baseline(BaseModel):
         description="Share of UN statements in the baseline years that are less hostile than this text")
     cooperation_share_below: float | None = Field(
         default=None, description="Share of those statements with fewer cooperative words per 1,000 than this text")
+    tone_share_below: float | None = Field(
+        default=None, description="Share of those statements with a lower tone balance than this text")
+    tone_histogram: list[int] = Field(
+        default_factory=list, description="Those statements counted in 20 bands of tone balance, −1 to +1")
 
 
 class AnalyzeResponse(BaseModel):

@@ -61,10 +61,12 @@ function drawFlag(code: string, fallbackColor: string): Promise<HTMLCanvasElemen
           // fall through to the plain flag
         }
       }
-      // Historical states (Yugoslavia, Czechoslovakia…) and custom codes: a plain flag with the code on it
-      ctx.fillStyle = fallbackColor;
+      // Historical states (Yugoslavia, Czechoslovakia…) and custom codes: a plain flag with the code on it.
+      // The Soviet Union's is red with the name in gold, after its flag.
+      const soviet = code === "USSR";
+      ctx.fillStyle = soviet ? "#cc0000" : fallbackColor;
       ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = soviet ? "#ffd700" : "#ffffff";
       ctx.font = `600 ${Math.round(H * 0.3)}px "Jost Variable", Jost, sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
