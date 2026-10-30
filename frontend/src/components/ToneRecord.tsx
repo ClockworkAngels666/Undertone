@@ -3,8 +3,8 @@ import { formatMetric, percent } from "../lib/format";
 
 /** The record: every UN statement of the baseline years in bands of tone balance (−1 all hostile, +1 all
  *  cooperative), with this text marked among them. */
-export default function ToneRecord({ histogram, value, statements, years, shareBelow }: {
-  histogram: number[]; value: number; statements: number; years: string; shareBelow: number;
+export default function ToneRecord({ histogram, value, years, shareBelow }: {
+  histogram: number[]; value: number; years: string; shareBelow: number;
 }) {
   // Drawn at the figure's real width, so the labels keep their shape at any screen size
   const box = useRef<HTMLElement>(null);
@@ -20,6 +20,8 @@ export default function ToneRecord({ histogram, value, statements, years, shareB
   const top = 22;
   const base = H - 22;
   const max = Math.max(1, ...histogram);
+  // The bars' own total: a statement without hostile or cooperative words has no tone balance
+  const counted = histogram.reduce((sum, n) => sum + n, 0);
   const band = W / histogram.length;
   const x = ((Math.max(-1, Math.min(1, value)) + 1) / 2) * W;
   const label = `This text, ${formatMetric("tone_balance", value)}`;
@@ -27,7 +29,7 @@ export default function ToneRecord({ histogram, value, statements, years, shareB
   return (
     <figure className="tone-record" ref={box}>
       <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img"
-        aria-label={`Tone balance of ${statements.toLocaleString()} UN General Debate statements, ${years}: this text, `
+        aria-label={`Tone balance of ${counted.toLocaleString()} UN General Debate statements, ${years}: this text, `
           + `${formatMetric("tone_balance", value)}, is higher than ${percent(shareBelow)} of them.`}>
         {histogram.map((n, i) => {
           const h = ((base - top) * n) / max;

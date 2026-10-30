@@ -209,7 +209,7 @@ function Results({ result, text, sectionRef, onEdit }: {
             </p>
             {base.tone_histogram.length > 0 && result.metrics.tone_balance !== null && (
               <ToneRecord histogram={base.tone_histogram} value={result.metrics.tone_balance}
-                statements={base.statements} years={`${base.first_year}–${base.last_year}`}
+                years={`${base.first_year}–${base.last_year}`}
                 shareBelow={base.tone_share_below} />
             )}
           </>
