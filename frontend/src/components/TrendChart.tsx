@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -63,6 +63,13 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
   const first = years[0];
   const last = years[years.length - 1];
   const shownEvents = events.filter((e) => e.year >= first && e.year <= last);
+  // Year ticks on one round step all the way (1990, 2000, 2010…), not wherever the axis happens to divide
+  const yearStep = last - first > 40 ? 10 : last - first > 15 ? 5 : last - first > 6 ? 2 : 1;
+  const yearTicks: number[] = [];
+  for (let y = Math.ceil(first / yearStep) * yearStep; y <= last; y += yearStep) yearTicks.push(y);
+  // On a phone the event names would collide above the chart: the lines stay, the names go in a list below
+  const narrow = useNarrow();
+  const eventLabels = shownEvents.length > 0 && !narrow;
   const showDots = last - first <= 25;
   const labelEnds = series.length <= 4;
   const endPoints = endLabelPositions(series);
@@ -86,15 +93,16 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
       <div className={`chart-box${reloading ? " reloading" : ""}`} role="img"
         aria-label={`Line chart of ${valueLabel} by year, ${first}–${last}. The same values are in the table below.`}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart accessibilityLayer={false} data={rows} margin={{ top: shownEvents.length ? 52 : 12, right: labelEnds ? 108 : 16, bottom: 4, left: 0 }}>
+          <LineChart accessibilityLayer={false} data={rows} margin={{ top: eventLabels ? 52 : 12, right: labelEnds ? 108 : 16, bottom: 4, left: 0 }}>
             <CartesianGrid vertical={false} stroke={ink.grid} />
-            <XAxis dataKey="year" type="number" domain={[first, last]} allowDecimals={false}
+            <XAxis dataKey="year" type="number" domain={[first, last]} allowDecimals={false} ticks={yearTicks}
               tick={{ fill: ink.axis, fontSize: 12 }} tickLine={false} axisLine={{ stroke: ink.grid }} />
             <YAxis tickFormatter={tickFormat} tick={{ fill: ink.axis, fontSize: 12 }} tickLine={false}
               axisLine={false} width={44} domain={["auto", "auto"]} />
             {shownEvents.map((e, i) => (
               <ReferenceLine key={e.year} x={e.year} stroke={ink.grid} strokeWidth={1}
-                label={{ value: e.label, position: "top", fill: ink.axis, fontSize: 12, offset: 6 + 15 * (i % 3) }} />
+                label={eventLabels ? { value: e.label, position: "top", fill: ink.axis, fontSize: 12, offset: 6 + 15 * (i % 3) }
+                  : undefined} />
             ))}
             {average && (
               <Line dataKey={AVERAGE_KEY} name={averageLabel} stroke={AVERAGE_COLOR[scheme]} strokeWidth={1.5}
@@ -115,6 +123,11 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
           </LineChart>
         </ResponsiveContainer>
       </div>
+      {narrow && shownEvents.length > 0 && (
+        <p className="small muted chart-events">
+          Lines mark {shownEvents.map((e) => `${e.label} (${e.year})`).join(", ")}.
+        </p>
+      )}
       <details className="table-view">
         <summary>Show the numbers as a table</summary>
         <div className="table-wrap tall" tabIndex={0} role="region" aria-label={`${valueLabel} by year`}>
@@ -222,4 +235,18 @@ function ChartTooltip({ active, payload, label, series, format, averageColor, av
       ))}
     </div>
   );
+}
+
+/** True on phone-width screens (the same breakpoint the stylesheet uses for its narrow layout). */
+function useNarrow() {
+  const query = "(max-width: 640px)";
+  const [narrow, setNarrow] = useState(() => typeof window !== "undefined" && !!window.matchMedia?.(query).matches);
+  useEffect(() => {
+    const mq = window.matchMedia?.(query);
+    if (!mq) return;
+    const onChange = () => setNarrow(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return narrow;
 }

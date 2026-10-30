@@ -48,8 +48,10 @@ export default function DatasetsPage() {
                   onChange={(e) => setName(e.target.value)} />
               </div>
               <div className="field" style={{ flex: "1 1 220px" }}>
-                <label htmlFor="dataset-keywords">Keywords to track <span className="hint">(comma-separated, * = any ending)</span></label>
-                <input id="dataset-keywords" type="text" value={keywords} onChange={(e) => setKeywords(e.target.value)} />
+                <label htmlFor="dataset-keywords">Keywords to track</label>
+                <input id="dataset-keywords" type="text" value={keywords} onChange={(e) => setKeywords(e.target.value)}
+                  aria-describedby="dataset-keywords-hint" />
+                <span className="hint" id="dataset-keywords-hint">Separate with commas; end a word with * for any ending.</span>
               </div>
             </div>
             <p className="small muted">

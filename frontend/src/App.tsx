@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, NavLink, Route, Routes } from "react-router";
 import { api, withRetry } from "./api/client";
 import { Loading, Notice } from "./components/common";
-import { MetaContext, useAsync } from "./lib/hooks";
+import { MetaContext, useAsync, useDocumentTitle } from "./lib/hooks";
 import AnalyzePage from "./pages/AnalyzePage";
 
 // Pages with charts load on demand, so the first page appears quickly on phones.
@@ -13,11 +13,11 @@ const DictionariesPage = lazy(() => import("./pages/DictionariesPage"));
 const MethodPage = lazy(() => import("./pages/MethodPage"));
 
 const NAV = [
-  { to: "/", label: "Analyze a text", end: true },
-  { to: "/un", label: "UN General Debate" },
-  { to: "/datasets", label: "My datasets" },
-  { to: "/dictionaries", label: "Dictionaries" },
-  { to: "/method", label: "Method" },
+  { to: "/", label: "Analyze a text", short: "Analyze", end: true },
+  { to: "/un", label: "UN General Debate", short: "UN Debate" },
+  { to: "/datasets", label: "My datasets", short: "Datasets" },
+  { to: "/dictionaries", label: "Dictionaries", short: "Dictionaries" },
+  { to: "/method", label: "Method", short: "Method" },
 ];
 
 export default function App() {
@@ -40,7 +40,9 @@ export default function App() {
           </NavLink>
           <nav className="nav" aria-label="Main">
             {NAV.map((n) => (
-              <NavLink key={n.to} to={n.to} end={n.end}>{n.label}</NavLink>
+              <NavLink key={n.to} to={n.to} end={n.end}>
+                <span className="nav-long">{n.label}</span><span className="nav-short">{n.short}</span>
+              </NavLink>
             ))}
           </nav>
         </div>
@@ -82,6 +84,7 @@ export default function App() {
 }
 
 function NotFound() {
+  useDocumentTitle("Page not found");
   return (
     <div className="page-intro">
       <h1>Page not found</h1>

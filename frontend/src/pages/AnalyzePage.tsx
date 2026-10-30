@@ -339,7 +339,7 @@ function SentenceTable({ sentences, contextUsed, focus }: {
             {sorted.map((s) => (
               <tr key={s.index} id={`sentence-${s.index}`} className={s.index === focus ? "focused" : undefined}>
                 <td className="num">{s.index + 1}</td>
-                <td>{s.sentence}</td>
+                <td className="sentence-cell">{s.sentence}</td>
                 <td className="num">{fixed(s.vader, 2)}</td>
                 <td className="num">{s.hostile_hits}</td>
                 <td className="num">{s.coop_hits}</td>

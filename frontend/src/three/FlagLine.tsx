@@ -18,6 +18,7 @@ import YearPlayer from "../components/YearPlayer";
 import { useColorScheme } from "../lib/colors";
 import { shortName } from "../lib/format";
 import { createFlagPole, type FlagPole, flagTexture } from "./flags";
+import { speakerFlag, speakerName } from "../lib/history";
 import { textSprite } from "./labels";
 import { isSmallScreen } from "./stage";
 import { disposeGroup, useStage } from "./useStage";
@@ -145,7 +146,9 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
     const rows = 1;
     const perRow = slots.length;
     const spacing = small ? 0.54 : 0.68;
-    const keep = new Set(slots.map((s) => s.code));
+    // A pole per delegation as it was that year: crossing 1991 swaps the Soviet Union's pole for Russia's
+    const keyOf = (code: string) => `${code}|${speakerFlag(code, year)}`;
+    const keep = new Set(slots.map((s) => keyOf(s.code)));
     for (const [code, p] of current.poles) {
       if (keep.has(code)) continue;
       current.group.remove(p.pole.group, p.plinth, p.name);
@@ -164,20 +167,22 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
       const countInRow = row === rows - 1 ? slots.length - perRow * (rows - 1) : perRow;
       const targetX = (col - (countInRow - 1) / 2) * spacing + (row ? spacing / 2 : 0);   // back row staggered
       const targetZ = -row * 0.9;
-      let p = current.poles.get(slot.code);
+      const key = keyOf(slot.code);
+      let p = current.poles.get(key);
       if (!p) {
         const pole = createFlagPole({ width: small ? 0.38 : 0.42, segments: small ? [10, 5] : [18, 8], phase: i * 1.7 });
         const plinth = new Mesh(new CylinderGeometry(0.07, 0.09, 0.04, 16),
           new MeshStandardMaterial({ color: scheme === "dark" ? 0x2a3f55 : 0xb8c4d0, roughness: 0.6 }));
-        const name = textSprite(shortName(names[slot.code] ?? slot.code), { color: ink, height: labelSize * 1.05,
+        const name = textSprite(shortName(speakerName(slot.code, year, names[slot.code] ?? slot.code)), {
+          color: ink, height: labelSize * 1.05,
           onTop: true });
         p = { pole, plinth, name, value: null, valueText: "", labelY: -0.06, x: targetX, z: targetZ - 0.6,
           height: 0.05, targetX, targetZ, targetHeight: 0.05 };
         current.group.add(pole.group, plinth, name);
-        current.poles.set(slot.code, p);
+        current.poles.set(key, p);
         const fallback = chosen.find((c) => c.code === slot.code)?.color ?? "#5b6b7a";
-        void flagTexture(slot.code, fallback).then((texture) => {
-          if (current.poles.get(slot.code) === p) p!.pole.setFlag(texture);
+        void flagTexture(speakerFlag(slot.code, year), fallback).then((texture) => {
+          if (current.poles.get(key) === p) p!.pole.setFlag(texture);
           else texture.dispose();
           stage.invalidate();
         });
@@ -226,7 +231,8 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
       const rect = el.getBoundingClientRect();
       pointer.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
       raycaster.setFromCamera(pointer, stage.camera);
-      const targets = [...current.poles.entries()].flatMap(([code, p]) => p.pole.meshes.map((m) => ({ code, m })));
+      const targets = [...current.poles.entries()].flatMap(([key, p]) =>
+        p.pole.meshes.map((m) => ({ code: key.split("|")[0], m })));
       const hit = raycaster.intersectObjects(targets.map((t) => t.m), false)[0];
       const code = hit ? targets.find((t) => t.m === hit.object)?.code : undefined;
       tip.show(code ?? null, Math.max(4, Math.min(e.clientX - rect.left + 12, rect.width - 200)),
@@ -283,7 +289,7 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
           aria-label={`Flags on poles: ${metricLabel} in ${year}, one pole per country. Taller means a higher value.`} />
         {tipCode !== null && tipSlot && (
           <div className="tooltip view3d-tip" ref={tip.ref}>
-            <div className="year">{names[tipCode] ?? tipCode} · {year}</div>
+            <div className="year">{speakerName(tipCode, year, names[tipCode] ?? tipCode)} · {year}</div>
             <div>{tipSlot.value === null ? "No statement this year"
               : <><strong>{format(tipSlot.value)}</strong> {metricLabel}</>}</div>
           </div>

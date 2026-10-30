@@ -286,7 +286,7 @@ a {
   text-decoration: none;
   padding: 0 12px;
   white-space: nowrap;
-  font-size: 0.93rem;
+  font-size: 0.95rem;
   font-weight: 500;
   border-bottom: 2px solid transparent;
   border-top: 2px solid transparent;
@@ -296,6 +296,45 @@ a {
   .nav a:hover {
     color: var(--ink);
     border-bottom-color: var(--grid);
+  }
+}
+
+.nav-short {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .nav-long {
+    display: none;
+  }
+  .nav-short {
+    display: inline;
+  }
+  .nav {
+    padding-right: 4px;
+    mask-image: none;
+  }
+  .nav a {
+    padding: 0 5px;
+    font-size: 0.875rem;
+  }
+}
+
+/* The smallest phones still scroll the menu and the tabs sideways: the fade shows there is more */
+@media (max-width: 400px) {
+  .nav {
+    padding-right: 28px;
+    mask-image: linear-gradient(to right, #000 82%, transparent);
+  }
+  div.view-tabs button {          /* div.: this block sits before the tabs' own rules */
+    padding: 10px 6px;
+  }
+}
+
+/* On phones the sentence keeps a readable width; the table scrolls sideways inside its frame instead */
+@media (max-width: 560px) {
+  .sentence-cell {
+    min-width: 15em;
   }
 }
 
@@ -370,7 +409,7 @@ main.container {
 
 .page-intro .back-link {
   margin: -4px 0 4px;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 
@@ -383,7 +422,7 @@ main.container {
   background: var(--footer-bg);
   color: var(--footer-ink);
   padding: 24px 0 32px;
-  font-size: 0.86rem;
+  font-size: 0.875rem;
 }
 
 .site-footer .container {
@@ -466,7 +505,7 @@ main.container {
 }
 
 .small {
-  font-size: 0.88rem;
+  font-size: 0.875rem;
 }
 
 .mono {
@@ -485,7 +524,7 @@ main.container {
 
 /* ── Forms & buttons ────────────────────────────────────────────────────── */
 label {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--ink-2);
 }
@@ -521,7 +560,7 @@ label {
 
 .field-error {
   color: var(--bad);
-  font-size: 0.88rem;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 
@@ -547,7 +586,7 @@ label {
 .field .hint {
   font-weight: 300;
   color: var(--muted);
-  font-size: 0.84rem;
+  font-size: 0.8rem;
 }
 
 input[type="text"],
@@ -667,7 +706,7 @@ select {
 .btn.small {
   min-height: 32px;
   padding: 4px 10px;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 .btn.link {
@@ -685,7 +724,7 @@ select {
 
 .file-input {
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   max-width: 100%;
   padding: 6px 0;
   color: var(--ink-2);
@@ -716,7 +755,7 @@ select {
   border-radius: 8px;
   padding: 10px 14px;
   margin-bottom: 14px;
-  font-size: 0.93rem;
+  font-size: 0.95rem;
   display: flex;
   gap: 12px;
   align-items: center;
@@ -745,7 +784,7 @@ select {
 }
 
 .limitations {
-  font-size: 0.86rem;
+  font-size: 0.875rem;
   color: var(--muted);
   margin: 12px 0 0;
   max-width: 90ch;
@@ -795,7 +834,7 @@ select {
 }
 
 .metric .label {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--ink-2);
   font-weight: 500;
 }
@@ -810,8 +849,9 @@ select {
 }
 
 .metric .delta {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 500;
+  color: var(--ink-2);
 }
 
 .delta.good {
@@ -827,7 +867,7 @@ select {
 }
 
 .metric .explain {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: var(--muted);
   margin-top: 4px;
 }
@@ -862,7 +902,7 @@ mark.cooperative,
   padding: 12px 14px;
   background: var(--surface-2);
   border-radius: 8px;
-  font-size: 0.97rem;
+  font-size: 0.95rem;
 }
 
 .highlighted.reading {
@@ -961,7 +1001,7 @@ details.full-speech .reading {
 }
 
 .listen-count {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -978,7 +1018,7 @@ details.full-speech .reading {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   min-width: 0;
   max-width: 100%;
 }
@@ -988,7 +1028,7 @@ details.full-speech .reading {
   min-width: 0;
   min-height: 32px;
   padding: 4px 8px;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 .listen-error {
@@ -997,7 +1037,7 @@ details.full-speech .reading {
   border-radius: 6px;
   background: var(--error-bg);
   color: var(--error-ink);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 .now-reading {
@@ -1026,7 +1066,7 @@ details.full-speech .reading {
 .legend-keys {
   display: flex;
   gap: 14px;
-  font-size: 0.86rem;
+  font-size: 0.875rem;
   margin-bottom: 8px;
   flex-wrap: wrap;
 }
@@ -1041,7 +1081,7 @@ details.full-speech .reading {
 }
 
 .terms li {
-  font-size: 0.86rem;
+  font-size: 0.875rem;
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 2px 10px;
@@ -1063,7 +1103,7 @@ details.full-speech .reading {
 table {
   border-collapse: collapse;
   width: 100%;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 th,
@@ -1077,7 +1117,7 @@ td {
 th {
   background: var(--surface);
   color: var(--ink-2);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   border-bottom-color: var(--border);
   font-weight: 500;
   white-space: nowrap;
@@ -1146,6 +1186,16 @@ th button.sort {
   min-width: 160px;
 }
 
+.bar-col {
+  width: 40%;
+  min-width: 90px;
+  vertical-align: middle;
+}
+
+.bar-col .bar-track {
+  display: block;
+}
+
 .bar-track {
   flex: 1;
   height: 8px;
@@ -1189,7 +1239,7 @@ th button.sort {
   background: var(--surface);
   border-radius: 999px;
   padding: 1px 2px 1px 10px;
-  font-size: 0.88rem;
+  font-size: 0.875rem;
 }
 
 .chip .swatch {
@@ -1229,7 +1279,7 @@ th button.sort {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 16px;
-  font-size: 0.86rem;
+  font-size: 0.875rem;
   color: var(--ink-2);
   margin: 4px 0 8px;
   padding: 0;
@@ -1276,7 +1326,7 @@ th button.sort {
   border-radius: 8px;
   padding: 8px 10px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   min-width: 170px;
 }
 
@@ -1306,7 +1356,7 @@ th button.sort {
 details.table-view summary {
   cursor: pointer;
   color: var(--link);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   margin-top: 4px;
   padding: 6px 0;
 }
@@ -1330,9 +1380,8 @@ progress {
 }
 
 .sentences li {
-  border-left: 3px solid var(--grid);
-  padding: 4px 0 4px 12px;
-  margin-bottom: 8px;
+  padding: 4px 0;
+  margin-bottom: 10px;
   font-size: 0.95rem;
 }
 
@@ -1371,7 +1420,7 @@ progress {
 
 .empty {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .prose {
@@ -1651,7 +1700,7 @@ tr.focused td {
 .tabs button {
   font: inherit;
   font-weight: 500;
-  font-size: 0.86rem;
+  font-size: 0.875rem;
   min-height: 32px;
   padding: 4px 14px;
   border: 0;

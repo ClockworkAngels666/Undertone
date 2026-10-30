@@ -20,7 +20,8 @@ import { disposeGroup, useStage } from "./useStage";
 
 interface Props {
   /** The year's top three, first place first. */
-  rows: { country: string; name: string; value: number }[];
+  /** `flag`: the flag to show when it differs from the country's own (the Soviet Union for RUS before 1992). */
+  rows: { country: string; name: string; value: number; flag?: string }[];
   format: (value: number) => string;
   onPick: (code: string) => void;
 }
@@ -93,7 +94,7 @@ export default function Podium({ rows, format, onPick }: Props) {
       pole.setHeight(POLE);
       group.add(pole.group);
       poles.push(pole);
-      void flagTexture(row.country).then((texture) => {
+      void flagTexture(row.flag ?? row.country).then((texture) => {
         if (cancelled) texture.dispose();
         else {
           pole.setFlag(texture);

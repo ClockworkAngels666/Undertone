@@ -95,7 +95,7 @@ export default function SaveToDataset({ text }: { text: string }) {
         </div>
       </div>
       <div className="row">
-        <button type="submit" className="btn primary" disabled={busy}>{busy ? "Saving…" : "Save text"}</button>
+        <button type="submit" className="btn" disabled={busy}>{busy ? "Saving…" : "Save text"}</button>
       </div>
       {error && <Notice kind="error">{error}</Notice>}
       {done && (

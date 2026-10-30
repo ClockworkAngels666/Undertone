@@ -1,6 +1,7 @@
 import { batches, parseDocumentsCsv, toCsv } from "./csv";
 import { assignSlots } from "./colors";
 import { fitWords, formatDelta, formatMetric, metricLabel, percent, plural, shortName } from "./format";
+import { speakerFlag, speakerName } from "./history";
 import { englishVoices, speechChunks, voiceLabel } from "./speech";
 import { storage } from "./storage";
 import { checkTerms, parseTerms, sameTerms } from "./terms";
@@ -148,5 +149,18 @@ describe("speech", () => {
     expect(storage.listen()).toEqual({ voice: "Aria", rate: 1.5 });
     window.localStorage.setItem("dla.listen.v1", JSON.stringify({ voice: 3, rate: 40 }));
     expect(storage.listen()).toEqual({ voice: null, rate: 1 });
+  });
+});
+
+describe("history", () => {
+  it("names the delegation that held the seat that year", () => {
+    expect(speakerName("RUS", 1960, "Russia")).toBe("Soviet Union");
+    expect(speakerName("RUS", 1991, "Russia")).toBe("Soviet Union");
+    expect(speakerName("RUS", 1992, "Russia")).toBe("Russia");
+    expect(speakerFlag("RUS", 1960)).toBe("USSR");
+    expect(speakerName("CHN", 1971, "China")).toBe("Republic of China");
+    expect(speakerFlag("CHN", 1960)).toBe("TWN");
+    expect(speakerFlag("CHN", 1972)).toBe("CHN");
+    expect(speakerName("VNM", 1960, "Vietnam")).toBe("Vietnam");
   });
 });

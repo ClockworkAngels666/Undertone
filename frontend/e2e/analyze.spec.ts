@@ -46,7 +46,7 @@ test("custom dictionaries change the scores and switch off the UN comparison", a
   await page.getByRole("button", { name: "Save dictionaries" }).click();
   await expect(page.getByText("Saved in this browser.")).toBeVisible();
 
-  await page.getByRole("link", { name: "Analyze a text" }).click();
+  await page.getByRole("link", { name: /^Analyze/ }).click();
   await page.getByRole("button", { name: "Use sample text" }).click();
   await page.getByRole("button", { name: "Analyze" }).click();
   await expect(page.getByText(/Custom dictionaries are in use/)).toBeVisible();

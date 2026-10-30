@@ -12,12 +12,16 @@ import TrendChart from "../components/TrendChart";
 import { PALETTE, useColorScheme, useStableSlots } from "../lib/colors";
 import { fixed, formatDelta, formatMetric, metricLabel, plural, tickFormat } from "../lib/format";
 import { useAsync, useDocumentTitle, useMeta } from "../lib/hooks";
+import { speakerFlag, speakerName } from "../lib/history";
 import { useSpeech } from "../lib/speech";
 
 const PREFERRED = ["RUS", "USA", "CHN", "VNM"];
 
 /** The page's views, as tabs under the filters; the choice is kept in the address (?v=). */
-const VIEWS = [["trend", "Over time"], ["year", "Year by year"], ["space", "Rhetoric space"], ["read", "Close reading"]] as const;
+const VIEWS = [
+  ["trend", "Over time", "Over time"], ["year", "Year by year", "By year"],
+  ["space", "Rhetoric space", "Rhetoric"], ["read", "Close reading", "Reading"],
+] as const;   // key, name, the shorter name shown on phones (the full one stays the accessible name)
 type View = typeof VIEWS[number][0];
 
 // The 3D views (three.js) load only when this page is opened.
@@ -192,9 +196,11 @@ function Explorer({ summary }: { summary: UNSummary }) {
         chooseView(next);
         document.getElementById(`view-tab-${next}`)?.focus();
       }}>
-        {VIEWS.map(([key, text]) => (
+        {VIEWS.map(([key, text, short]) => (
           <button key={key} id={`view-tab-${key}`} type="button" role="tab" aria-selected={view === key}
-            aria-controls="view-panel" tabIndex={view === key ? 0 : -1} onClick={() => chooseView(key)}>{text}</button>
+            aria-label={text} aria-controls="view-panel" tabIndex={view === key ? 0 : -1} onClick={() => chooseView(key)}>
+            <span className="nav-long">{text}</span><span className="nav-short">{short}</span>
+          </button>
         ))}
       </div>
 
@@ -413,7 +419,8 @@ function YearTable({ matrix, year, names, label, format, onPick }: {
   const rows = open && i >= 0
     ? matrix.countries.flatMap((c) => {
       const value = matrix.values[c.code]?.[i];
-      return value === null || value === undefined ? [] : [{ code: c.code, name: names[c.code] ?? c.name, value }];
+      return value === null || value === undefined ? []
+        : [{ code: c.code, name: speakerName(c.code, year, names[c.code] ?? c.name), value }];
     }).sort((a, b) => b.value - a.value)
     : [];
   return (
@@ -489,7 +496,8 @@ function RankingCard({ metric, year, onYearChange, firstYear, lastYear, names, o
   const hi = Math.max(0, ...values);
   const span = hi - lo || 1;
   const top = useMemo(() => (ranking.data?.rows ?? []).slice(0, 3)
-    .map((r) => ({ country: r.country, name: names[r.country] ?? r.name, value: r.value })), [ranking.data, names]);
+    .map((r) => ({ country: r.country, name: speakerName(r.country, year, names[r.country] ?? r.name), value: r.value,
+      flag: speakerFlag(r.country, year) })), [ranking.data, names, year]);
   const formatValue = useCallback((v: number) => formatMetric(metric, v), [metric]);
 
   return (
@@ -506,7 +514,7 @@ function RankingCard({ metric, year, onYearChange, firstYear, lastYear, names, o
         </div>
       </div>
       <p className="muted small">{metricLabel(metric, meta.metrics)}, highest first.</p>
-      {top.length > 0 && ranking.data && (
+      {top.length > 0 && ranking.data && !meta.metrics.find((m) => m.id === metric)?.higher_is_worse && (
         <Suspense fallback={null}>
           <Podium rows={top} format={formatValue} onPick={(code) => onPick(code, ranking.data!.year)} />
         </Suspense>
@@ -517,22 +525,20 @@ function RankingCard({ metric, year, onYearChange, firstYear, lastYear, names, o
           <>
             <div className="table-wrap tall" tabIndex={0} role="region" aria-label="Country ranking">
               <table>
-                <thead><tr><th className="num">#</th><th>Country</th><th>Value</th></tr></thead>
+                <thead><tr><th className="num">#</th><th>Country</th><th className="num">Value</th><th aria-hidden="true" /></tr></thead>
                 <tbody>
                   {visible.map((r) => (
                     <tr key={r.country}>
                       <td className="num">{r.rank}</td>
-                      <td>{names[r.country] ?? r.name}</td>
-                      <td>
-                        <div className="bar-cell">
-                          <span className="num" style={{ minWidth: "3.5em" }}>{formatMetric(metric, r.value)}</span>
-                          <span className="bar-track" aria-hidden="true">
-                            <span className="bar-fill" style={{
-                              left: `${((Math.min(0, r.value) - lo) / span) * 100}%`,
-                              width: `${Math.max((Math.abs(r.value) / span) * 100, 0.5)}%`,
-                            }} />
-                          </span>
-                        </div>
+                      <td>{speakerName(r.country, year, names[r.country] ?? r.name)}</td>
+                      <td className="num">{formatMetric(metric, r.value)}</td>
+                      <td className="bar-col" aria-hidden="true">
+                        <span className="bar-track">
+                          <span className="bar-fill" style={{
+                            left: `${((Math.min(0, r.value) - lo) / span) * 100}%`,
+                            width: `${Math.max((Math.abs(r.value) / span) * 100, 0.5)}%`,
+                          }} />
+                        </span>
                       </td>
                     </tr>
                   ))}
@@ -602,14 +608,15 @@ function CloseReading({ countries, country, year, years, onChange }: {
           <div style={{ opacity: statement.loading ? 0.6 : 1 }}>
             <div className="reading-head">
               <Suspense fallback={null}>
-                <Rostrum code={statement.data.country} name={statement.data.name} year={statement.data.year}
+                <Rostrum code={speakerFlag(statement.data.country, statement.data.year)}
+                  name={speakerName(statement.data.country, statement.data.year, statement.data.name)} year={statement.data.year}
                   session={statement.data.session} speaking={speech.status === "playing"} />
               </Suspense>
               <div>
-                <h3 className="reading-title">{statement.data.name}</h3>
+                <h3 className="reading-title">{speakerName(statement.data.country, statement.data.year, statement.data.name)}</h3>
                 <p className="muted small">
                   Session {statement.data.session} · {statement.data.year} ·{" "}
-                  {plural(statement.data.counts.words, "word")} · {plural(statement.data.counts.sentences, "sentence")}
+                  {plural(statement.data.counts.words, "word")} · {plural(statement.data.counts.sentences, "scored sentence")}
                 </p>
                 {fullText.error && !fullText.loading
                   ? <p className="muted small">The full text of this speech is not available.</p>

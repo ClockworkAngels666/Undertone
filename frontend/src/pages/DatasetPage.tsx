@@ -25,16 +25,24 @@ export default function DatasetPage() {
 
   if (dataset.error) {
     const known = storage.datasets().some((d) => d.id === id);
+    const missing = /not found/i.test(dataset.error);
     return (
-      <Notice kind="error" onRetry={dataset.reload}>
-        {dataset.error}{" "}
-        {known && (
-          <button type="button" className="btn link" onClick={() => {
-            storage.forgetDataset(id);
-            navigate("/datasets");
-          }}>Remove it from my list</button>
-        )}
-      </Notice>
+      <>
+        <div className="page-intro">
+          <h1>{missing ? "Dataset not found" : "This dataset could not be opened"}</h1>
+          <p>{missing ? "It may have been deleted, or the link is incomplete." : dataset.error}</p>
+        </div>
+        <div className="row">
+          <Link className="btn" to="/datasets">Back to my datasets</Link>
+          {!missing && <button type="button" className="btn" onClick={dataset.reload}>Try again</button>}
+          {known && (
+            <button type="button" className="btn" onClick={() => {
+              storage.forgetDataset(id);
+              navigate("/datasets");
+            }}>Remove it from my list</button>
+          )}
+        </div>
+      </>
     );
   }
   if (!dataset.data) return <Loading />;
@@ -191,9 +199,7 @@ function DatasetView({ dataset, rows, rowsError, refresh }: {
         <div className="row">
           <DownloadLink href={api.datasets.exportUrl(dataset.id, "yearly")}>Results by country and year (CSV)</DownloadLink>
           <DownloadLink href={api.datasets.exportUrl(dataset.id, "documents")}>Every text with its scores (CSV)</DownloadLink>
-          <button type="button" className="btn small" onClick={() => void navigator.clipboard?.writeText(window.location.href)}>
-            Copy view-only link
-          </button>
+          <CopyLink />
         </div>
       </div>
 
@@ -379,5 +385,27 @@ function Rescore({ id, token, onDone, label, change }: {
       }}>{busy ? "Rescoring…" : label}</button>
       {status && <span className="small">{status}</span>}
     </div>
+  );
+}
+
+/** Copies the page's address, and says so (or says to copy it by hand when the browser refuses). */
+function CopyLink() {
+  const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setState("copied");
+    } catch {
+      setState("failed");
+    }
+    window.setTimeout(() => setState("idle"), 2500);
+  };
+  return (
+    <>
+      <button type="button" className="btn small" onClick={() => void copy()}>
+        {state === "copied" ? "Link copied" : "Copy view-only link"}
+      </button>
+      <span className="small muted" role="status">{state === "failed" ? "Copy the address from the address bar." : ""}</span>
+    </>
   );
 }

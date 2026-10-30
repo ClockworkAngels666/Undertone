@@ -208,3 +208,22 @@ Assembly hall, and the country ranking, all showing one shared year), Rhetoric s
 a speech from any tab, table or 3D view switches to Close reading, scrolls there and moves focus to its heading.
 On wide screens the tab bar stays under the header while the page scrolls. Loading placeholders keep each
 section's height, so the page no longer jumps as data arrives.
+
+## 21. The rest of the critique
+- **Who held the seat.** The corpus files the Soviet Union's statements under RUS (to 1991) and the Republic of
+  China's under CHN (to 1971, resolution 2758). `lib/history.ts` gives the name and flag for a code in a year, and
+  the flags, the hall, the podium, the rostrum and the tables use it: 1960 shows the Soviet Union (a plain "USSR"
+  flag) and the Republic of China.
+- **Metaphors that judged.** The podium is not shown for metrics where a high value is a bad one (hostility, share
+  of negative sentences), so it never crowns the most hostile delegation; the Assembly hall seats delegations
+  alphabetically by default, as the real Assembly does, with colour and height carrying the value (seating by
+  score is still an option).
+- **Red means hostile words.** Differences from the UN average are shown in plain ink, not red and green; the
+  eighth chart colour was the same red as hostile words and close to the second colour, and is now plum.
+- **Smaller fixes.** Chart years fall on round steps (1990, 2000…); on phones the event names move under the chart;
+  phones get short menu and tab names (the tabs keep their full accessible names); the ranking's values have their
+  own right-aligned column; Close reading says "scored sentences"; Save text is a secondary button; the keyword
+  rule sits under its field; a missing dataset gets a title and a way back; Copy link says it copied; the 404 page
+  sets its tab title; the notable sentences lose their side bar; and the small type sizes collapse onto three steps.
+- **Not changed:** the transcript headers that VADER scores as negative (fixing them means rescoring all UN data in
+  the live database), legend clicks to isolate a line, and dictionary hit counts.

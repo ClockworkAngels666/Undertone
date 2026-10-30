@@ -25,7 +25,7 @@ describe("HighlightedText", () => {
 });
 
 describe("MetricCards", () => {
-  it("shows values and colours differences by whether higher is worse", () => {
+  it("shows values and their differences from the average, without judging them", () => {
     render(
       <MetaContext.Provider value={META}>
         <MetricCards metrics={{ tone_balance: 0.5, hostility: 9, cooperation: 5, vader_mean: 0.1, negative_share: 0.3 }}
@@ -35,9 +35,9 @@ describe("MetricCards", () => {
     );
     const hostility = screen.getByTestId("metric-hostility");
     expect(within(hostility).getByText("9.0")).toBeInTheDocument();
-    expect(hostility.querySelector(".delta")).toHaveClass("bad");      // more hostile than average
-    expect(screen.getByTestId("metric-tone_balance").querySelector(".delta")).toHaveClass("good");
-    expect(screen.getByTestId("metric-vader_mean").querySelector(".delta")).toHaveClass("neutral");
+    expect(hostility.querySelector(".delta")).toHaveTextContent("+2.0 vs UN avg");
+    expect(hostility.querySelector(".delta")).not.toHaveClass("bad");     // red means hostile words only
+    expect(screen.getByTestId("metric-tone_balance").querySelector(".delta")).toHaveTextContent("+0.30");
   });
 });
 

@@ -14,12 +14,9 @@ export default function MetricCards({ metrics, compareTo, compareLabel }: {
         const base = compareTo?.[m.id];
         let delta = null;
         if (value !== null && value !== undefined && base !== null && base !== undefined) {
-          const diff = value - base;
-          const worse = m.higher_is_worse ? diff > 0 : diff < 0;
-          const tone = Math.abs(diff) < 1e-9 ? "neutral" : worse ? "bad" : "good";
           delta = (
-            <div className={`delta ${tone}`}>
-              {formatDelta(m.id, diff)} <span className="muted">vs {compareLabel}</span>
+            <div className="delta">
+              {formatDelta(m.id, value - base)} <span className="muted">vs {compareLabel}</span>
             </div>
           );
         }

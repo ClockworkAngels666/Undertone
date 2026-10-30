@@ -23,6 +23,7 @@ import YearPlayer from "../components/YearPlayer";
 import { useColorScheme } from "../lib/colors";
 import { plural, shortName } from "../lib/format";
 import { createFlagPole, type FlagPole, flagTexture } from "./flags";
+import { speakerFlag, speakerName } from "../lib/history";
 import { textSprite } from "./labels";
 import { magnitude, scaleFor } from "./scales";
 import { isSmallScreen } from "./stage";
@@ -116,7 +117,7 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
   const scheme = useColorScheme();
   const small = isSmallScreen();
   const { stage, failed } = useStage(ref, { fov: 34, minDistance: 1.2, maxDistance: 14 });
-  const [order, setOrder] = useState<SeatOrder>("value");
+  const [order, setOrder] = useState<SeatOrder>("name");
   const tip = useTip<number>();
   const yearIndex = matrix.years.indexOf(year);
   const pickRef = useRef<(code: string) => void>(() => {});
@@ -312,7 +313,8 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
     stage.invalidate();
   }, [stage, present, scale]);
 
-  // Flags at the desks of the chart's countries
+  // Flags at the desks of the chart's countries, redrawn when a delegation changes (the Soviet Union becomes Russia)
+  const identities = useMemo(() => chosen.map((c) => speakerFlag(c.code, year)).join(","), [chosen, year]);
   useEffect(() => {
     const current = scene.current;
     if (!stage || !current) return;
@@ -323,12 +325,13 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
       const index = indexOf.get(code);
       if (index === undefined) continue;
       const pole = createFlagPole({ width: small ? 0.24 : 0.17, segments: [8, 4], phase: index });
-      const label = textSprite(shortName(names[code] ?? code), { color: ink, height: small ? 0.15 : 0.08, weight: 500,
+      const label = textSprite(shortName(speakerName(code, year, names[code] ?? code)), {
+        color: ink, height: small ? 0.15 : 0.08, weight: 500,
         onTop: true });
       current.group.add(pole.group, label);
       current.flags.set(code, { index, pole, label });
       created.push(code);
-      void flagTexture(code, color).then((texture) => {
+      void flagTexture(speakerFlag(code, year), color).then((texture) => {
         if (current.flags.get(code)?.pole === pole) pole.setFlag(texture);
         else texture.dispose();
         stage.invalidate();
@@ -345,7 +348,7 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
         current.flags.delete(code);
       }
     };
-  }, [stage, chosen, names, matrix, scheme, small]);
+  }, [stage, chosen, names, matrix, scheme, small, identities]);
 
   // Pointer: hover (mouse) shows the delegation, a click or tap opens its speech
   useEffect(() => {
@@ -417,7 +420,7 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
           + `${plural(present.seated.length, "delegation")}, each desk's column showing ${metricLabel}.`} />
         {tip.item !== null && tipCountry && (
           <div className="tooltip view3d-tip" ref={tip.ref}>
-            <div className="year">{names[tipCountry.code] ?? tipCountry.name} · {year}</div>
+            <div className="year">{speakerName(tipCountry.code, year, names[tipCountry.code] ?? tipCountry.name)} · {year}</div>
             {tipValue === null ? <div>No statement this year</div> : (
               <>
                 <div><strong>{format(tipValue)}</strong> {metricLabel}</div>
