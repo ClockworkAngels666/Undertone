@@ -288,8 +288,8 @@ export default function BalanceScale({ hostile, cooperative, hostileTerms, coopT
   return (
     <div className="balance3d" data-ready={stage ? "true" : "false"}>
       <div className="balance3d-stage" ref={ref} role="img" aria-label={`A balance scale with ${hostile} hostile `
-        + `and ${cooperative} cooperative words; it tips towards the ${hostile > cooperative ? "hostile"
-          : cooperative > hostile ? "cooperative" : "neither"} side.`} />
+        + `and ${cooperative} cooperative words; ${hostile > cooperative ? "it tips towards the hostile side"
+          : cooperative > hostile ? "it tips towards the cooperative side" : "it settles level"}.`} />
       {tip.item !== null && <div className="tooltip view3d-tip" ref={tip.ref}>{tip.item}</div>}
       <div className="row balance3d-bar">
         <button type="button" className="btn small" onClick={() => setRun(run + 1)}>Weigh again</button>

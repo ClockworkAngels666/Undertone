@@ -73,6 +73,12 @@ class TestSentences:
         assert an.strip_chair_remarks(text) == ("Madam President, we condemn the aggression. "
                                                 "We welcome dialogue with all partners. Thank you.")
 
+    def test_a_run_on_introduction_keeps_the_speakers_first_words(self):
+        text = ("I now give the floor to Her Excellency Ana Pop, Minister for Foreign Affairs of Valdoria "
+                "Excellencies, our presence here shows we welcome dialogue. We condemn the aggression.")
+        assert an.strip_chair_remarks(text) == ("Excellencies, our presence here shows we welcome dialogue. "
+                                                "We condemn the aggression.")
+
     def test_speeches_without_the_chair_are_unchanged(self):
         for text in ("WE CONDEMN THE AGGRESSION AGAINST OUR PEOPLE. WE WELCOME DIALOGUE WITH ALL PARTNERS.",
                      "Mr. President, we welcome dialogue. I thank the Secretary-General for his report."):

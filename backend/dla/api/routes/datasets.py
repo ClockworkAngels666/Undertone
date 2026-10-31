@@ -157,7 +157,7 @@ def add_documents(dataset_id: str, batch: DocumentBatch, db: Session = Depends(g
     for i, item in enumerate(batch.documents):
         code = normalize_code(item.country)
         if not is_valid_code(code):
-            skipped.append({"row": i, "reason": f"“{item.country}” is not a country code (use e.g. VNM, CHN)."})
+            skipped.append({"row": i, "reason": f'"{item.country}" is not a country code (use e.g. VNM, CHN).'})
             continue
         if not MIN_YEAR <= item.year <= MAX_YEAR:
             skipped.append({"row": i, "reason": f"{item.year} is not a plausible year."})

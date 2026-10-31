@@ -40,7 +40,7 @@ export function parseDocumentsCsv(content: string): ParsedCsv {
     const year = Number.parseInt(String(row.year ?? "").trim(), 10);
     const text = String(row.text ?? "");
     if (!Number.isFinite(year)) {
-      problems.push(`Line ${line}: “${row.year ?? ""}” is not a year.`);
+      problems.push(`Line ${line}: "${row.year ?? ""}" is not a year.`);
       return;
     }
     if (!text.trim()) {

@@ -25,6 +25,11 @@ def test_summary(demo_client):
     assert "s-maxage" in r.headers["cache-control"]
 
 
+def test_word_counts_before_any_load_are_empty_and_not_cached(client):
+    r = client.get("/api/un/terms")
+    assert r.json()["terms"] == [] and r.headers["cache-control"] == "no-store"
+
+
 def test_dictionary_word_counts_add_up_to_the_scores(demo_client):
     body = demo_client.get("/api/un/terms").json()
     assert body["statements"] == 130 and (body["first_year"], body["last_year"]) == (2000, 2025)

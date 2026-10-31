@@ -61,6 +61,7 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
   const narrow = useNarrow();
   const [picked, setPicked] = useState<string | null>(null);
   const hintId = useId();
+  if (picked && !series.some((s) => s.key === picked)) setPicked(null);   // its country left the chart
 
   const hasData = series.some((s) => s.points.some((p) => p.value !== null));
   if (!hasData) return <p className="empty">No data for this selection.</p>;
@@ -76,9 +77,8 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
   const eventLabels = shownEvents.length > 0 && !narrow;
   const showDots = last - first <= 25;
   // A legend entry picks out one line: the others fade but keep their colours, and it is drawn on top
-  const focus = picked && series.some((s) => s.key === picked) ? picked : null;
+  const focus = picked;
   const faded = (key: string) => focus !== null && key !== focus;
-  const drawn = focus ? [...series.filter((s) => s.key !== focus), ...series.filter((s) => s.key === focus)] : series;
   const labelEnds = series.length <= 4;
   const labelled = (key: string) => (labelEnds && !faded(key)) || key === focus;
   const endPoints = endLabelPositions(series.filter((s) => labelled(s.key)));   // spread only the labels shown
@@ -132,9 +132,9 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
               <Line dataKey={AVERAGE_KEY} name={averageLabel} stroke={AVERAGE_COLOR[scheme]} strokeWidth={1.5}
                 strokeDasharray="5 4" dot={false} activeDot={false} connectNulls isAnimationActive={false} />
             )}
-            {drawn.map((s) => (
+            {series.map((s) => (
               <Line key={s.key} dataKey={s.key} name={s.label} stroke={s.color} strokeWidth={2}
-                strokeOpacity={faded(s.key) ? 0.2 : 1}
+                strokeOpacity={faded(s.key) ? 0.2 : 1} zIndex={s.key === focus ? 401 : undefined}
                 strokeDasharray={s.dashed ? "6 4" : undefined} strokeLinecap="round" strokeLinejoin="round"
                 connectNulls isAnimationActive={false}
                 dot={showDots && !faded(s.key) ? { r: 3.5, fill: s.color, stroke: ink.surface, strokeWidth: 2 } : false}

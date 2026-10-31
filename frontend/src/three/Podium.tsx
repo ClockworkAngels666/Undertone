@@ -105,7 +105,7 @@ export default function Podium({ rows, format, onPick }: Props) {
       const value = textSprite(format(row.value),
         { color: ink, height: small ? 0.1 : 0.08, onTop: true, anchor: "bottom" });
       const name = textSprite(shortName(row.name, 18),
-        { color: ink, height: small ? 0.11 : 0.085, weight: 500, onTop: true, anchor: "bottom" });
+        { color: ink, height: small ? 0.11 : 0.085, weight: 500, onTop: true });
       value.position.set(x, height + POLE + 0.1 - baseHeight(value) / 2, 0);
       name.position.copy(value.position);
       name.center.y = -baseHeight(value) / baseHeight(name) - 0.05;

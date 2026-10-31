@@ -25,7 +25,7 @@ test("uploads a CSV, compares it over time, exports and deletes it", async ({ pa
   await expect(page.getByRole("heading", { name: "By country and year" })).toBeVisible();
 
   await page.getByLabel("Metric").selectOption("kw::sanction*");
-  await expect(page.getByRole("heading", { name: "“sanction…” per 1,000 words" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: '"sanction…" per 1,000 words' })).toBeVisible();
   await page.getByLabel(/Compare with the same countries/).check();
 
   const href = await page.getByRole("link", { name: /Results by country and year/ }).getAttribute("href");

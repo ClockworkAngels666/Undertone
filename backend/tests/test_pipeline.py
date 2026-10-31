@@ -9,7 +9,8 @@ from dla import db, pipeline
 from dla.models import Country, PipelineRun, UNCountryYear, UNKeywordRate, UNSentence, UNText
 
 SPEECHES = {
-    "TXT/Session 77 - 2022/RUS_77_2022.txt": "We condemn the sanctions and NATO expansion. We welcome dialogue.",
+    "TXT/Session 77 - 2022/RUS_77_2022.txt": ("The Assembly will hear an address by His Excellency Mr. Sergey Lavrov. "
+                                              "We condemn the sanctions and NATO expansion. We welcome dialogue."),
     "TXT/Session 77 - 2022/USA_77_2022.txt": "We stand together with our partners in solidarity and trust.",
     "TXT/Session 78 - 2023/RUS_78_2023.txt": "The aggression of the bloc is a threat to every sovereign nation.",
     "TXT/Session 78 - 2023/._RUS_78_2023.txt": "\x00\x05\x16\x07 macOS metadata, not a speech",
@@ -56,7 +57,7 @@ def test_run_loads_everything_and_is_safe_to_repeat(client, archive, tmp_path, m
             assert count(PipelineRun) == attempt + 1
             rus = session.scalars(select(UNCountryYear).where(UNCountryYear.country_code == "RUS",
                                                               UNCountryYear.year == 2022)).one()
-            assert rus.session == 77 and rus.hostile_hits == 2 and rus.coop_hits == 2
+            assert rus.session == 77 and rus.hostile_hits == 2 and rus.coop_hits == 2 and rus.words == 10
             nato = session.get(UNKeywordRate, (rus.id, "NATO"))
             assert nato.hits == 1 and nato.per_1000 == pytest.approx(1000 / rus.words)
             assert count(UNText) == 3

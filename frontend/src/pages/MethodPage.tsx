@@ -45,7 +45,7 @@ export default function MethodPage() {
 
         <h2>Turning points</h2>
         <p>
-          “Biggest shifts” lists the largest changes in a metric from one statement to the country’s next one. They
+          &quot;Biggest shifts&quot; lists the largest changes in a metric from one statement to the country&apos;s next one. They
           point to speeches worth reading closely. They are not proof that policy changed.
         </p>
 
@@ -53,7 +53,7 @@ export default function MethodPage() {
           <>
             <h2>Context model (local only)</h2>
             <p>
-              When the app runs on a researcher’s own computer, a transformer model ({meta.context_model.name}) can also
+              When the app runs on a researcher&apos;s own computer, a transformer model ({meta.context_model.name}) can also
               label each sentence as hostile, cooperative or neutral by reading it as a whole. It is too large for the
               public server, so it is switched off there.
             </p>
@@ -62,7 +62,7 @@ export default function MethodPage() {
 
         <h2>Limitations</h2>
         <ul>
-          <li>Word counting ignores context: “we do not seek confrontation” still counts one hostile word, and irony is
+          <li>Word counting ignores context: &quot;we do not seek confrontation&quot; still counts one hostile word, and irony is
             invisible.</li>
           <li>VADER was built for social media, not diplomatic prose. Formal language often scores mildly positive.</li>
           <li>Texts must be in English. UN speeches are the official English versions, which are themselves translations
@@ -80,12 +80,12 @@ export default function MethodPage() {
         <h2>Listening</h2>
         <p>
           Listen reads a text aloud with a voice built into your browser or device. It is not a recording of the speech
-          and not the delegate’s voice. Voices marked “online” sound more natural but send the text to Google or
+          and not the delegate&apos;s voice. Voices marked &quot;online&quot; sound more natural but send the text to Google or
           Microsoft to be spoken; the others stay on your device. Your choice of voice and speed is remembered in this
           browser.
         </p>
         <p>
-          Texts you upload are stored in the app’s database. Anyone with a dataset’s link can view it; only the browser
+          Texts you upload are stored in the app&apos;s database. Anyone with a dataset&apos;s link can view it; only the browser
           that created it can change or delete it.
         </p>
 

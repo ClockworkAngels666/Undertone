@@ -18,10 +18,10 @@ interface LabelSize {
   text: number;          // share of the sprite's height taken by the font
 }
 
-/** A text label that always faces the camera. `height` is its size in scene units. `anchor` is the edge that stays
- *  at the label's position when it grows to stay readable: "top" grows downward, "bottom" upward. */
+/** A text label that always faces the camera. `height` is its size in scene units. With `anchor: "bottom"` the
+ *  label's position is its bottom edge, so it grows upward when keepLabelsReadable enlarges it. */
 export function textSprite(text: string, options: { color?: string; height?: number; weight?: number; font?: string;
-  onTop?: boolean; anchor?: "center" | "top" | "bottom" } = {}) {
+  onTop?: boolean; anchor?: "bottom" } = {}) {
   const fontSize = 64;
   const font = `${options.weight ?? 400} ${fontSize}px ${options.font ?? '"Jost Variable", Jost, sans-serif'}`;
   const measure = document.createElement("canvas").getContext("2d")!;
@@ -41,7 +41,6 @@ export function textSprite(text: string, options: { color?: string; height?: num
   const sprite = new Sprite(new SpriteMaterial({ map: texture, transparent: true, depthWrite: false,
     depthTest: !options.onTop }));
   if (options.onTop) sprite.renderOrder = 10;     // never hidden behind the scene
-  if (options.anchor === "top") sprite.center.set(0.5, 1);
   if (options.anchor === "bottom") sprite.center.set(0.5, 0);
   const height = options.height ?? 0.08;
   sprite.scale.set((height * canvas.width) / canvas.height, height, 1);

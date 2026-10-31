@@ -24,7 +24,7 @@ def metric_column(metric: str):
         return getattr(UNCountryYear, metric), None
     if metric.startswith(KEYWORD_PREFIX) and len(metric) > len(KEYWORD_PREFIX):
         return UNKeywordRate.per_1000, metric[len(KEYWORD_PREFIX):]
-    raise UnknownMetric(f"Unknown metric “{metric}”.")
+    raise UnknownMetric(f"Unknown metric '{metric}'.")
 
 
 def metric_query(metric: str, *columns):

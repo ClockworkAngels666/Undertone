@@ -29,7 +29,7 @@ export default function TermCounts() {
   if (counts.error) return <Notice kind="error" onRetry={counts.reload}>{counts.error}</Notice>;
   if (!counts.data) return <Loading />;
   const { statements, first_year, last_year } = counts.data;
-  if (!counts.data.terms.length) return <p className="empty">No UN statements are loaded yet.</p>;
+  if (!counts.data.terms.length) return <p className="empty">The word counts are not loaded yet.</p>;
 
   const header = (key: Sort, text: string, numeric = true) => (
     <th className={numeric ? "num" : undefined}

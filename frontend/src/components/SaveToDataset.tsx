@@ -59,7 +59,7 @@ export default function SaveToDataset({ text }: { text: string }) {
     <form className="card stack" onSubmit={submit} aria-labelledby={`${id}-title`}>
       <h2 id={`${id}-title`}>Save to a dataset</h2>
       <p className="muted small">
-        Keep this text to compare it with others over time. Anyone with the dataset’s link can read it, so do not
+        Keep this text to compare it with others over time. Anyone with the dataset's link can read it, so do not
         save confidential material.
       </p>
       <div className="row">

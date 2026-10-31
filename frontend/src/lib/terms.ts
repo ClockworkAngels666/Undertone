@@ -20,6 +20,6 @@ export function sameTerms(a: string[], b: string[]) {
 export function checkTerms(terms: string[], maxTerms = 500, maxLength = 60): string | null {
   if (terms.length > maxTerms) return `At most ${maxTerms} entries (this list has ${terms.length}).`;
   const long = terms.find((t) => t.length > maxLength);
-  if (long) return `Entries must be at most ${maxLength} characters (“${long.slice(0, 20)}…”).`;
+  if (long) return `Entries must be at most ${maxLength} characters ("${long.slice(0, 20)}…").`;
   return null;
 }

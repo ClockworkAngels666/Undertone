@@ -174,7 +174,7 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
         const plinth = new Mesh(new CylinderGeometry(0.07, 0.09, 0.04, 16),
           new MeshStandardMaterial({ color: scheme === "dark" ? 0x2a3f55 : 0xb8c4d0, roughness: 0.6 }));
         const name = textSprite(shortName(speakerName(slot.code, year, names[slot.code] ?? slot.code)), {
-          color: ink, height: labelSize * 1.05, onTop: true, anchor: "top" });
+          color: ink, height: labelSize * 1.05, onTop: true });
         p = { pole, plinth, name, value: null, valueText: "", labelY: -0.06, x: targetX, z: targetZ - 0.6,
           height: 0.05, targetX, targetZ, targetHeight: 0.05 };
         current.group.add(pole.group, plinth, name);

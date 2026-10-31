@@ -128,7 +128,7 @@ def validate_terms(terms, what="term list"):
     too_long = [t for t in terms if len(t) > MAX_TERM_LENGTH]
     if too_long:
         raise ValueError(f"Entries in the {what} must be at most {MAX_TERM_LENGTH} characters "
-                         f"(“{too_long[0][:20]}…”).")
+                         f'("{too_long[0][:20]}…").')
 
 
 def is_default_dictionaries(hostile_terms, coop_terms):
@@ -171,6 +171,8 @@ _CHAIR = re.compile(r"give the floor\b|\bassembly (?:will|now will|shall) (?:now
 _CHAIR_THANKS = re.compile(r"^(?:applause\s+)?on behalf of the (?:general )?assembly\b"
                            r"|^i (?:wish to |would like to )?thank (?:(?:his|her) excellency|the (?!assembly\b))",
                            re.I)
+# Where the speaker starts when the chair's introduction runs into the speech without a full stop
+_SALUTATION = re.compile(r"\b(?:madam|mr\.?) president\b|\bexcellencies\b", re.I)
 # An on-screen caption: words in capitals before the first mixed-case word
 _CAPTION = re.compile(r"(?:[^\sa-z]+\s+){3,40}(?=\S*[a-z])")
 
@@ -209,7 +211,9 @@ def strip_chair_remarks(text):
     lead = _chair_count(text, spans)
     if not lead:
         return text
-    body = text[spans[lead][0]:].strip() if lead < len(spans) else ""
+    a, b = spans[lead - 1]                                    # the chair's last line, which may run on
+    start = _SALUTATION.search(text, _CHAIR.search(text, a, b).end(), b)
+    body = text[start.start() if start else (spans[lead][0] if lead < len(spans) else len(text)):].strip()
     caption = _CAPTION.match(body)
     if caption and sum(sum(c.isupper() for c in w) >= 2 for w in caption.group(0).split()) >= 3:
         body = body[caption.end():]
@@ -231,9 +235,8 @@ def reading_text(text, hostile_rx, coop_rx):
     for p in paragraphs:
         starts.add(offset)
         offset += len(p) + 1
-    breaks = [m.span() for m in _SENTENCE_BREAK.finditer(_protect(clean))] + [(len(clean), len(clean))]
-    out, index, begin = [], 0, 0
-    for end, next_begin in breaks:
+    out, index = [], 0
+    for begin, end in _pieces(clean):
         piece = clean[begin:end]
         if piece:
             if begin in starts or not out:
@@ -242,7 +245,6 @@ def reading_text(text, hostile_rx, coop_rx):
             out[-1].append({"text": piece, "index": index if counted else None,
                             "highlights": highlight_spans(piece, hostile_rx, coop_rx)})
             index += counted
-        begin = next_begin
     return out
 
 

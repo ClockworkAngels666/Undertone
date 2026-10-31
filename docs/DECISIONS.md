@@ -79,26 +79,26 @@ one. While no UN data is loaded, `/api/un/summary` answers `Cache-Control: no-st
 empty answer once the data arrives.
 
 ## 12. 3D views where a third dimension carries meaning
-- **Flags by year** (UN page): flags on poles, pole height = the chosen metric in one year, Play animates
+- Flags by year (UN page): flags on poles, pole height = the chosen metric in one year, Play animates
   1946–2025, a flag at half-mast means no statement that year. Shows the chart's countries or the year's highest
   or lowest. One height scale spans all years, so heights stay comparable while it plays; the data arrives in one
   request (`/api/un/matrix`, ~30 KB compressed). This replaced a large 3D globe: the owner does not want a big
   globe as every project's centrepiece, and flags are specific to diplomacy.
-- **Assembly hall** (UN page, next to the flags, same year and Play button): the General Assembly seen from the
+- Assembly hall (UN page, next to the flags, same year and Play button): the General Assembly seen from the
   rostrum, one desk per delegation that spoke that year, with a column for the metric (colour and height; for tone
   balance and VADER the height is the distance from 0). Seats run from the lowest value on the left to the highest on
   the right (or alphabetically), so the year's spread reads at a glance; the hall has as many rows as the largest
   assembly needs, and earlier, smaller assemblies fill the front rows. The chart's countries get a flag at their desk.
   Desks are instanced (one draw call for ~200 desks), and delegations glide to their new seats as the years play.
-- **Balance scale** (Analyze): one block per hostile or cooperative word (or per few words for long texts, the same
+- Balance scale (Analyze): one block per hostile or cooperative word (or per few words for long texts, the same
   unit on both sides) drops into its pan, and the beam tips by the tone balance; the needle's dial marks the UN
   average. Hovering a block names its word.
-- **Podium** (Country ranking): the year's three highest values with their flags; tapping one opens that speech.
-- **Speaker's rostrum** (Close reading): a General Assembly-style lectern with the speaking country's flag and a
+- Podium (Country ranking): the year's three highest values with their flags; tapping one opens that speech.
+- Speaker's rostrum (Close reading): a General Assembly-style lectern with the speaking country's flag and a
   plaque with session and year. Decorative context only; the UN emblem is deliberately not used.
-- **Rhetoric space** (UN and dataset pages): hostile words × cooperative words × year, with the "tone balance = 0"
+- Rhetoric space (UN and dataset pages): hostile words × cooperative words × year, with the "tone balance = 0"
   plane drawn in; each path ends in a small waving flag, so lines can be told apart without the legend.
-- **Sentence landscape** (Analyze): every sentence in reading order, with hostile and cooperative columns.
+- Sentence landscape (Analyze): every sentence in reading order, with hostile and cooperative columns.
 
 All 3D is three.js, loaded lazily (pages show before it arrives), drawn only while visible and only when something
 changes (waving flags excepted), lighter on phones (fewer polygons, pixel density capped, fewer flags), tap instead
@@ -108,8 +108,8 @@ Czechoslovakia…) get a plain flag with their code. Every 3D view has a 2D equi
 
 ## 13. Fonts
 The requested Gastromond and Europa are commercial fonts (Adobe Fonts, or paid self-hosting licences). As agreed,
-the app uses free, open-licensed stand-ins served with the app: **Fraunces** (heavy old-style display serif, in the
-spirit of Gastromond's Garamond-based fat face) for headings and figures, and **Jost** at weight 300 (geometric,
+the app uses free, open-licensed stand-ins served with the app: Fraunces (heavy old-style display serif, in the
+spirit of Gastromond's Garamond-based fat face) for headings and figures, and Jost at weight 300 (geometric,
 Futura-like, close to Europa Light) for text; labels and buttons use Jost 500 for legibility at small sizes.
 
 ## 14. Accessibility and phone pass
@@ -129,7 +129,7 @@ country names, one-sentence and 200,000-character texts) and a 320px-wide screen
   the view.
 
 ## 15. Name
-The project is called **Undertone Lab**: the tone underneath diplomatic wording is what it measures, and the tool
+The project is called Undertone Lab: the tone underneath diplomatic wording is what it measures, and the tool
 is a workbench for measuring it. The header shows "Undertone Lab" with "Diplomatic language analyzer" beneath it.
 The GitHub repository is dungnguyen0309/UndertoneLab and the site is undertonelab.vercel.app; the old
 repository names and the old web address forward to the new ones. Kept on purpose: the Python package `dla` and
@@ -150,13 +150,13 @@ when chosen.
   is skipped and a notable sentence's number points at the same sentence. Checked against all 11,141 speeches.
 - The voice is not the delegate's: the Method page says so. The chosen voice and speed are remembered per browser.
 
-## 17. Look: a working tool, not a template
+## 17. A plainer look
 In October 2026 the owner said the site still looked machine-made. The pages now read as a research tool:
 - Each page opens with its title and one line about the data, set on the page itself. The blue gradient banners,
   the decorative globe on the start page and the wave pattern are gone; the row of flagpoles in front of UN
   headquarters now closes the footer instead.
 - No resting shadows, coloured stripes or short bars under headings: surfaces are told apart by a 1px edge. The five
-  metrics sit in one strip divided by thin lines rather than five striped cards. Titles are app-sized (28px).
+  metrics used to be five striped cards and now sit in one strip divided by thin lines. Titles are app-sized (28px).
 - UN blue is kept for data, links and the one main button; the active menu item and the selected tab are marked in
   ink. Dark mode uses neutral greys instead of navy.
 - The header shows the wave mark on its own (no blue tile), with the subtitle in sentence case.
@@ -210,68 +210,71 @@ On wide screens the tab bar stays under the header while the page scrolls. Loadi
 section's height, so the page no longer jumps as data arrives.
 
 ## 21. The rest of the critique
-- **Who held the seat.** The corpus files the Soviet Union's statements under RUS (to 1991) and the Republic of
+- Who held the seat: the corpus files the Soviet Union's statements under RUS (to 1991) and the Republic of
   China's under CHN (to 1971, resolution 2758). `lib/history.ts` gives the name and flag for a code in a year, and
   the flags, the hall, the podium, the rostrum and the tables use it: 1960 shows the Soviet Union (a plain "USSR"
   flag) and the Republic of China.
-- **Metaphors that judged.** The podium is not shown for metrics where a high value is a bad one (hostility, share
+- Metaphors that judged: the podium is not shown for metrics where a high value is a bad one (hostility, share
   of negative sentences), so it never crowns the most hostile delegation; the Assembly hall seats delegations
   alphabetically by default, as the real Assembly does, with colour and height carrying the value (seating by
   score is still an option).
-- **Red means hostile words.** Differences from the UN average are shown in plain ink, not red and green; the
+- Red means hostile words: differences from the UN average are shown in plain ink, not red and green; the
   eighth chart colour was the same red as hostile words and close to the second colour, and is now plum.
-- **Smaller fixes.** Chart years fall on round steps (1990, 2000…); on phones the event names move under the chart;
+- Smaller fixes: chart years fall on round steps (1990, 2000…); on phones the event names move under the chart;
   phones get short menu and tab names (the tabs keep their full accessible names); the ranking's values have their
   own right-aligned column; Close reading says "scored sentences"; Save text is a secondary button; the keyword
   rule sits under its field; a missing dataset gets a title and a way back; Copy link says it copied; the 404 page
   sets its tab title; the notable sentences lose their side bar; and the small type sizes collapse onto three steps.
-- **Not changed:** the transcript headers that VADER scores as negative (fixing them means rescoring all UN data in
+- Not changed: the transcript headers that VADER scores as negative (fixing them means rescoring all UN data in
   the live database), legend clicks to isolate a line, and dictionary hit counts.
 
 ## 22. The second critique
 A second review scored the app 26/40: the result still read as a list of numbers, Close reading only worked for
 the chart's countries, and several controls behaved differently from page to page.
-- **The record.** The Analyze result opens with one card: the verdict, the tone balance as a figure, one sentence
+- The record: the Analyze result opens with one card that holds the verdict, the tone balance as a figure, one sentence
   placing it among the UN statements of the period (`tone_share_below` joins the other two shares), and a
   histogram of every statement's tone balance (`tone_histogram`, twenty bands from −1 to +1) with this text marked
   on it. "Edit the text" goes back to the box. The metric explanations are one "What these measures mean" list
   instead of a line under every card; saving to a dataset sits behind a button; the limitations follow the
   sentence table.
-- **Close reading for any delegation.** The delegation list has the chart's countries first and then every
+- Close reading for any delegation: the delegation list has the chart's countries first and then every
   delegation with statements; the years come from the data for that delegation. The speech comes first, with the
   notable sentences beside it; selecting one scrolls the speech to it (or plays from it while listening).
   Transcript headers ("Mr. President…") are left out of the notable lists.
-- **Controls that agree.** A start year after the end year is marked as an error and nothing is fetched; a year
+- Controls that agree: a start year after the end year is marked as an error and nothing is fetched; a year
   outside the data is corrected with a note saying so. The ranking follows the year player, and its rows open the
   speech. Every tab bar uses the same underline; the chart options sit in the chart's card; each UN view sets its
   own tab title; the 404 page links the main pages.
-- **Smaller fixes.** Highlighted words carry a hidden "(hostile)" or "(cooperative)" for screen readers; the file
+- Smaller fixes: highlighted words carry a hidden "(hostile)" or "(cooperative)" for screen readers; the file
   button shows a focus ring; the phone menu only fades below 400px, where it scrolls; flags say "no statement
   yet" before a delegation's first statement; phone flag labels alternate heights; the Soviet flag is red with a
-  gold name; the 3D captions say "select" rather than "tap".
-- **A crash.** The trend chart called a hook after its "no data" return, so a chart that first rendered empty
+  gold name; the 3D captions say "select" where they said "tap".
+- A crash: the trend chart called a hook after its "no data" return, so a chart that first rendered empty
   and then received data (a dataset page, sometimes the UN page) blanked the whole app. The hook now runs first,
   and a unit test renders the chart empty and then with data.
-- **Not changed:** the transcript headers inside the UN data (rescoring needs the live database), legend clicks
+- Not changed: the transcript headers inside the UN data (rescoring needs the live database), legend clicks
   to isolate a line, and dictionary hit counts.
 
 ## 23. The critique's last items
-- **The chair's words.** The corpus's 2025 texts are speech-to-text transcripts of the hall. Many open with the
+- The chair's words: the corpus's 2025 texts are speech-to-text transcripts of the hall. Many open with the
   President of the Assembly introducing the speaker and asking Protocol to escort them, some carry an on-screen
   caption in capitals ("FOREIGN MINISTER LAVROV, MINISTER FOR…"), and they close with the chair's thanks, sometimes
   followed by the next speaker's introduction. `analysis.strip_chair_remarks` removes those lines when the corpus
   is read (`pipeline.iter_statements`), so the scores, the notable sentences and the stored full texts agree.
   Only a text that opens with the chair's words is changed: 190 of the 380 statements of 2025 (about 8,000
   words in all), none from earlier years. Speeches written entirely in capitals (Lesotho, 2024) are left alone,
-  and the all-capitals filter on the notable lists is gone. `SCORING_VERSION` is 2026-10-2.
-- **Picking out a line.** The chart's legend entries are buttons. One picks out its line: the others fade (keeping
+  and the all-capitals filter on the notable lists is gone. In three transcripts (Malawi, Malaysia, Romania)
+  the chair's introduction runs into the speech with no full stop; the speech then starts at the first "Madam
+  President", "Mr. President" or "Excellencies" after the chair's words. `SCORING_VERSION` is 2026-10-3.
+- Picking out a line: the chart's legend entries are buttons. One picks out its line: the others fade (keeping
   their colours) and lose their dots and labels, the tooltip shows only that line, and it gets an end label even
   among more than four lines. Selecting it again shows them all.
-- **How often each word occurs.** The pipeline credits every dictionary hit to the word that matched it
+- How often each word occurs: the pipeline credits every dictionary hit to the word that matched it
   (`analysis.term_regex`, tried in the same order as the scores, so the counts add up to them) and stores the
   totals in `un_term_counts` (migration 0003), served at `/api/un/terms`. The Dictionaries page has a second tab
   with a sortable table of the default words: times found and share of statements, filtered by list, each word
-  coloured like its highlight in a text.
-- **Readable 3D labels.** No 3D label is drawn under 11 CSS pixels: before each draw the stage grows any label
+  coloured like its highlight in a text. Until a database has the counts (before migration 0003 and the next
+  load), the endpoint returns an empty list that the CDN may not cache, and the tab says they are not loaded yet.
+- Readable 3D labels: no 3D label is drawn under 11 CSS pixels. Before each draw the stage grows any label
   that the camera's distance or a small screen would shrink below that (`labels.keepLabelsReadable`), and returns
   it to its own size up close.

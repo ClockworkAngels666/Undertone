@@ -40,7 +40,7 @@ CACHE_DIR = DATA_DIR / "processed"
 FILENAME_PATTERN = re.compile(r"^([A-Z]{2,4})_(\d{1,3})_(\d{4})\.txt$")   # e.g. RUS_77_2022.txt
 HEADERS = {"User-Agent": "undertone-lab/1.0 (UN General Debate research pipeline)"}
 NOTABLE_PER_KIND = 5
-SCORING_VERSION = "2026-10-2"     # bump when the scoring code changes in a way that alters results
+SCORING_VERSION = "2026-10-3"     # bump when the scoring code changes in a way that alters results
 
 
 class PipelineError(RuntimeError):

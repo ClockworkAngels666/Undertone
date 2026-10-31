@@ -1288,16 +1288,6 @@ tr.clickable:active td {
   }
 }
 
-th button.sort {
-  font: inherit;
-  font-weight: 500;
-  background: none;
-  border: none;
-  color: inherit;
-  padding: 0;
-  cursor: pointer;
-}
-
 .bar-cell {
   display: flex;
   align-items: center;

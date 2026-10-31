@@ -22,7 +22,7 @@ export function Loading({ label = "Loading…" }: { label?: string }) {
 export function Limitations() {
   return (
     <p className="limitations">
-      Word counts ignore context (“we do not seek confrontation” still counts one hostile word), VADER was built for
+      Word counts ignore context ("we do not seek confrontation" still counts one hostile word), VADER was built for
       social media, texts must be in English, and tone is not policy. Read the sentences before trusting a number.
     </p>
   );

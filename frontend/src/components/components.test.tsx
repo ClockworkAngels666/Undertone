@@ -118,6 +118,19 @@ describe("TrendChart", () => {
     expect(screen.getByRole("button", { name: "United States" }).closest("li")).not.toHaveClass("faded");
   });
 
+  it("forgets a picked line once its country leaves the chart", async () => {
+    const user = userEvent.setup();
+    const russia = { key: "RUS", label: "Russia", color: "#2a78d6", points: [{ year: 2020, value: 0.1 }] };
+    const usa = { key: "USA", label: "United States", color: "#eb6834", points: [{ year: 2020, value: 0.3 }] };
+    const props = { format: String, tickFormat: String, valueLabel: "x" };
+    const { rerender } = render(<TrendChart {...props} series={[russia, usa]} />);
+    await user.click(screen.getByRole("button", { name: "Russia" }));
+    rerender(<TrendChart {...props} series={[usa]} />);
+    rerender(<TrendChart {...props} series={[russia, usa]} />);
+    expect(screen.getByRole("button", { name: "Russia" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "United States" }).closest("li")).not.toHaveClass("faded");
+  });
+
   it("draws the data when it arrives after an empty first render", () => {
     // Pages render the chart before their data loads; a hook after the early return crashed the whole page
     const props = { format: String, tickFormat: String, valueLabel: "x" };

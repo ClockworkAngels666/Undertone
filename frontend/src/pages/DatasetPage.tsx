@@ -160,7 +160,7 @@ function DatasetView({ dataset, rows, rowsError, refresh }: {
           </div>
           <label className="checkbox" style={{ marginTop: 8 }}>
             <input type="checkbox" checked={compareUN} onChange={(e) => setCompareUN(e.target.checked)} />
-            Compare with the same countries’ UN General Debate speeches (dashed)
+            Compare with the same countries' UN General Debate speeches (dashed)
           </label>
           {compareUN && !dataset.uses_default_dictionaries && (
             <p className="small muted">Not available: this dataset uses custom dictionaries, so the numbers are not comparable.</p>
@@ -221,7 +221,7 @@ function DatasetView({ dataset, rows, rowsError, refresh }: {
             <h2>Delete this dataset</h2>
             <p className="small muted">Removes the dataset and all its texts from the database. This cannot be undone.</p>
             <button type="button" className="btn danger" onClick={async () => {
-              if (!window.confirm(`Delete “${dataset.name}” and all ${dataset.documents} texts?`)) return;
+              if (!window.confirm(`Delete "${dataset.name}" and all ${dataset.documents} texts?`)) return;
               try {
                 await api.datasets.remove(dataset.id, token);
                 storage.forgetDataset(dataset.id);

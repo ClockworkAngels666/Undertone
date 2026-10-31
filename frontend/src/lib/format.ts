@@ -8,7 +8,7 @@ export function isKeywordMetric(id: string) {
 
 /** Display name of a metric id, including keyword rates ("kw::sanction*"). */
 export function metricLabel(id: string, metrics: MetricInfo[]) {
-  if (isKeywordMetric(id)) return `“${id.slice(KEYWORD_PREFIX.length).replace(/\*/g, "…")}” per 1,000 words`;
+  if (isKeywordMetric(id)) return `"${id.slice(KEYWORD_PREFIX.length).replace(/\*/g, "…")}" per 1,000 words`;
   return metrics.find((m) => m.id === id)?.label ?? id;
 }
 

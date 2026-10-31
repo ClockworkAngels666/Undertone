@@ -44,8 +44,8 @@ export default function CountryPicker({ options, value, onChange, max, colors, l
     if (!match) {
       const several = options.filter((o) => o.name.toLowerCase().includes(query)).map((o) => o.name);
       setNote(several.length > 1
-        ? `“${raw.trim()}” fits ${several.slice(0, 4).join(", ")}${several.length > 4 ? "…" : ""}. Pick one from the list.`
-        : `No country matches “${raw.trim()}”.`);
+        ? `"${raw.trim()}" fits ${several.slice(0, 4).join(", ")}${several.length > 4 ? "…" : ""}. Pick one from the list.`
+        : `No country matches "${raw.trim()}".`);
       return;
     }
     setNote(value.includes(match.code) ? `${match.name} is already in the chart.` : null);
@@ -70,7 +70,7 @@ export default function CountryPicker({ options, value, onChange, max, colors, l
       </div>
       <input id={id} type="search" list={`${id}-list`} value={text} disabled={full}
         aria-describedby={note ? `${id}-note` : undefined}
-        placeholder={full ? `Maximum ${max} — remove one to add another` : "Type a country name or code…"}
+        placeholder={full ? `Maximum ${max}. Remove one to add another` : "Type a country name or code…"}
         onChange={(e) => {
           const next = e.target.value;
           setText(next);

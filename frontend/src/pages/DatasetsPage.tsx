@@ -21,8 +21,8 @@ export default function DatasetsPage() {
       <div className="page-intro">
         <h1>My datasets</h1>
         <p>
-          Your own collections, such as a ministry’s statements or a state broadcaster’s articles, scored by country and
-          year. Uploads are stored in the app’s database.
+          Your own collections, such as a ministry's statements or a state broadcaster's articles, scored by country and
+          year. Uploads are stored in the app's database.
         </p>
       </div>
 
@@ -56,7 +56,7 @@ export default function DatasetsPage() {
             </div>
             <p className="small muted">
               Scored with {dictionaries.custom ? "your custom dictionaries" : "the default dictionaries"}{" "}
-              (<Link to="/dictionaries">change</Link>). Anyone with a dataset’s link can view it; only this browser can
+              (<Link to="/dictionaries">change</Link>). Anyone with a dataset's link can view it; only this browser can
               change or delete it. Do not upload confidential texts.
             </p>
           </CsvUploader>

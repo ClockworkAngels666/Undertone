@@ -43,7 +43,7 @@ describe("format", () => {
   });
 
   it("labels keyword metrics", () => {
-    expect(metricLabel("kw::sanction*", META.metrics)).toBe("“sanction…” per 1,000 words");
+    expect(metricLabel("kw::sanction*", META.metrics)).toBe('"sanction…" per 1,000 words');
     expect(metricLabel("hostility", META.metrics)).toBe("Hostile words / 1,000");
   });
 });
@@ -73,7 +73,7 @@ describe("csv", () => {
       { country: "VNM", year: 2023, text: "We welcome dialogue, today.", source: "VNA", title: null },
     ]);
     expect(parsed.lines).toEqual([2]);
-    expect(parsed.problems).toEqual(["Line 3: “abc” is not a year.", "Line 4: the text is empty."]);
+    expect(parsed.problems).toEqual(['Line 3: "abc" is not a year.', "Line 4: the text is empty."]);
   });
 
   it("reports missing columns", () => {
