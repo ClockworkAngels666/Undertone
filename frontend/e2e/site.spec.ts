@@ -42,7 +42,7 @@ for (const scheme of ["light", "dark"] as const) {
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
       expect(violations.map((v) => `${name}: ${v.id} (${v.nodes.map((n) => n.target.join(" ")).join(", ")})`)).toEqual([]);
     };
-    for (const path of ["/", "/un", "/datasets", "/dictionaries", "/method"]) {
+    for (const path of ["/", "/un", "/datasets", "/dictionaries", "/dictionaries?v=counts", "/method"]) {
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       await page.waitForLoadState("networkidle");

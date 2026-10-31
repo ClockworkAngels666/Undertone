@@ -14,7 +14,7 @@ import {
 import { useColorScheme } from "../lib/colors";
 import { shortName } from "../lib/format";
 import { createFlagPole, flagTexture } from "./flags";
-import { textSprite } from "./labels";
+import { baseHeight, textSprite } from "./labels";
 import { isSmallScreen } from "./stage";
 import { disposeGroup, useStage } from "./useStage";
 
@@ -101,11 +101,14 @@ export default function Podium({ rows, format, onPick }: Props) {
           stage.invalidate();
         }
       });
+      // The value sits above the pole and the name on top of it; both grow upward, so they never meet
+      const value = textSprite(format(row.value),
+        { color: ink, height: small ? 0.1 : 0.08, onTop: true, anchor: "bottom" });
       const name = textSprite(shortName(row.name, 18),
-        { color: ink, height: small ? 0.11 : 0.085, weight: 500, onTop: true });
-      name.position.set(x, height + POLE + 0.2, 0);
-      const value = textSprite(format(row.value), { color: ink, height: small ? 0.1 : 0.08, onTop: true });
-      value.position.set(x, height + POLE + 0.1, 0);
+        { color: ink, height: small ? 0.11 : 0.085, weight: 500, onTop: true, anchor: "bottom" });
+      value.position.set(x, height + POLE + 0.1 - baseHeight(value) / 2, 0);
+      name.position.copy(value.position);
+      name.center.y = -baseHeight(value) / baseHeight(name) - 0.05;
       group.add(name, value);
       for (const mesh of [...pole.meshes, step]) targets.current.push({ mesh, code: row.country });
     });

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -59,6 +59,8 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
 
   // Before the early return: hooks must run on every render, data or not
   const narrow = useNarrow();
+  const [picked, setPicked] = useState<string | null>(null);
+  const hintId = useId();
 
   const hasData = series.some((s) => s.points.some((p) => p.value !== null));
   if (!hasData) return <p className="empty">No data for this selection.</p>;
@@ -73,18 +75,35 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
   // On a phone the event names would collide above the chart: the lines stay, the names go in a list below
   const eventLabels = shownEvents.length > 0 && !narrow;
   const showDots = last - first <= 25;
+  // A legend entry picks out one line: the others fade but keep their colours, and it is drawn on top
+  const focus = picked && series.some((s) => s.key === picked) ? picked : null;
+  const faded = (key: string) => focus !== null && key !== focus;
+  const drawn = focus ? [...series.filter((s) => s.key !== focus), ...series.filter((s) => s.key === focus)] : series;
   const labelEnds = series.length <= 4;
-  const endPoints = endLabelPositions(series);
+  const labelled = (key: string) => (labelEnds && !faded(key)) || key === focus;
+  const endPoints = endLabelPositions(series.filter((s) => labelled(s.key)));   // spread only the labels shown
 
   return (
     <figure style={{ margin: 0 }}>
       <ul className="chart-legend" aria-label="Legend">
-        {series.map((s) => (
-          <li key={s.key}>
-            <span className={`line-key${s.dashed ? " dashed" : ""}`} style={{ borderColor: s.color }} />
-            {s.label}
-          </li>
-        ))}
+        {series.map((s) => {
+          const entry = (
+            <>
+              <span className={`line-key${s.dashed ? " dashed" : ""}`} style={{ borderColor: s.color }} />
+              {s.label}
+            </>
+          );
+          return (
+            <li key={s.key} className={faded(s.key) ? "faded" : undefined}>
+              {series.length > 1 ? (
+                <button type="button" className="legend-pick" aria-pressed={focus === s.key} aria-describedby={hintId}
+                  onClick={() => setPicked(focus === s.key ? null : s.key)}>
+                  {entry}
+                </button>
+              ) : entry}
+            </li>
+          );
+        })}
         {average && (
           <li>
             <span className="line-key dashed" style={{ borderColor: AVERAGE_COLOR[scheme] }} />
@@ -92,10 +111,13 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
           </li>
         )}
       </ul>
+      {series.length > 1 && (
+        <span id={hintId} className="visually-hidden">Shows this line on its own; select it again to show all.</span>
+      )}
       <div className={`chart-box${reloading ? " reloading" : ""}`} role="img"
         aria-label={`Line chart of ${valueLabel} by year, ${first}–${last}. The same values are in the table below.`}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart accessibilityLayer={false} data={rows} margin={{ top: eventLabels ? 52 : 12, right: labelEnds ? 108 : 16, bottom: 4, left: 0 }}>
+          <LineChart accessibilityLayer={false} data={rows} margin={{ top: eventLabels ? 52 : 12, right: labelEnds || focus ? 108 : 16, bottom: 4, left: 0 }}>
             <CartesianGrid vertical={false} stroke={ink.grid} />
             <XAxis dataKey="year" type="number" domain={[first, last]} allowDecimals={false} ticks={yearTicks}
               tick={{ fill: ink.axis, fontSize: 12 }} tickLine={false} axisLine={{ stroke: ink.grid }} />
@@ -110,16 +132,18 @@ export default function TrendChart({ series, average, averageLabel = "All-countr
               <Line dataKey={AVERAGE_KEY} name={averageLabel} stroke={AVERAGE_COLOR[scheme]} strokeWidth={1.5}
                 strokeDasharray="5 4" dot={false} activeDot={false} connectNulls isAnimationActive={false} />
             )}
-            {series.map((s) => (
+            {drawn.map((s) => (
               <Line key={s.key} dataKey={s.key} name={s.label} stroke={s.color} strokeWidth={2}
+                strokeOpacity={faded(s.key) ? 0.2 : 1}
                 strokeDasharray={s.dashed ? "6 4" : undefined} strokeLinecap="round" strokeLinejoin="round"
                 connectNulls isAnimationActive={false}
-                dot={showDots ? { r: 3.5, fill: s.color, stroke: ink.surface, strokeWidth: 2 } : false}
-                activeDot={{ r: 5, fill: s.color, stroke: ink.surface, strokeWidth: 2 }}
-                label={labelEnds ? (props: LabelProps) => <EndLabel {...props} series={s} end={endPoints[s.key]}
+                dot={showDots && !faded(s.key) ? { r: 3.5, fill: s.color, stroke: ink.surface, strokeWidth: 2 } : false}
+                activeDot={faded(s.key) ? false : { r: 5, fill: s.color, stroke: ink.surface, strokeWidth: 2 }}
+                label={labelled(s.key) ? (props: LabelProps) => <EndLabel {...props} series={s} end={endPoints[s.key]}
                   color={ink.text} years={years} /> : undefined} />
             ))}
-            <Tooltip content={(props) => <ChartTooltip {...props} series={series} averageColor={AVERAGE_COLOR[scheme]}
+            <Tooltip content={(props) => <ChartTooltip {...props}
+              series={focus ? series.filter((s) => s.key === focus) : series} averageColor={AVERAGE_COLOR[scheme]}
               averageLabel={average ? averageLabel : null} format={format} />}
               cursor={{ stroke: ink.axis, strokeWidth: 1 }} isAnimationActive={false} />
           </LineChart>

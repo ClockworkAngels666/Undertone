@@ -10,9 +10,9 @@ from sqlalchemy.orm import Session
 
 from ... import analysis, config, un_data
 from ...countries import country_name, normalize_code
-from ...models import UNCountryYear, UNKeywordRate, UNSentence, UNText
+from ...models import UNCountryYear, UNKeywordRate, UNSentence, UNTermCount, UNText
 from ..deps import get_db, public_cache
-from ..schemas import Matrix, Ranking, SeriesResponse, Shift, Statement, StatementText, UNSummary
+from ..schemas import Matrix, Ranking, SeriesResponse, Shift, Statement, StatementText, TermCounts, UNSummary
 
 router = APIRouter(prefix="/un", tags=["un"], dependencies=[Depends(public_cache)])
 
@@ -169,6 +169,16 @@ def ranking(year: int, metric: str = "tone_balance", db: Session = Depends(get_d
     return {"year": year, "metric": metric,
             "rows": [{"rank": i, "country": c, "name": country_name(c), "value": v}
                      for i, (c, v) in enumerate(rows, 1)]}
+
+
+@router.get("/terms", response_model=TermCounts)
+def terms(db: Session = Depends(get_db)):
+    """How often each word of the default dictionaries occurs in all statements, most frequent first."""
+    run = un_data.latest_run(db)
+    rows = db.execute(select(UNTermCount).order_by(UNTermCount.hits.desc(), UNTermCount.term)).scalars().all()
+    return {"statements": run.speeches if run else 0, "first_year": run.first_year if run else None,
+            "last_year": run.last_year if run else None,
+            "terms": [{"kind": r.kind, "term": r.term, "hits": r.hits, "statements": r.statements} for r in rows]}
 
 
 @router.get("/export.csv", response_class=Response)

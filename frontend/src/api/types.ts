@@ -127,6 +127,20 @@ export interface Shift {
   change: number;
 }
 
+export interface TermCount {
+  kind: "hostile" | "cooperative";
+  term: string;
+  hits: number;
+  statements: number;
+}
+
+export interface TermCounts {
+  statements: number;
+  first_year: number | null;
+  last_year: number | null;
+  terms: TermCount[];
+}
+
 export interface Ranking {
   year: number;
   metric: string;

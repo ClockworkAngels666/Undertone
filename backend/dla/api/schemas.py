@@ -182,6 +182,20 @@ class RankingRow(BaseModel):
     value: float
 
 
+class TermCount(BaseModel):
+    kind: str
+    term: str
+    hits: int
+    statements: int
+
+
+class TermCounts(BaseModel):
+    statements: int
+    first_year: int | None = None
+    last_year: int | None = None
+    terms: list[TermCount]
+
+
 class Ranking(BaseModel):
     year: int
     metric: str

@@ -11,6 +11,7 @@ import {
   WebGLRenderer,
 } from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { keepLabelsReadable } from "./labels";
 
 /** Can this browser draw WebGL? (Old devices, some privacy settings and remote desktops cannot.) */
 export function webglAvailable(): boolean {
@@ -170,6 +171,7 @@ export function createStage(container: HTMLElement, options: Options = {}): Stag
     const draw = dirty || moved || Boolean(options.continuous);
     if (draw) {
       dirty = false;
+      keepLabelsReadable(scene, camera, container.clientHeight);
       renderer.render(scene, camera);
     }
     raf = draw || dirty ? requestAnimationFrame(loop) : 0;

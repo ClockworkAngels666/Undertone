@@ -565,11 +565,6 @@ const KIND_TITLES: Record<NotableSentence["kind"], string> = {
   cooperative: "Most cooperative sentences",
 };
 
-/** A transcript line such as "FOREIGN MINISTER LAVROV, MINISTER FOR…": all capitals, not a sentence of the speech. */
-function isTranscriptHeader(text: string) {
-  const letters = text.replace(/[^A-Za-z]/g, "");
-  return letters.length >= 8 && letters.replace(/[^A-Z]/g, "").length / letters.length > 0.8;
-}
 
 function CloseReading({ inChart, others, country, year, years, onChange }: {
   inChart: CountryInfo[]; others: CountryInfo[]; country?: string; year?: number; years: number[];
@@ -593,13 +588,12 @@ function CloseReading({ inChart, others, country, year, years, onChange }: {
   const [jump, setJump] = useState<number | null>(null);          // a sentence picked from the notable lists
   useEffect(() => setJump(null), [country, year]);
   const position = useMemo(() => new Map(flat.map((s, i) => [s.index, i])), [flat]);   // scored number → reading order
-  // Each notable sentence once (in the first list it belongs to), and no transcript headers
+  // Each notable sentence once, in the first list it belongs to
   const notable = useMemo(() => {
     const seen = new Set<number>();
     const groups = {} as Record<NotableSentence["kind"], NotableSentence[]>;
     for (const kind of Object.keys(KIND_TITLES) as NotableSentence["kind"][]) {
-      groups[kind] = (statement.data?.sentences ?? []).filter((s) => s.kind === kind && !isTranscriptHeader(s.sentence)
-        && !seen.has(s.position));
+      groups[kind] = (statement.data?.sentences ?? []).filter((s) => s.kind === kind && !seen.has(s.position));
       groups[kind].forEach((s) => seen.add(s.position));
     }
     return groups;

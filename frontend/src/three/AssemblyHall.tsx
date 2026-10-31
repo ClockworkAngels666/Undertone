@@ -24,7 +24,7 @@ import { useColorScheme } from "../lib/colors";
 import { plural, shortName } from "../lib/format";
 import { createFlagPole, type FlagPole, flagTexture } from "./flags";
 import { speakerFlag, speakerName } from "../lib/history";
-import { textSprite } from "./labels";
+import { baseHeight, textSprite } from "./labels";
 import { magnitude, scaleFor } from "./scales";
 import { isSmallScreen } from "./stage";
 import { disposeGroup, useStage } from "./useStage";
@@ -263,7 +263,9 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
         f.pole.group.visible = s.size > 0.05;
         f.pole.setHeight(s.height + 0.2);
         f.label.visible = f.pole.group.visible;
-        f.label.position.set(s.x, s.y + DESK + s.height + (small ? 0.36 : 0.3), s.z);
+        // Names grow upward, and towards the middle of the hall so that those at the sides stay on screen
+        f.label.position.set(s.x, s.y + DESK + s.height + (small ? 0.36 : 0.3) - baseHeight(f.label) / 2, s.z);
+        f.label.center.x = 0.5 + 0.5 * Math.sin(s.angle);
         if (!stage.reducedMotion) f.pole.wave(seconds, 0.8);
       }
       if (moving || current.flags.size) stage.invalidate();
@@ -326,8 +328,7 @@ export default function AssemblyHall({ matrix, metricLabel, format, year, onYear
       if (index === undefined) continue;
       const pole = createFlagPole({ width: small ? 0.24 : 0.17, segments: [8, 4], phase: index });
       const label = textSprite(shortName(speakerName(code, year, names[code] ?? code)), {
-        color: ink, height: small ? 0.15 : 0.08, weight: 500,
-        onTop: true });
+        color: ink, height: small ? 0.15 : 0.08, weight: 500, onTop: true, anchor: "bottom" });
       current.group.add(pole.group, label);
       current.flags.set(code, { index, pole, label });
       created.push(code);

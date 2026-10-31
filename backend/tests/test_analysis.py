@@ -16,6 +16,13 @@ class TestRegex:
         rx = an.build_regex(["war", "cold war"])
         assert [m.lower() for m in rx.findall("a Cold  War era")] == ["cold  war"]
 
+    def test_each_hit_is_credited_to_one_term(self):
+        text = "A Cold War era: war, sanctions and sanctioned regimes."
+        compiled = an.term_regex(["war", "cold war", "sanction*"])
+        assert an.count_terms(text, compiled) == {"cold war": 1, "war": 1, "sanction*": 2}
+        assert sum(an.count_terms(text, compiled).values()) == len(an.build_regex(["war", "cold war", "sanction*"])
+                                                                   .findall(text))
+
     def test_empty_list_matches_nothing(self):
         assert an.build_regex([]).findall("anything at all") == []
         assert an.build_regex(["*", " "]).findall("anything") == []
@@ -55,6 +62,21 @@ class TestSentences:
 
     def test_short_fragments_are_dropped(self):
         assert an.split_sentences("Thank you. This sentence is long enough.") == ["This sentence is long enough."]
+
+    def test_chair_remarks_are_removed_from_transcripts(self):
+        text = ("Zealand. The Assembly will hear an address by His Excellency Ivan Petrov, President of Valdoria. "
+                "I request protocol to escort His Excellency and invite him to address the Assembly. "
+                "PRESIDENT PETROV, PRESIDENT OF VALDORIA Madam President, we condemn the aggression. "
+                "We welcome dialogue with all partners. Thank you. "
+                "On behalf of the Assembly, I wish to thank the President of Valdoria. Thank you. "
+                "I now give the floor to His Excellency Mr. Tomas Ruiz.")
+        assert an.strip_chair_remarks(text) == ("Madam President, we condemn the aggression. "
+                                                "We welcome dialogue with all partners. Thank you.")
+
+    def test_speeches_without_the_chair_are_unchanged(self):
+        for text in ("WE CONDEMN THE AGGRESSION AGAINST OUR PEOPLE. WE WELCOME DIALOGUE WITH ALL PARTNERS.",
+                     "Mr. President, we welcome dialogue. I thank the Secretary-General for his report."):
+            assert an.strip_chair_remarks(text) == text
 
     def test_reading_text_keeps_paragraphs_and_every_piece(self):
         text = ("1. Mr. President, we condemn the  aggression. Thank you.\n\n"

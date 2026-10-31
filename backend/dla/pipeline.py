@@ -30,7 +30,7 @@ from sqlalchemy.orm import Session
 from . import analysis, un_data
 from .config import DATA_DIR
 from .countries import country_name
-from .models import Country, PipelineRun, UNCountryYear, UNKeywordRate, UNSentence, UNText
+from .models import Country, PipelineRun, UNCountryYear, UNKeywordRate, UNSentence, UNTermCount, UNText
 
 UNGDC_DOI = "doi:10.7910/DVN/0TJX8Y"
 DATAVERSE_API = "https://dataverse.harvard.edu/api"
@@ -40,7 +40,7 @@ CACHE_DIR = DATA_DIR / "processed"
 FILENAME_PATTERN = re.compile(r"^([A-Z]{2,4})_(\d{1,3})_(\d{4})\.txt$")   # e.g. RUS_77_2022.txt
 HEADERS = {"User-Agent": "undertone-lab/1.0 (UN General Debate research pipeline)"}
 NOTABLE_PER_KIND = 5
-SCORING_VERSION = "2026-10-1"     # bump when the scoring code changes in a way that alters results
+SCORING_VERSION = "2026-10-2"     # bump when the scoring code changes in a way that alters results
 
 
 class PipelineError(RuntimeError):
@@ -131,7 +131,10 @@ def verify(archive: Path, info=None):
 
 # ── Read & score ──────────────────────────────────────────────────────────────────────────────
 def iter_statements(archive: Path) -> Iterator[tuple[str, int, int, str]]:
-    """Yield (country, session, year, text) for every statement, without extracting to disk."""
+    """Yield (country, session, year, text) for every statement, without extracting to disk.
+
+    The chair's words around the 2025 transcripts are left out here, so scores and stored texts agree.
+    """
     def keep(name):
         base = name.replace("\\", "/").rsplit("/", 1)[-1]
         return None if base.startswith("._") else FILENAME_PATTERN.match(base)
@@ -140,13 +143,14 @@ def iter_statements(archive: Path) -> Iterator[tuple[str, int, int, str]]:
         with zipfile.ZipFile(archive) as z:
             for name in z.namelist():
                 if m := keep(name):
-                    yield m[1], int(m[2]), int(m[3]), z.read(name).decode("utf-8", errors="replace")
+                    text = z.read(name).decode("utf-8", errors="replace")
+                    yield m[1], int(m[2]), int(m[3]), analysis.strip_chair_remarks(text)
         return
     with tarfile.open(archive) as tar:
         for member in tar:
             if member.isfile() and (m := keep(member.name)):
                 data = tar.extractfile(member).read()
-                yield m[1], int(m[2]), int(m[3]), data.decode("utf-8", errors="replace")
+                yield m[1], int(m[2]), int(m[3]), analysis.strip_chair_remarks(data.decode("utf-8", errors="replace"))
 
 
 _worker = {}
@@ -155,6 +159,8 @@ _worker = {}
 def _init_worker():
     _worker["scorer"] = analysis.Scorer()
     _worker["keywords"] = analysis.keyword_regexes(analysis.DEFAULT_KEYWORDS)
+    _worker["terms"] = {"hostile": analysis.term_regex(analysis.HOSTILE_TERMS),
+                        "cooperative": analysis.term_regex(analysis.COOPERATIVE_TERMS)}
 
 
 def score_statement(item):
@@ -163,13 +169,15 @@ def score_statement(item):
         _init_worker()
     country, session, year, text = item
     counts, sentences = _worker["scorer"].score(text)
+    clean = analysis.clean_text(text)
     row = {"country": country, "session": session, "year": year, **counts,
-           **analysis.count_keywords(analysis.clean_text(text), _worker["keywords"])}
+           **analysis.count_keywords(clean, _worker["keywords"])}
+    terms = {kind: analysis.count_terms(clean, compiled) for kind, compiled in _worker["terms"].items()}
     row["vader_sum"] = round(row["vader_sum"], 4)
     notable = analysis.key_sentences(sentences, n=NOTABLE_PER_KIND)
     for s in notable:
         s["score"] = round(s["score"], 4)
-    return {"row": row, "sentences": notable}
+    return {"row": row, "sentences": notable, "terms": terms}
 
 
 def dictionary_fingerprint():
@@ -241,11 +249,22 @@ def load(session: Session, results, source: str, md5: str | None):
                       "score": s["score"], "position": s["index"], "sentence": s["sentence"]}
                      for r in results for s in r["sentences"]]
     codes = sorted({y["country"] for y in yearly})
+    term_rows = {}
+    for r in results:
+        for kind, hits in r.get("terms", {}).items():
+            for term, n in hits.items():
+                entry = term_rows.setdefault((kind, term), {"kind": kind, "term": term, "hits": 0, "statements": 0})
+                entry["hits"] += n
+                entry["statements"] += 1
+    for kind, terms in (("hostile", analysis.HOSTILE_TERMS), ("cooperative", analysis.COOPERATIVE_TERMS)):
+        for term in terms:                                          # words never found are listed too
+            term_rows.setdefault((kind, term), {"kind": kind, "term": term, "hits": 0, "statements": 0})
 
-    for model in (UNKeywordRate, UNSentence, UNCountryYear, Country):
+    for model in (UNKeywordRate, UNSentence, UNTermCount, UNCountryYear, Country):
         session.execute(delete(model))
     session.execute(insert(Country), [{"code": c, "name": country_name(c)} for c in codes])
-    for rows, model in ((country_rows, UNCountryYear), (keyword_rows, UNKeywordRate), (sentence_rows, UNSentence)):
+    for rows, model in ((country_rows, UNCountryYear), (keyword_rows, UNKeywordRate), (sentence_rows, UNSentence),
+                        (list(term_rows.values()), UNTermCount)):
         for start in range(0, len(rows), 5000):
             session.execute(insert(model), rows[start:start + 5000])
     session.add(PipelineRun(source=source, source_md5=md5, dictionary_fingerprint=dictionary_fingerprint(),

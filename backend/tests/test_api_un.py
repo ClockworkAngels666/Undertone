@@ -3,6 +3,10 @@ import csv
 import io
 
 import pytest
+from sqlalchemy import func, select
+
+from dla import db
+from dla.models import UNCountryYear
 
 
 def test_summary_when_nothing_is_loaded(client):
@@ -19,6 +23,19 @@ def test_summary(demo_client):
     assert [c["name"] for c in body["countries"]] == ["Borduria", "Freedonia", "Orsinia", "Syldavia", "Valdoria"]
     assert "NATO" in body["keywords"] and "sanction*" in body["keywords"]
     assert "s-maxage" in r.headers["cache-control"]
+
+
+def test_dictionary_word_counts_add_up_to_the_scores(demo_client):
+    body = demo_client.get("/api/un/terms").json()
+    assert body["statements"] == 130 and (body["first_year"], body["last_year"]) == (2000, 2025)
+    hits = [t["hits"] for t in body["terms"]]
+    assert hits == sorted(hits, reverse=True)                       # most frequent first
+    assert any(t["hits"] == 0 for t in body["terms"])               # words never found are listed too
+    condemn = next(t for t in body["terms"] if t["term"] == "condemn*")
+    assert condemn["kind"] == "hostile" and 0 < condemn["statements"] <= 130
+    with db.new_session() as session:
+        total = session.execute(select(func.sum(UNCountryYear.hostile_hits))).scalar()
+    assert sum(t["hits"] for t in body["terms"] if t["kind"] == "hostile") == total
 
 
 def test_series_with_average(demo_client):

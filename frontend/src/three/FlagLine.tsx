@@ -19,7 +19,7 @@ import { useColorScheme } from "../lib/colors";
 import { shortName } from "../lib/format";
 import { createFlagPole, type FlagPole, flagTexture } from "./flags";
 import { speakerFlag, speakerName } from "../lib/history";
-import { textSprite } from "./labels";
+import { baseHeight, textSprite } from "./labels";
 import { isSmallScreen } from "./stage";
 import { disposeGroup, useStage } from "./useStage";
 import { useTip } from "./useTip";
@@ -127,7 +127,7 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
         p.plinth.position.set(p.x, 0.02, p.z);
         p.pole.setHeight(p.height);
         p.name.position.set(p.x, p.labelY, p.z + 0.18);
-        p.value?.position.set(p.x, p.height + 0.14, p.z);
+        p.value?.position.set(p.x, p.height + 0.14 - baseHeight(p.value) / 2, p.z);
         if (!stage.reducedMotion) p.pole.wave(seconds, 1);
       }
       stage.invalidate();
@@ -174,8 +174,7 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
         const plinth = new Mesh(new CylinderGeometry(0.07, 0.09, 0.04, 16),
           new MeshStandardMaterial({ color: scheme === "dark" ? 0x2a3f55 : 0xb8c4d0, roughness: 0.6 }));
         const name = textSprite(shortName(speakerName(slot.code, year, names[slot.code] ?? slot.code)), {
-          color: ink, height: labelSize * 1.05,
-          onTop: true });
+          color: ink, height: labelSize * 1.05, onTop: true, anchor: "top" });
         p = { pole, plinth, name, value: null, valueText: "", labelY: -0.06, x: targetX, z: targetZ - 0.6,
           height: 0.05, targetX, targetZ, targetHeight: 0.05 };
         current.group.add(pole.group, plinth, name);
@@ -189,7 +188,10 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
       }
       p.targetX = targetX;
       p.targetZ = targetZ;
-      p.labelY = (slots.length > 6 || small) && i % 2 ? -0.06 - labelSize * 1.15 : -0.06;
+      // Names hang just below the base and grow downward; on a phone or a long row every other name sits one line
+      // lower, a drop that grows with the name
+      p.labelY = -0.06 + baseHeight(p.name) / 2;
+      p.name.center.y = (slots.length > 6 || small) && i % 2 ? 2.1 : 1;
       p.targetHeight = heightOf(slot.value);
       p.pole.setHalfMast(slot.value === null);
       const first = matrix.values[slot.code]?.findIndex((v) => v !== null) ?? -1;
@@ -202,7 +204,7 @@ export default function FlagLine({ matrix, metricLabel, format, year, onYearChan
           g.add(p.value);
           disposeGroup(g);
         }
-        p.value = textSprite(text, { color: ink, height: labelSize, weight: 500, onTop: true });
+        p.value = textSprite(text, { color: ink, height: labelSize, weight: 500, onTop: true, anchor: "bottom" });
         current.group.add(p.value);
         p.valueText = text;
       }

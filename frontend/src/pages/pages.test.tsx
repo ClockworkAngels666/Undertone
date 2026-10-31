@@ -87,6 +87,26 @@ describe("DictionariesPage", () => {
   });
 });
 
+describe("DictionariesPage counts", () => {
+  it("lists how often each word occurs, sorted and filtered", async () => {
+    mockFetch({ "/api/un/terms": () => ({ body: { statements: 200, first_year: 2000, last_year: 2025, terms: [
+      { kind: "hostile", term: "sanction*", hits: 400, statements: 30 },
+      { kind: "cooperative", term: "dialogue", hits: 90, statements: 120 },
+      { kind: "hostile", term: "war", hits: 0, statements: 0 },
+    ] } }) });
+    const user = userEvent.setup();
+    wrap(<DictionariesPage />);
+    await user.click(screen.getByRole("tab", { name: "How often they occur" }));
+    const words = async () => (await screen.findAllByRole("row")).slice(1).map((r) => r.querySelector("mark")?.textContent);
+    expect(await words()).toEqual(["sanction*", "dialogue", "war"]);
+    expect(screen.getByRole("row", { name: /dialogue/ })).toHaveTextContent("60%");
+    await user.click(screen.getByRole("button", { name: "Word" }));
+    expect(await words()).toEqual(["dialogue", "sanction*", "war"]);
+    await user.selectOptions(screen.getByLabelText("Show"), "hostile");
+    expect(await words()).toEqual(["sanction*", "war"]);
+  });
+});
+
 describe("DatasetsPage", () => {
   it("validates a CSV in the browser, then creates the dataset and uploads in batches", async () => {
     const created = { id: "d1", name: "sample", created_at: "2026-10-01T00:00:00Z" };

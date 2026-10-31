@@ -66,19 +66,42 @@ MAX_TERMS = 500                 # limits for user-supplied dictionaries and keyw
 MAX_TERM_LENGTH = 60
 
 
+def _ordered_patterns(terms):
+    """(term, pattern) for each usable term, longer patterns first ("cold war" before "war")."""
+    pairs = []
+    for term in terms:
+        key = term.strip().lower()
+        if not key.rstrip("*"):
+            continue
+        stem = re.escape(key.rstrip("*")).replace(r"\ ", r"\s+")
+        pairs.append((term.strip(), stem + (r"[\w-]*" if key.endswith("*") else "")))
+    return sorted(pairs, key=lambda pair: len(pair[1]), reverse=True)
+
+
 def build_regex(terms):
     """Turn a list of terms (optionally ending in *) into one search pattern (regex)."""
-    patterns = []
-    for term in terms:
-        term = term.strip().lower()
-        if not term.rstrip("*"):
-            continue
-        stem = re.escape(term.rstrip("*")).replace(r"\ ", r"\s+")
-        patterns.append(stem + (r"[\w-]*" if term.endswith("*") else ""))
+    patterns = [p for _, p in _ordered_patterns(terms)]
     if not patterns:
         return re.compile(r"(?!x)x")                   # a regex that never matches
-    patterns.sort(key=len, reverse=True)               # longer phrases first ("cold war" before "war")
     return re.compile(r"\b(?:" + "|".join(patterns) + r")\b", flags=re.IGNORECASE)
+
+
+def term_regex(terms):
+    """build_regex with a group per term, so every hit is credited to the term that matched it.
+
+    Returns (regex, terms in group order). The hits per term add up to build_regex's total.
+    """
+    pairs = _ordered_patterns(terms)
+    if not pairs:
+        return re.compile(r"(?!x)x"), []
+    groups = "|".join(f"(?P<t{i}>{p})" for i, (_, p) in enumerate(pairs))
+    return re.compile(r"\b(?:" + groups + r")\b", flags=re.IGNORECASE), [t for t, _ in pairs]
+
+
+def count_terms(clean, compiled):
+    """{term: hits} in a text, from term_regex's (regex, terms)."""
+    regex, terms = compiled
+    return dict(Counter(terms[int(m.lastgroup[1:])] for m in regex.finditer(clean)))
 
 
 def parse_term_list(text):
@@ -139,6 +162,60 @@ def _protect(clean):
 def split_sentences(clean):
     sentences = [s.replace("§", ".").strip() for s in _SENTENCE_BREAK.split(_protect(clean))]
     return [s for s in sentences if len(s.split()) >= 4]
+
+
+# The UN's 2025 texts are speech-to-text transcripts of the hall: the President of the Assembly introduces the
+# speaker first and thanks them at the end, sometimes followed by the next speaker's introduction.
+_CHAIR = re.compile(r"give the floor\b|\bassembly (?:will|now will|shall) (?:now )?hear\b|request (?:the )?protocol\b"
+                    r"|call on the next speaker|continue the general debate|\binvite (?:his|her) excellency\b", re.I)
+_CHAIR_THANKS = re.compile(r"^(?:applause\s+)?on behalf of the (?:general )?assembly\b"
+                           r"|^i (?:wish to |would like to )?thank (?:(?:his|her) excellency|the (?!assembly\b))",
+                           re.I)
+# An on-screen caption: words in capitals before the first mixed-case word
+_CAPTION = re.compile(r"(?:[^\sa-z]+\s+){3,40}(?=\S*[a-z])")
+
+
+def _pieces(text):
+    """(start, end) of every piece of the text as split_sentences cuts it, short pieces included."""
+    spans, begin = [], 0
+    for m in _SENTENCE_BREAK.finditer(_protect(text)):
+        spans.append((begin, m.start()))
+        begin = m.end()
+    return spans + [(begin, len(text))]
+
+
+def _chair_count(text, spans, closing=False):
+    """How many of these pieces, from the first, are the chair's: its lines and the short pieces between them."""
+    count = chair = 0
+    for a, b in spans[:8]:
+        piece = text[a:b].strip()
+        if _CHAIR.search(piece) or (closing and _CHAIR_THANKS.search(piece)):
+            count += 1
+            chair = count
+        elif len(piece.split()) < 4:        # "Thank you.", or the tail of the previous speaker's thanks
+            count += 1
+        else:
+            break
+    return chair
+
+
+def strip_chair_remarks(text):
+    """The speech without the chair's introduction, closing thanks and on-screen caption (2025 transcripts).
+
+    A text that does not open with the chair's words is returned unchanged, so speeches written in capitals and
+    the official records of earlier years are never touched.
+    """
+    spans = _pieces(text)
+    lead = _chair_count(text, spans)
+    if not lead:
+        return text
+    body = text[spans[lead][0]:].strip() if lead < len(spans) else ""
+    caption = _CAPTION.match(body)
+    if caption and sum(sum(c.isupper() for c in w) >= 2 for w in caption.group(0).split()) >= 3:
+        body = body[caption.end():]
+    spans = _pieces(body)
+    tail = _chair_count(body, spans[::-1], closing=True)
+    return (body[:spans[-tail][0]] if tail else body).strip()
 
 
 def reading_text(text, hostile_rx, coop_rx):

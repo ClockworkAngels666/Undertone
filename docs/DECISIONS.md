@@ -254,3 +254,24 @@ the chart's countries, and several controls behaved differently from page to pag
   and a unit test renders the chart empty and then with data.
 - **Not changed:** the transcript headers inside the UN data (rescoring needs the live database), legend clicks
   to isolate a line, and dictionary hit counts.
+
+## 23. The critique's last items
+- **The chair's words.** The corpus's 2025 texts are speech-to-text transcripts of the hall. Many open with the
+  President of the Assembly introducing the speaker and asking Protocol to escort them, some carry an on-screen
+  caption in capitals ("FOREIGN MINISTER LAVROV, MINISTER FOR…"), and they close with the chair's thanks, sometimes
+  followed by the next speaker's introduction. `analysis.strip_chair_remarks` removes those lines when the corpus
+  is read (`pipeline.iter_statements`), so the scores, the notable sentences and the stored full texts agree.
+  Only a text that opens with the chair's words is changed: 190 of the 380 statements of 2025 (about 8,000
+  words in all), none from earlier years. Speeches written entirely in capitals (Lesotho, 2024) are left alone,
+  and the all-capitals filter on the notable lists is gone. `SCORING_VERSION` is 2026-10-2.
+- **Picking out a line.** The chart's legend entries are buttons. One picks out its line: the others fade (keeping
+  their colours) and lose their dots and labels, the tooltip shows only that line, and it gets an end label even
+  among more than four lines. Selecting it again shows them all.
+- **How often each word occurs.** The pipeline credits every dictionary hit to the word that matched it
+  (`analysis.term_regex`, tried in the same order as the scores, so the counts add up to them) and stores the
+  totals in `un_term_counts` (migration 0003), served at `/api/un/terms`. The Dictionaries page has a second tab
+  with a sortable table of the default words: times found and share of statements, filtered by list, each word
+  coloured like its highlight in a text.
+- **Readable 3D labels.** No 3D label is drawn under 11 CSS pixels: before each draw the stage grows any label
+  that the camera's distance or a small screen would shrink below that (`labels.keepLabelsReadable`), and returns
+  it to its own size up close.

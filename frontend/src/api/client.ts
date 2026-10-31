@@ -13,6 +13,7 @@ import type {
   Shift,
   Statement,
   StatementText,
+  TermCounts,
   UNSummary,
   YearlyRow,
 } from "./types";
@@ -113,6 +114,7 @@ export const api = {
     statementText: (country: string, year: number) =>
       request<StatementText>(`/un/statements/${encodeURIComponent(country)}/${year}/text`),
     ranking: (year: number, metric: string) => request<Ranking>(`/un/ranking${query({ year, metric })}`),
+    terms: () => request<TermCounts>("/un/terms"),
     exportUrl: (p: { countries?: string[]; start?: number; end?: number }) =>
       `/api/un/export.csv${query({ countries: p.countries?.join(","), start: p.start, end: p.end })}`,
   },

@@ -1,4 +1,6 @@
+import { PerspectiveCamera, Scene, Sprite } from "three";
 import { ISO_ALPHA2, ISO_NUMERIC } from "./isoCodes";
+import { keepLabelsReadable, MIN_LABEL_PX } from "./labels";
 import { magnitude, NO_DATA, scaleFor } from "./scales";
 import { lonLatToVector3 } from "./stage";
 
@@ -127,5 +129,23 @@ describe("balance scale", () => {
     const spots = pile(36);
     expect(spots[0][1]).toBe(0);
     expect(Math.max(...spots.map((s) => s[1]))).toBeGreaterThan(0);
+  });
+});
+
+describe("labels", () => {
+  it("grow when they would be drawn too small, and return to their size up close", () => {
+    const scene = new Scene();
+    const camera = new PerspectiveCamera(40, 1, 0.01, 100);
+    const label = new Sprite();
+    label.userData.label = { height: 0.05, aspect: 4, text: 0.75 };
+    scene.add(label);
+    const pixelsPerUnit = 400 / (2 * Math.tan((40 * Math.PI) / 360));
+    camera.position.set(0, 0, 10);
+    keepLabelsReadable(scene, camera, 400);
+    expect((label.scale.y * 0.75 * pixelsPerUnit) / 10).toBeCloseTo(MIN_LABEL_PX);
+    expect(label.scale.x / label.scale.y).toBeCloseTo(4);
+    camera.position.set(0, 0, 0.5);
+    keepLabelsReadable(scene, camera, 400);
+    expect(label.scale.y).toBeCloseTo(0.05);
   });
 });

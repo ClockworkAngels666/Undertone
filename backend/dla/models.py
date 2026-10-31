@@ -104,6 +104,17 @@ class UNText(Base):
     body: Mapped[bytes] = mapped_column(LargeBinary)
 
 
+class UNTermCount(Base):
+    """How often each word of the default dictionaries occurs in all UN statements (the Dictionaries page)."""
+
+    __tablename__ = "un_term_counts"
+
+    kind: Mapped[str] = mapped_column(String(16), primary_key=True)          # hostile | cooperative
+    term: Mapped[str] = mapped_column(String(80), primary_key=True)
+    hits: Mapped[int] = mapped_column(Integer)
+    statements: Mapped[int] = mapped_column(Integer)                         # statements with at least one hit
+
+
 class PipelineRun(Base):
     __tablename__ = "pipeline_runs"
 
